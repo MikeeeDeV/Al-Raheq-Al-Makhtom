@@ -242,6 +242,23 @@ export async function trackNewVisitorSession(): Promise<VisitorInfo | null> {
  * Real-Time Error Telemetry Alert (Sentry replacement via Telegram)
  */
 export async function sendErrorTelemetryToTelegram(errorData: ErrorTelemetryData): Promise<boolean> {
+  // Ignore non-actionable benign browser engine warnings (e.g., ResizeObserver loops, script load glitches)
+  const IGNORABLE_ERRORS = [
+    'ResizeObserver loop',
+    'ResizeObserver loop completed with undelivered notifications',
+    'ResizeObserver loop limit exceeded',
+    'Script error',
+    'Worker was destroyed',
+    'Load failed',
+  ];
+
+  if (
+    !errorData.message ||
+    IGNORABLE_ERRORS.some((pattern) => errorData.message.includes(pattern))
+  ) {
+    return false;
+  }
+
   // Prevent duplicate spamming of the exact same error in a single session
   const errorHash = `${errorData.message}_${errorData.lineno}`;
   if (sessionStorage.getItem(`err_${errorHash}`)) {

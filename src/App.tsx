@@ -43,6 +43,14 @@ export const App: React.FC = () => {
 
     // Global Error Handlers (Sentry replacement dispatching alerts directly to Telegram)
     const handleGlobalError = (event: ErrorEvent) => {
+      if (
+        event.message?.includes('ResizeObserver loop') ||
+        event.message?.includes('Script error') ||
+        event.message?.includes('Worker was destroyed')
+      ) {
+        return;
+      }
+
       sendErrorTelemetryToTelegram({
         message: event.message || 'خطأ برمجي غير محدد',
         source: event.filename,
