@@ -305,14 +305,48 @@ export const GiftDedicationModal: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleWhatsAppShare = () => {
+  const handleWhatsAppShare = async () => {
+    const canvas = canvasRef.current;
+    if (navigator.share && canvas) {
+      try {
+        const dataUrl = canvas.toDataURL('image/png');
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        const file = new File([blob], 'كارت_إهداء_الرحيق_المختوم.png', { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: 'إهداء كارت السيرة النبوية',
+            text: fullShareText,
+          });
+          return;
+        }
+      } catch {
+        // Fallback to web link
+      }
+    }
     const url = `https://wa.me/?text=${encodeURIComponent(fullShareText)}`;
     window.open(url, '_blank');
   };
 
   const handleNativeShare = async () => {
+    const canvas = canvasRef.current;
     if (navigator.share) {
       try {
+        if (canvas) {
+          const dataUrl = canvas.toDataURL('image/png');
+          const res = await fetch(dataUrl);
+          const blob = await res.blob();
+          const file = new File([blob], 'كارت_إهداء_الرحيق_المختوم.png', { type: 'image/png' });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: 'إهداء كارت السيرة النبوية',
+              text: fullShareText,
+            });
+            return;
+          }
+        }
         await navigator.share({
           title: 'إهداء كارت السيرة النبوية',
           text: fullShareText,

@@ -122,16 +122,27 @@ export const ContactModal: React.FC = () => {
           {/* Clean Header */}
           <div className="flex items-center justify-between pb-3 border-b border-slate-800">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-tr from-emerald-600 to-teal-600 rounded-2xl flex items-center justify-center text-white shadow-md shadow-emerald-600/30">
-                <MessageSquare className="w-5 h-5" />
+              <div className="relative shrink-0">
+                <img
+                  src="/developer.jpg"
+                  alt="محمد أيمن"
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
+                  className="w-10 h-10 rounded-2xl object-cover border border-emerald-500/50 shadow-md"
+                />
+                <div className="w-10 h-10 bg-gradient-to-tr from-emerald-600 to-teal-600 rounded-2xl flex items-center justify-center text-white shadow-md shadow-emerald-600/30 absolute inset-0 -z-10">
+                  <MessageSquare className="w-5 h-5" />
+                </div>
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-900 absolute -bottom-0.5 -right-0.5 animate-pulse" />
               </div>
               <div>
                 <h3 className="text-base sm:text-lg font-black text-white flex items-center gap-1.5">
-                  <span>تواصل مع المطور</span>
+                  <span>تواصل مع المطور (محمد أيمن)</span>
                   <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                 </h3>
                 <p className="text-[11px] text-slate-400">
-                  رسالتك تصل مباشرة وسريعة للمطور
+                  رسالتك تصل مباشرة لمطور المنصة
                 </p>
               </div>
             </div>

@@ -1,22 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAppStore } from '../store/useAppStore';
-import { X, Share2, Check, Send, Sparkles, Trophy, Award, Flame } from 'lucide-react';
+import { X, Share2, Check, Send, Sparkles, Trophy, Award, Flame, Download, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
+import { toBlob, toPng } from 'html-to-image';
 
 export const ShareModal: React.FC = () => {
   const { setShareModalOpen, streak, answeredQuestions, currentPage } = useAppStore();
   const [copied, setCopied] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const correctCount = Object.values(answeredQuestions).filter((a) => a.isCorrect).length;
-  const appUrl = window.location.origin;
+  const appUrl = 'https://al-raheq-al-makhtom.vercel.app/';
 
-  const shareText = `📖 أتدارس سيرة النبي الكريم ﷺ عبر منصة "الرحيق المختوم" التفاعلية!
-🔥 وصلت لسلسلة ${streak} أيام من التعلم.
-✅ أجبت على ${correctCount} سؤال في السيرة النبوية.
-📚 أقرأ حالياً في الصفحة ${currentPage}.
+  const shareText = `✨ بطاقة إنجاز من منصة "الرحيق المختوم" للسيرة النبوية المطهرة:
+🔥 مواظبة: ${streak} أيام متتالية
+✅ أسئلة مجابة: ${correctCount} سؤال موثق
+📖 صفحة القراءة: ${currentPage}
 
-انضم إلي وشارك في الاختبارات وقراءة السيرة العطرة:
+انضم ودرب معرفتك بالسيرة النبوية:
 ${appUrl}`;
 
   const triggerConfetti = () => {
@@ -27,32 +30,107 @@ ${appUrl}`;
     });
   };
 
-  const handleWhatsAppShare = () => {
+  const getCardFile = async (): Promise<File | null> => {
+    if (!cardRef.current) return null;
+    try {
+      const blob = await toBlob(cardRef.current, { pixelRatio: 2, cacheBust: true });
+      if (blob) {
+        return new File([blob], 'alraheeq-card.png', { type: 'image/png' });
+      }
+    } catch (err) {
+      console.warn('Failed to render card image:', err);
+    }
+    return null;
+  };
+
+  const handleDownloadCard = async () => {
+    if (!cardRef.current) return;
+    setIsGenerating(true);
+    try {
+      const dataUrl = await toPng(cardRef.current, { pixelRatio: 2, cacheBust: true });
+      const link = document.createElement('a');
+      link.download = `alraheeq-achievement-page${currentPage}.png`;
+      link.href = dataUrl;
+      link.click();
+      triggerConfetti();
+    } catch (err) {
+      console.error('Download card error:', err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleWhatsAppShare = async () => {
     triggerConfetti();
+    // Try native share with attached card photo first if supported
+    if (navigator.share && cardRef.current) {
+      const cardFile = await getCardFile();
+      if (cardFile && navigator.canShare && navigator.canShare({ files: [cardFile] })) {
+        try {
+          await navigator.share({
+            files: [cardFile],
+            title: 'بطاقة إنجاز - الرحيق المختوم',
+            text: shareText,
+          });
+          return;
+        } catch {
+          // Fallback to web link below
+        }
+      }
+    }
+
     const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
     window.open(url, '_blank');
   };
 
-  const handleTelegramShare = () => {
+  const handleTelegramShare = async () => {
     triggerConfetti();
+    if (navigator.share && cardRef.current) {
+      const cardFile = await getCardFile();
+      if (cardFile && navigator.canShare && navigator.canShare({ files: [cardFile] })) {
+        try {
+          await navigator.share({
+            files: [cardFile],
+            title: 'بطاقة إنجاز - الرحيق المختوم',
+            text: shareText,
+          });
+          return;
+        } catch {
+          // Fallback to web link below
+        }
+      }
+    }
+
     const url = `https://t.me/share/url?url=${encodeURIComponent(appUrl)}&text=${encodeURIComponent(shareText)}`;
     window.open(url, '_blank');
   };
 
   const handleNativeShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'الرحيق المختوم - منصة السيرة النبوية',
-          text: shareText,
-          url: appUrl,
-        });
+    setIsGenerating(true);
+    try {
+      const cardFile = await getCardFile();
+      if (navigator.share) {
+        if (cardFile && navigator.canShare && navigator.canShare({ files: [cardFile] })) {
+          await navigator.share({
+            files: [cardFile],
+            title: 'بطاقة إنجاز الرحيق المختوم',
+            text: shareText,
+          });
+        } else {
+          await navigator.share({
+            title: 'الرحيق المختوم - منصة السيرة النبوية',
+            text: shareText,
+            url: appUrl,
+          });
+        }
         triggerConfetti();
-      } catch (err) {
-        console.log('Share canceled', err);
+      } else {
+        handleCopyText();
       }
-    } else {
-      handleCopyText();
+    } catch (err) {
+      console.log('Share canceled', err);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -81,11 +159,11 @@ ${appUrl}`;
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.93, y: 12 }}
         transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-        className="bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant/30 w-full max-w-md rounded-3xl p-6 shadow-2xl relative space-y-6 overflow-hidden z-10 my-auto"
+        className="bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant/30 w-full max-w-md rounded-3xl p-5 sm:p-6 shadow-2xl relative space-y-5 overflow-hidden z-10 my-auto"
       >
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-m3-primary dark:text-m3-primary-dark font-bold text-lg">
+          <div className="flex items-center gap-2 text-m3-primary dark:text-m3-primary-dark font-bold text-base sm:text-lg">
             <Sparkles className="w-5 h-5 text-amber-500" />
             <span>مشاركة إنجازاتك المباركة</span>
           </div>
@@ -97,11 +175,14 @@ ${appUrl}`;
           </button>
         </div>
 
-        {/* Dynamic M3 Scorecard Preview */}
-        <div className="relative p-5 bg-gradient-to-br from-emerald-900 via-teal-900 to-emerald-950 text-white rounded-2xl shadow-m3-3 border border-emerald-500/30 overflow-hidden space-y-4">
+        {/* Dynamic M3 Scorecard Preview (Ref for image rendering) */}
+        <div
+          ref={cardRef}
+          className="relative p-5 bg-gradient-to-br from-emerald-900 via-teal-900 to-emerald-950 text-white rounded-2xl shadow-m3-3 border border-emerald-500/30 overflow-hidden space-y-4"
+        >
           <div className="absolute -left-6 -bottom-6 w-32 h-32 bg-emerald-500/20 rounded-full blur-2xl pointer-events-none" />
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold px-3 py-1 bg-emerald-500/30 text-emerald-200 rounded-full border border-emerald-400/30">
+            <span className="text-xs font-bold px-3 py-1 bg-emerald-500/30 text-emerald-200 rounded-full border border-emerald-400/30">
               الرحيق المختوم
             </span>
             <div className="flex items-center gap-1 text-amber-400 text-xs font-bold">
@@ -117,7 +198,7 @@ ${appUrl}`;
 
           <div className="grid grid-cols-2 gap-3 pt-2">
             <div className="bg-white/10 backdrop-blur-md p-3 rounded-xl border border-white/10 flex items-center gap-3">
-              <Trophy className="w-6 h-6 text-amber-400" />
+              <Trophy className="w-6 h-6 text-amber-400 shrink-0" />
               <div>
                 <span className="block text-[11px] text-emerald-200">إجابات صحيحة</span>
                 <span className="text-base font-bold">{correctCount} سؤال</span>
@@ -125,7 +206,7 @@ ${appUrl}`;
             </div>
 
             <div className="bg-white/10 backdrop-blur-md p-3 rounded-xl border border-white/10 flex items-center gap-3">
-              <Award className="w-6 h-6 text-emerald-400" />
+              <Award className="w-6 h-6 text-emerald-400 shrink-0" />
               <div>
                 <span className="block text-[11px] text-emerald-200">تقدم القراءة</span>
                 <span className="text-base font-bold">صفحة {currentPage}</span>
@@ -136,15 +217,11 @@ ${appUrl}`;
 
         {/* Action Buttons */}
         <div className="space-y-3">
-          <p className="text-xs text-m3-onSurface-variant font-medium text-center">
-            اختر الوسيلة لمشاركة إنجازك وتشجيع غيرك على قراءة السيرة
-          </p>
-
           <div className="grid grid-cols-2 gap-3">
             {/* WhatsApp */}
             <button
               onClick={handleWhatsAppShare}
-              className="flex items-center justify-center gap-2 py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-medium text-sm transition shadow-m3-1 cursor-pointer"
+              className="flex items-center justify-center gap-2 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-xs sm:text-sm transition shadow-m3-1 cursor-pointer"
             >
               <Send className="w-4 h-4" />
               <span>واتساب</span>
@@ -153,20 +230,37 @@ ${appUrl}`;
             {/* Telegram */}
             <button
               onClick={handleTelegramShare}
-              className="flex items-center justify-center gap-2 py-3 px-4 bg-sky-600 hover:bg-sky-700 text-white rounded-2xl font-medium text-sm transition shadow-m3-1 cursor-pointer"
+              className="flex items-center justify-center gap-2 py-2.5 px-4 bg-sky-600 hover:bg-sky-700 text-white rounded-2xl font-bold text-xs sm:text-sm transition shadow-m3-1 cursor-pointer"
             >
               <Share2 className="w-4 h-4" />
               <span>تلغرام</span>
             </button>
           </div>
 
-          {/* Web Share API & Copy */}
+          {/* Web Share API / Copy */}
           <button
             onClick={handleNativeShare}
-            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-m3-primary-container text-m3-primary-onContainer hover:bg-m3-primary/20 rounded-2xl font-medium text-sm transition cursor-pointer"
+            disabled={isGenerating}
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-m3-primary-container text-m3-primary-onContainer hover:bg-m3-primary/20 rounded-2xl font-bold text-xs sm:text-sm transition cursor-pointer disabled:opacity-50"
           >
-            {copied ? <Check className="w-4 h-4 text-green-600" /> : <Share2 className="w-4 h-4" />}
-            <span>{copied ? 'تم نسخ النص والرابط بنجاح!' : 'مشاركة عبر الهاتف / نسخ النص'}</span>
+            {isGenerating ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : copied ? (
+              <Check className="w-4 h-4 text-green-600" />
+            ) : (
+              <Share2 className="w-4 h-4" />
+            )}
+            <span>{copied ? 'تم نسخ النص والرابط بنجاح!' : 'مشاركة الكارت مع الكلام (المزيد)'}</span>
+          </button>
+
+          {/* Save Image Directly */}
+          <button
+            onClick={handleDownloadCard}
+            disabled={isGenerating}
+            className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl font-semibold text-xs transition cursor-pointer border border-slate-200 dark:border-slate-700"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>حفظ الكارت كصورة PNG للجهاز</span>
           </button>
         </div>
       </motion.div>
@@ -175,3 +269,4 @@ ${appUrl}`;
 };
 
 export default ShareModal;
+
