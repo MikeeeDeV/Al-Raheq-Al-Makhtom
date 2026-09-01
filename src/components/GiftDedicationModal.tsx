@@ -326,23 +326,29 @@ export const GiftDedicationModal: React.FC = () => {
     }
   };
 
-  if (!isGiftModalOpen) return null;
-
   return (
-    <AnimatePresence>
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/75 backdrop-blur-md font-arabic"
-        dir="rtl"
-      >
-        {/* Hidden Canvas for Export */}
-        <canvas ref={canvasRef} className="hidden" />
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 font-arabic dir-rtl"
+    >
+      {/* Hidden Canvas for Export */}
+      <canvas ref={canvasRef} className="hidden" />
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.94, y: 15 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.94, y: 15 }}
-          transition={{ duration: 0.28, ease: [0.25, 1, 0.5, 1] }}
-          className="bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant/30 w-full max-w-xl rounded-3xl shadow-2xl relative overflow-hidden flex flex-col max-h-[92vh]"
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.18 }}
+        onClick={() => setGiftModalOpen(false)}
+        className="fixed inset-0 bg-slate-950/75 backdrop-blur-xs"
+      />
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.93, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.93, y: 12 }}
+        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        className="bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant/30 w-full max-w-xl rounded-3xl shadow-2xl relative overflow-hidden flex flex-col max-h-[92vh] z-10 my-auto"
         >
           {/* Top Modal Header */}
           <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-emerald-950 text-white p-4 sm:p-5 flex items-center justify-between shadow-xs">
@@ -544,7 +550,6 @@ export const GiftDedicationModal: React.FC = () => {
           </div>
         </motion.div>
       </div>
-    </AnimatePresence>
   );
 };
 

@@ -194,26 +194,25 @@ export const MayadaDedicationModal: React.FC = () => {
     setTimeout(() => setCopied(false), 2500);
   };
 
-  if (!isMayadaModalOpen) return null;
-
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto font-arabic dir-rtl">
-        {/* Backdrop overlay */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={() => setMayadaModalOpen(false)}
-          className="fixed inset-0 bg-slate-950/80 backdrop-blur-md"
-        />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto font-arabic dir-rtl">
+      {/* Backdrop overlay */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.18 }}
+        onClick={() => setMayadaModalOpen(false)}
+        className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs"
+      />
 
-        {/* Modal Window Container */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="relative w-full max-w-3xl bg-gradient-to-b from-rose-950 via-slate-950 to-pink-950 border border-rose-500/40 rounded-3xl p-5 sm:p-8 shadow-2xl text-slate-100 space-y-6 overflow-hidden z-10 my-auto"
+      {/* Modal Window Container */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.93, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.93, y: 12 }}
+        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        className="relative w-full max-w-3xl bg-gradient-to-b from-rose-950 via-slate-950 to-pink-950 border border-rose-500/40 rounded-3xl p-5 sm:p-8 shadow-2xl text-slate-100 space-y-6 overflow-hidden z-10 my-auto"
         >
           {/* Ambient Glowing Orbs */}
           <div className="absolute -top-24 -right-24 w-80 h-80 bg-rose-500/20 rounded-full blur-3xl pointer-events-none animate-pulse-glow" />
@@ -346,7 +345,6 @@ export const MayadaDedicationModal: React.FC = () => {
           </div>
         </motion.div>
       </div>
-    </AnimatePresence>
   );
 };
 

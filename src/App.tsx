@@ -18,7 +18,14 @@ import { trackNewVisitorSession } from './services/telegramTelemetry';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const App: React.FC = () => {
-  const { currentView } = useAppStore();
+  const {
+    currentView,
+    isShareModalOpen,
+    isAboutModalOpen,
+    isGiftModalOpen,
+    isMayadaModalOpen,
+    isContactModalOpen,
+  } = useAppStore();
 
   // Sync URL changes & track new visitor session on Telegram
   useEffect(() => {
@@ -127,13 +134,15 @@ export const App: React.FC = () => {
       {/* Bottom Footer */}
       <Footer />
 
-      {/* Dynamic Modals */}
-      <ShareModal />
-      <AboutModal />
-      <InstallPwaModal />
-      <GiftDedicationModal />
-      <MayadaDedicationModal />
-      <ContactModal />
+      {/* Dynamic Animated Modals */}
+      <AnimatePresence>
+        {isShareModalOpen && <ShareModal key="share-modal" />}
+        {isAboutModalOpen && <AboutModal key="about-modal" />}
+        <InstallPwaModal key="pwa-modal" />
+        {isGiftModalOpen && <GiftDedicationModal key="gift-modal" />}
+        {isMayadaModalOpen && <MayadaDedicationModal key="mayada-modal" />}
+        {isContactModalOpen && <ContactModal key="contact-modal" />}
+      </AnimatePresence>
     </div>
   );
 };

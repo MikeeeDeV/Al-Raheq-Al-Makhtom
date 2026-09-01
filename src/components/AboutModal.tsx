@@ -1,15 +1,31 @@
 import React from 'react';
 import { useAppStore } from '../store/useAppStore';
-import { X, BookOpen, Award, UserCheck, Github, Code, Sparkles, CheckCircle2, HelpCircle } from 'lucide-react';
+import { X, BookOpen, Award, Github, Code, CheckCircle2, HelpCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export const AboutModal: React.FC = () => {
-  const { isAboutModalOpen, setAboutModalOpen } = useAppStore();
-
-  if (!isAboutModalOpen) return null;
+  const { setAboutModalOpen } = useAppStore();
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant/30 w-full max-w-2xl rounded-3xl p-6 md:p-8 shadow-m3-5 relative space-y-6 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-arabic dir-rtl">
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.18 }}
+        onClick={() => setAboutModalOpen(false)}
+        className="fixed inset-0 bg-slate-950/75 backdrop-blur-xs"
+      />
+
+      {/* Modal Content */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.93, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.93, y: 12 }}
+        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        className="bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant/30 w-full max-w-2xl rounded-3xl p-6 md:p-8 shadow-2xl relative space-y-6 max-h-[90vh] overflow-y-auto z-10 my-auto"
+      >
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-m3-outline-variant/20">
           <div className="flex items-center gap-3">
@@ -27,7 +43,7 @@ export const AboutModal: React.FC = () => {
           </div>
           <button
             onClick={() => setAboutModalOpen(false)}
-            className="p-2 text-m3-onSurface-variant hover:bg-m3-surface-container rounded-full transition"
+            className="p-2 text-m3-onSurface-variant hover:bg-m3-surface-container rounded-full transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -82,10 +98,10 @@ export const AboutModal: React.FC = () => {
 
           <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
             <a
-              href="https://github.com/mohamed-ayman"
+              href="https://github.com/MikeeeDeV/Al-Raheq-Al-Makhtom"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-m3-primary text-white hover:bg-m3-primary/90 font-medium text-sm rounded-full shadow-m3-2 transition"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-m3-primary text-white hover:bg-m3-primary/90 font-medium text-sm rounded-full shadow-m3-2 transition cursor-pointer"
             >
               <Github className="w-4 h-4" />
               <span>زيارة حساب GitHub للمطور</span>
@@ -121,7 +137,7 @@ export const AboutModal: React.FC = () => {
             </div>
             <div className="p-2.5 bg-m3-surface-container rounded-xl flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>Supabase + Offline Sync</span>
+              <span>Telegram Telemetry API</span>
             </div>
           </div>
         </div>
@@ -130,12 +146,14 @@ export const AboutModal: React.FC = () => {
         <div className="pt-4 border-t border-m3-outline-variant/20 flex justify-end">
           <button
             onClick={() => setAboutModalOpen(false)}
-            className="px-6 py-2.5 bg-m3-surface-container text-m3-onSurface font-medium text-sm rounded-full hover:bg-m3-surface-high transition"
+            className="px-6 py-2.5 bg-m3-surface-container text-m3-onSurface font-medium text-sm rounded-full hover:bg-m3-surface-high transition cursor-pointer"
           >
             إغلاق النافذة
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
+
+export default AboutModal;
