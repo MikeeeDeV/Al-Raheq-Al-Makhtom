@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/pwa-192.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <!-- Primary Meta Tags -->
     <title>الرحيق المختوم | المنصة التفاعلية للسيرة النبوية (1200 سؤال وقارئ ذكي)</title>
@@ -35,13 +35,11 @@
     <meta name="twitter:description" content="اقرأ وتدارس سيرة الحبيب المصطفى ﷺ مع 1200 سؤال وجواب ونظام أوسمة تفاعلي وقارئ ذكي." />
     <meta name="twitter:image" content="https://al-raheq-al-makhtom.vercel.app/og-image.jpg" />
 
-    <!-- Priority Hints & Network Resource Hints (Fast 40% loading boost) -->
+    <!-- Priority Hints & Network Resource Hints -->
     <link rel="preconnect" href="https://fonts.googleapis.com" fetchpriority="high" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin fetchpriority="high" />
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin fetchpriority="high" />
     <link rel="dns-prefetch" href="https://api.telegram.org" />
-    <link rel="dns-prefetch" href="https://ipwho.is" />
-    <link rel="prefetch" href="/book.pdf" as="fetch" type="application/pdf" crossorigin />
 
     <!-- PWA Manifest & Web App Settings -->
     <link rel="manifest" href="/manifest.json" />
@@ -52,11 +50,13 @@
     <meta name="apple-mobile-web-app-title" content="الرحيق المختوم" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-    <!-- Google Fonts: Readex Pro & Cairo -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Readex+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <!-- Asynchronous Non-Render-Blocking Google Fonts & Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Readex+Pro:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Readex+Pro:wght@400;600;700&display=swap" rel="stylesheet" />
+    </noscript>
     
-    <!-- Material Symbols -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" media="print" onload="this.media='all'" />
 
     <!-- Google Site Verification & Schema.org JSON-LD -->
     <meta name="google-site-verification" content="ynKLS3oJEfogGyvBf6_Y-fTmecoMeUm0axP00XQ9z0U" />

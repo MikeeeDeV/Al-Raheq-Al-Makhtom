@@ -14,9 +14,35 @@ export default defineConfig({
     port: 3000,
     host: true,
   },
+  esbuild: {
+    drop: ['console', 'debugger'],
+  },
   build: {
     target: 'esnext',
     outDir: 'dist',
-    chunkSizeWarningLimit: 1600,
+    chunkSizeWarningLimit: 800,
+    cssCodeSplit: true,
+    minify: 'esbuild',
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('pdfjs-dist')) {
+            return 'vendor-pdfjs';
+          }
+          if (id.includes('framer-motion')) {
+            return 'vendor-motion';
+          }
+          if (id.includes('lucide-react')) {
+            return 'vendor-icons';
+          }
+          if (id.includes('recharts') || id.includes('d3-')) {
+            return 'vendor-charts';
+          }
+          if (id.includes('node_modules')) {
+            return 'vendor-core';
+          }
+        },
+      },
+    },
   },
 });

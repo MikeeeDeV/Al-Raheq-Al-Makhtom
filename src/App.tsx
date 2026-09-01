@@ -1,24 +1,28 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { useAppStore, getInitialViewFromUrl } from './store/useAppStore';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { HomeView } from './views/HomeView';
-import { ReaderView } from './views/ReaderView';
-import { QuizArenaView } from './views/QuizArenaView';
-import { MistakesBankView } from './views/MistakesBankView';
-import { AnalyticsView } from './views/AnalyticsView';
-import { ShareModal } from './components/ShareModal';
-import { AboutModal } from './components/AboutModal';
-import { InstallPwaModal } from './components/InstallPwaModal';
-import { GiftDedicationModal } from './components/GiftDedicationModal';
-import { ContactModal } from './components/ContactModal';
-import { BookCompletionModal } from './components/BookCompletionModal';
-import { DailyChallengeModal } from './components/DailyChallengeModal';
-import { BadgeUnlockModal } from './components/BadgeUnlockModal';
 import { SeoMeta } from './components/SeoMeta';
 import { trackNewVisitorSession, sendErrorTelemetryToTelegram } from './services/telegramTelemetry';
 import { initGoogleAnalytics } from './services/googleAnalytics';
 import { motion, AnimatePresence } from 'framer-motion';
+
+// Lazy-loaded Views for Instant Initial Paint & Code Splitting (Lighthouse 90+ Score)
+const ReaderView = lazy(() => import('./views/ReaderView'));
+const QuizArenaView = lazy(() => import('./views/QuizArenaView').then(m => ({ default: m.QuizArenaView })));
+const MistakesBankView = lazy(() => import('./views/MistakesBankView'));
+const AnalyticsView = lazy(() => import('./views/AnalyticsView'));
+
+// Lazy-loaded Modals
+const ShareModal = lazy(() => import('./components/ShareModal'));
+const AboutModal = lazy(() => import('./components/AboutModal'));
+const InstallPwaModal = lazy(() => import('./components/InstallPwaModal').then(m => ({ default: m.InstallPwaModal })));
+const GiftDedicationModal = lazy(() => import('./components/GiftDedicationModal'));
+const ContactModal = lazy(() => import('./components/ContactModal'));
+const BookCompletionModal = lazy(() => import('./components/BookCompletionModal'));
+const DailyChallengeModal = lazy(() => import('./components/DailyChallengeModal'));
+const BadgeUnlockModal = lazy(() => import('./components/BadgeUnlockModal'));
 
 export const App: React.FC = () => {
   const {
@@ -90,37 +94,42 @@ export const App: React.FC = () => {
       case 'home':
         return {
           title: 'الرحيق المختوم | المنصة التفاعلية الموثقة للسيرة النبوية الشريفة',
-          description: 'منصة تفاعلية عصرية لقراءة ودراسة كتاب الرحيق المختوم وإجراء اختبارات تفاعلية في السيرة النبوية.',
+          description:
+            'منظومة تفاعلية شاملة لقراءة ودراسة كتاب الرحيق المختوم للمباركفوري مع 1200 سؤال وجواب، قارئ PDF متطور، وبنك مراجعة للاختبارات.',
           path: '/',
         };
       case 'reader':
         return {
-          title: 'القارئ الرقمي المتطور | الرحيق المختوم',
-          description: 'تصفح صفحات كتاب الرحيق المختوم كاملاً بوضع القراءة الفاخر، وضع الليل، العلامات المرجعية والتكبير.',
+          title: 'قارئ كتاب الرحيق المختوم PDF التفاعلي | المنصة الرسمية',
+          description:
+            'اقرأ وتصفح كتاب الرحيق المختوم كاملاً بدقة عالية، مع إمكانية التظليل، وضع الفواصل، والتنقل الذكي بين الفصول والصفحات.',
           path: '/reader',
         };
       case 'quiz':
         return {
-          title: 'ساحة الاختبارات والتحديات | الرحيق المختوم',
-          description: 'اختبر معرفتك في السيرة النبوية الشريفة عبر أكثر من 1200 سؤال وجواب تفاعلي وموثق.',
+          title: 'ساحة مسابقات واختبارات السيرة النبوية (1200 سؤال وجواب)',
+          description:
+            'اختبر حصيلتك في سيرة النبي محمد ﷺ عبر 1200 سؤال وجواب موثق مقسمة حسب الفصول التاريخية مع نظام نقاط وأوسمة تفاعلي.',
           path: '/quiz',
         };
       case 'mistakes':
         return {
-          title: 'بنك المراجعة الذكي وتصحيح الأخطاء | الرحيق المختوم',
-          description: 'راجع الأخطاء السابقة وحسّن مستواك في اختبارات السيرة النبوية لتثبيت الفهم والحفظ.',
+          title: 'بنك المراجعة والتصحيح الذكي | منصة الرحيق المختوم',
+          description:
+            'سجل مراجعاتك الشخصية والأسئلة غير المجابة لإعادة مراجعتها وتثبيت المعلومات الحفظية والتاريخية للسيرة النبوية.',
           path: '/mistakes',
         };
       case 'analytics':
         return {
-          title: 'لوحة الإحصائيات والأوسمة الماسية | الرحيق المختوم',
-          description: 'تابع تقدمك في مسارات السيرة النبوية وافتح الأوسمة البرونزية والفضية والذهبية والماسية.',
+          title: 'لوحة الإحصائيات والإنجاز الشخصي | منصة الرحيق المختوم',
+          description:
+            'تتبع نسبة تقدمك في قراءة الكتاب، دقة إجاباتك في المسابقات، ونسبة إنجاز المراحل التاريخية للسيرة النبوية.',
           path: '/analytics',
         };
       default:
         return {
           title: 'الرحيق المختوم | المنصة التفاعلية للسيرة النبوية',
-          description: 'منصة تفاعلية لقراءة ودراسة السيرة النبوية الشريفة.',
+          description: 'منظومة تفاعلية لقراءة ودراسة السيرة النبوية الشريفة واختبار معلوماتك.',
           path: '/',
         };
     }
@@ -145,6 +154,13 @@ export const App: React.FC = () => {
     }
   };
 
+  const LoadingFallback = () => (
+    <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-3 py-12">
+      <div className="w-10 h-10 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+      <p className="text-xs font-bold text-m3-onSurface-variant animate-pulse">جاري التحميل...</p>
+    </div>
+  );
+
   return (
     <div className="min-h-screen flex flex-col bg-m3-surface text-m3-onSurface dark:bg-m3-surface-dark dark:text-m3-onSurface-dark transition-colors duration-300 font-arabic selection:bg-m3-primary-container selection:text-m3-primary-onContainer">
       {/* Dynamic SEO Meta & JSON-LD Structured Data */}
@@ -155,33 +171,37 @@ export const App: React.FC = () => {
 
       {/* Main Animated View Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-6">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentView}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15, ease: 'easeOut' }}
-          >
-            {renderView()}
-          </motion.div>
-        </AnimatePresence>
+        <Suspense fallback={<LoadingFallback />}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentView}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+            >
+              {renderView()}
+            </motion.div>
+          </AnimatePresence>
+        </Suspense>
       </main>
 
       {/* Bottom Footer */}
       <Footer />
 
       {/* Dynamic Animated Modals */}
-      <AnimatePresence>
-        {isShareModalOpen && <ShareModal key="share-modal" />}
-        {isAboutModalOpen && <AboutModal key="about-modal" />}
-        <InstallPwaModal key="pwa-modal" />
-        {isGiftModalOpen && <GiftDedicationModal key="gift-modal" />}
-        {isContactModalOpen && <ContactModal key="contact-modal" />}
-        {isCompletionModalOpen && <BookCompletionModal key="completion-modal" />}
-        <DailyChallengeModal key="daily-challenge-modal" />
-        <BadgeUnlockModal key="badge-modal" />
-      </AnimatePresence>
+      <Suspense fallback={null}>
+        <AnimatePresence>
+          {isShareModalOpen && <ShareModal key="share-modal" />}
+          {isAboutModalOpen && <AboutModal key="about-modal" />}
+          <InstallPwaModal key="pwa-modal" />
+          {isGiftModalOpen && <GiftDedicationModal key="gift-modal" />}
+          {isContactModalOpen && <ContactModal key="contact-modal" />}
+          {isCompletionModalOpen && <BookCompletionModal key="completion-modal" />}
+          <DailyChallengeModal key="daily-challenge-modal" />
+          <BadgeUnlockModal key="badge-modal" />
+        </AnimatePresence>
+      </Suspense>
     </div>
   );
 };
