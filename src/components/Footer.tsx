@@ -43,35 +43,29 @@ export const Footer: React.FC = () => {
   return (
     <footer className="w-full bg-m3-surface-container/80 dark:bg-m3-surface-darkContainer/80 border-t border-m3-outline-variant/30 mt-16 pb-20 md:pb-8 pt-12 transition-colors font-arabic">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-10">
-        {/* Top Feature Bar 1: Digital Gift Card Hero Banner */}
-        <div className="p-6 bg-gradient-to-r from-emerald-900/10 via-teal-900/10 to-amber-900/15 dark:from-emerald-950/40 dark:to-teal-950/40 border border-emerald-500/30 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 shadow-m3-2 relative overflow-hidden">
-          <div className="flex items-center gap-4 text-center md:text-right">
-            <div className="w-14 h-14 bg-gradient-to-br from-emerald-700 to-teal-800 rounded-2xl flex items-center justify-center text-white shadow-lg flex-shrink-0">
-              <Gift className="w-7 h-7 text-amber-300" />
+        {/* Top Feature Bar 1: Simple Minimalist Islamic Gift Card Banner */}
+        <div className="p-5 bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-800/20 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5 text-center md:text-right">
+            <div className="w-11 h-11 bg-emerald-800 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+              <Gift className="w-5 h-5 text-amber-300" />
             </div>
             <div>
-              <div className="flex items-center justify-center md:justify-start gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                <span>بطاقات إهداء رقمية فاخرة</span>
-              </div>
-              <h3 className="text-lg font-black text-m3-onSurface mt-0.5">
-                مولّد كروت الإهداء الرقمية — أهدِ المنصة لأحبائك
+              <h3 className="text-base font-bold text-m3-onSurface">
+                إهداء المنصة لأحبائك في الله 📜
               </h3>
-              <p className="text-xs text-m3-onSurface-variant mt-1 max-w-xl">
-                صمم كارت إهداء راقٍ يحتوي على اسمك واسم المُهدى إليه ورسالة عاطرة، وقم بتحميل الكارت كصورة PNG عالية الجودة أو مشاركته عبر واتساب.
+              <p className="text-xs text-m3-onSurface-variant mt-0.5 max-w-xl">
+                أرسل كارت إهداء بسيط يحتوي على اسمك واسم المُهدى إليه ورسالة عاطرة مع رابط منصة السيرة النبوية.
               </p>
             </div>
           </div>
 
-          <motion.button
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
+          <button
             onClick={() => setGiftModalOpen(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-700 via-teal-700 to-emerald-800 text-white font-black text-xs sm:text-sm rounded-full shadow-lg shadow-emerald-700/25 hover:shadow-emerald-700/40 transition cursor-pointer flex-shrink-0"
+            className="flex items-center gap-2 px-5 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer flex-shrink-0"
           >
             <Gift className="w-4 h-4 text-amber-300" />
-            <span>إنشاء وتحميل كارت إهداء 📜</span>
-          </motion.button>
+            <span>إنشاء كارت إهداء</span>
+          </button>
         </div>
 
         {/* Top Feature Bar 2: Rotating Prophetic Hadith & Daily Wisdom */}
