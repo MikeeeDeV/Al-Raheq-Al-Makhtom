@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://al-raheeq-al-makhtom.vercel.app/sitemap.xml

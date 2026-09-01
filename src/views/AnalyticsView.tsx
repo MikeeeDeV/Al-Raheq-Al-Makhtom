@@ -350,7 +350,12 @@ export const AnalyticsView: React.FC = () => {
         {/* Badges Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {filteredAchievements.map((ach) => {
-            const style = getTierBadgeStyle(ach.tier, ach.unlocked) || DEFAULT_BADGE_STYLE;
+            const rawStyle = getTierBadgeStyle(ach.tier, ach.unlocked);
+            const cardBg = rawStyle?.cardBg || DEFAULT_BADGE_STYLE.cardBg;
+            const chipBg = rawStyle?.chipBg || DEFAULT_BADGE_STYLE.chipBg;
+            const label = rawStyle?.label || DEFAULT_BADGE_STYLE.label;
+            const icon = rawStyle?.icon || DEFAULT_BADGE_STYLE.icon;
+
             const currentVal = ach.currentValue || 0;
             const targetVal = ach.targetValue || 1;
             const progressPercent = Math.min(100, Math.round((currentVal / targetVal) * 100));
@@ -359,15 +364,15 @@ export const AnalyticsView: React.FC = () => {
               <motion.div
                 key={ach.id}
                 whileHover={{ y: -3 }}
-                className={`p-5 rounded-3xl border text-right transition-all flex flex-col justify-between space-y-4 relative overflow-hidden ${style.cardBg}`}
+                className={`p-5 rounded-3xl border text-right transition-all flex flex-col justify-between space-y-4 relative overflow-hidden ${cardBg}`}
               >
                 {/* Track Badge Header */}
                 <div className="flex items-center justify-between">
                   <div className="p-2.5 bg-m3-surface/60 dark:bg-m3-surface-dark/60 rounded-2xl border border-m3-outline-variant/20 shadow-xs">
-                    {style.icon}
+                    {icon}
                   </div>
-                  <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${style.chipBg}`}>
-                    {style.label}
+                  <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${chipBg}`}>
+                    {label}
                   </span>
                 </div>
 
