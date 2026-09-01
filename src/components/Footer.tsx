@@ -64,10 +64,10 @@ export const Footer: React.FC = () => {
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setMayadaModalOpen(true)}
-                className="flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-rose-700 to-pink-700 hover:from-rose-600 hover:to-pink-600 text-white font-bold text-xs rounded-full shadow-xs transition cursor-pointer border border-rose-400/30"
+                className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-rose-700 to-pink-700 hover:from-rose-600 hover:to-pink-600 text-white font-bold text-xs rounded-full shadow-xs transition cursor-pointer border border-rose-400/30"
               >
                 <Heart className="w-3.5 h-3.5 fill-rose-300 text-rose-200 animate-pulse" />
-                <span>إهداء إلى ملهمتي 🌹</span>
+                <span>إهداء إلى ملهمتي</span>
               </button>
 
               <button
@@ -96,7 +96,7 @@ export const Footer: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <span>إهداء خَاص لـ مُلهمَة الدَّرب وحبيبة العمر 💖</span>
+                  <span>إهداء خَاص لـ مُلهمَة الدَّرب وحبيبة العمر</span>
                   <Flower2 className="w-4 h-4 text-rose-400 animate-spin-slow" />
                 </h3>
                 <p className="text-xs text-slate-300 mt-0.5 max-w-xl font-light">
@@ -113,7 +113,7 @@ export const Footer: React.FC = () => {
                 className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-bold text-xs rounded-2xl shadow-lg transition cursor-pointer border border-rose-300/40"
               >
                 <Heart className="w-4 h-4 fill-rose-300 text-rose-200 animate-pulse" />
-                <span>إهداء إلى ملهمتي 🌹</span>
+                <span>إهداء إلى ملهمتي</span>
               </motion.button>
 
               <motion.button
@@ -210,7 +210,7 @@ export const Footer: React.FC = () => {
                   className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-rose-500/20 text-rose-200 border border-rose-400/40 rounded-full text-xs font-bold hover:bg-rose-500/30 transition cursor-pointer"
                 >
                   <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-400 animate-pulse" />
-                  <span>إهداء إلى ملهمتي 🌹</span>
+                  <span>إهداء إلى ملهمتي</span>
                 </button>
               </div>
 

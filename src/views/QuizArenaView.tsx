@@ -18,6 +18,7 @@ import {
   Share2,
   ArrowLeft,
   ArrowRight,
+  Sparkles,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -412,8 +413,9 @@ export const QuizArenaView: React.FC = () => {
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-black text-m3-onSurface">
-              بارك الله فيك! أكملت الجلسة بنجاح 🎉
+            <h2 className="text-2xl sm:text-3xl font-black text-m3-onSurface flex items-center justify-center gap-2">
+              <span>بارك الله فيك! أكملت الجلسة بنجاح</span>
+              <Sparkles className="w-7 h-7 text-amber-500 animate-bounce-gentle" />
             </h2>
             <p className="text-sm text-m3-onSurface-variant">
               اختبار {currentSectionInfo?.title}

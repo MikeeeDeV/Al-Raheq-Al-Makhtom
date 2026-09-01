@@ -8,6 +8,7 @@ import {
   Info,
   ChevronLeft,
   ChevronRight,
+  Sparkles,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -65,7 +66,10 @@ export const MistakesBankView: React.FC = () => {
         </div>
 
         <div className="space-y-2 max-w-md">
-          <h2 className="text-2xl font-black text-m3-onSurface">بنك المراجعة خالي تماماً! 🎉</h2>
+          <h2 className="text-2xl font-black text-m3-onSurface flex items-center justify-center gap-2">
+            <span>بنك المراجعة خالي تماماً!</span>
+            <Sparkles className="w-6 h-6 text-amber-500 animate-bounce-gentle" />
+          </h2>
           <p className="text-sm text-m3-onSurface-variant leading-relaxed">
             ممتاز جداً! ليس لديك أي أسئلة غير مأسورة حالياً. جميع إجاباتك السابقة موثقة وصحيحة.
           </p>

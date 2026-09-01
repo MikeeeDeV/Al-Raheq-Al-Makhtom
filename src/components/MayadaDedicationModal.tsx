@@ -5,10 +5,11 @@ import {
   X,
   Sparkles,
   Download,
-  Share2,
   Copy,
   Check,
   Flower2,
+  Palette,
+  PenTool,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -20,28 +21,28 @@ interface RomanticMessageOption {
 
 const DEDICATION_MESSAGES: RomanticMessageOption[] = [
   {
-    title: 'إهداء المحبة والوفاء 🌹',
-    text: 'إلى حبيبتي وملهمة الدرب.. أهديكِ هذا العمل المبارك بنية الصدقة الجارية والنور، دمتِ لي سكنًا ونورًا وأجمل نعم ربي ❤️',
+    title: 'إهداء المحبة والوفاء',
+    text: 'إلى حبيبتي وملهمة الدرب.. أهديكِ هذا العمل المبارك بنية الصدقة الجارية والنور، دمتِ لي سكنًا ونورًا وأجمل نعم ربي',
   },
   {
-    title: 'نور العين والروح 💖',
-    text: 'من أعماق القلب إلى من يُزهر بوجودها الفؤاد يا حبيبتي.. جعل الله هذا الجهد في ميزان حسناتنا وجمعنا دوماً على الطاعة والمحبة ✨',
+    title: 'نور العين والروح',
+    text: 'من أعماق القلب إلى من يُزهر بوجودها الفؤاد يا حبيبتي.. جعل الله هذا الجهد في ميزان حسناتنا وجمعنا دوماً على الطاعة والمحبة',
   },
   {
-    title: 'الداعمة والملهمة الأولى 👑',
-    text: 'لولا تشجيعكِ ودعمكِ الدافئ يا حبيبتي ما كان لهذا العمل الشريف في سيرة النبي ﷺ أن يكتمل بهذه الروعة.. شكرًا من القلب 🌸',
+    title: 'الداعمة والملهمة الأولى',
+    text: 'لولا تشجيعكِ ودعمكِ الدافئ يا حبيبتي ما كان لهذا العمل الشريف في سيرة النبي ﷺ أن يكتمل بهذه الروعة.. شكرًا من القلب',
   },
   {
-    title: 'دعاء ورجاء مستجاب 🤲',
-    text: 'أسأل الله أن يبارك في عمركِ يا حبيبتي، وأن يملأ قلبكِ بالفرح، وأن يرزقنا شفاعة نبينا الكريم ﷺ وصحبته في الفردوس الأعلى ❤️',
+    title: 'دعاء ورجاء مستجاب',
+    text: 'أسأل الله أن يبارك في عمركِ يا حبيبتي، وأن يملأ قلبكِ بالفرح، وأن يرزقنا شفاعة نبينا الكريم ﷺ وصحبته في الفردوس الأعلى',
   },
 ];
 
 const DEDICATION_THEMES = [
-  { id: 'rose', name: 'وردي زاهر 🌸', bg: '#4A0E17', accent: '#FB7185', text: '#FFE4E6', border: '#F43F5E' },
-  { id: 'velvet', name: 'ملكي مخملي 👑', bg: '#2E0854', accent: '#F59E0B', text: '#FEF3C7', border: '#D97706' },
-  { id: 'lavender', name: 'لافندر ناعم 🪻', bg: '#2D1B69', accent: '#A855F7', text: '#F3E8FF', border: '#C084FC' },
-  { id: 'gold', name: 'ذهب وردي ✨', bg: '#3B1219', accent: '#FBBF24', text: '#FFFBEB', border: '#F59E0B' },
+  { id: 'rose', name: 'وردي زاهر', bg: '#4A0E17', accent: '#FB7185', text: '#FFE4E6', border: '#F43F5E' },
+  { id: 'velvet', name: 'ملكي مخملي', bg: '#2E0854', accent: '#F59E0B', text: '#FEF3C7', border: '#D97706' },
+  { id: 'lavender', name: 'لافندر ناعم', bg: '#2D1B69', accent: '#A855F7', text: '#F3E8FF', border: '#C084FC' },
+  { id: 'gold', name: 'ذهب وردي', bg: '#3B1219', accent: '#FBBF24', text: '#FFFBEB', border: '#F59E0B' },
 ];
 
 export const MayadaDedicationModal: React.FC = () => {
@@ -153,7 +154,7 @@ export const MayadaDedicationModal: React.FC = () => {
     // Signature Block at Bottom
     ctx.fillStyle = activeTheme.accent;
     ctx.font = 'bold 28px "Cairo", sans-serif';
-    ctx.fillText('مِن المحبّ: محمد أيمن ❤️', width / 2, height - 130);
+    ctx.fillText('مِن المحبّ: محمد أيمن', width / 2, height - 130);
 
     ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
     ctx.font = '16px "Cairo", sans-serif';
@@ -187,7 +188,7 @@ export const MayadaDedicationModal: React.FC = () => {
   };
 
   const handleCopyLink = () => {
-    const textToShare = `${activeMessage}\n\n📖 رابط المنصة: ${window.location.origin}`;
+    const textToShare = `${activeMessage}\n\nرابط المنصة: ${window.location.origin}`;
     navigator.clipboard.writeText(textToShare);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
@@ -226,7 +227,8 @@ export const MayadaDedicationModal: React.FC = () => {
               </div>
               <div>
                 <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
-                  <span>إهداء إلى ملهمتي 🌹</span>
+                  <span>إهداء إلى ملهمتي</span>
+                  <Flower2 className="w-5 h-5 text-rose-400 animate-spin-slow" />
                 </h2>
                 <p className="text-xs text-rose-200 font-light">
                   كارت إهداء وتوثيق مخصص برائحة الورد والوفاء لحبيبتي وملهمة العمر
@@ -259,7 +261,10 @@ export const MayadaDedicationModal: React.FC = () => {
 
           {/* Theme Selector Options */}
           <div className="space-y-2 relative z-10">
-            <label className="text-xs font-bold text-slate-200 block">اختر ثيم وطابع الكارت 🎨</label>
+            <label className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+              <Palette className="w-4 h-4 text-rose-400" />
+              <span>اختر ثيم وطابع الكارت</span>
+            </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {DEDICATION_THEMES.map((theme) => (
                 <button
@@ -279,7 +284,10 @@ export const MayadaDedicationModal: React.FC = () => {
 
           {/* Dedicated Message Preset Selector */}
           <div className="space-y-2 relative z-10">
-            <label className="text-xs font-bold text-slate-200 block">اختر الكلمات أو اكتب رسالتك ✍️</label>
+            <label className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+              <PenTool className="w-4 h-4 text-rose-400" />
+              <span>اختر الكلمات أو اكتب رسالتك</span>
+            </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {DEDICATION_MESSAGES.map((msg, idx) => (
                 <button
@@ -314,7 +322,7 @@ export const MayadaDedicationModal: React.FC = () => {
           <div className="pt-4 border-t border-rose-500/20 flex flex-col sm:flex-row items-center justify-between gap-3 relative z-10">
             <div className="flex items-center gap-2 text-xs text-rose-300 font-semibold">
               <Flower2 className="w-4 h-4 text-rose-400 animate-spin-slow" />
-              <span>إهداء مخصص لحبيبتي ❤️</span>
+              <span>إهداء مخصص لحبيبتي</span>
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -332,7 +340,7 @@ export const MayadaDedicationModal: React.FC = () => {
                 className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-bold text-xs rounded-xl shadow-lg transition cursor-pointer border border-rose-400/30"
               >
                 <Download className="w-4 h-4 text-rose-200" />
-                <span>تحميل كارت الإهداء 💌</span>
+                <span>تحميل كارت الإهداء</span>
               </button>
             </div>
           </div>

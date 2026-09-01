@@ -61,10 +61,10 @@ export const AnalyticsView: React.FC = () => {
   const userXP = (correctCount * 15) + (currentPage * 10) + (streak * 25);
 
   const getRankTitle = (xp: number) => {
-    if (xp > 3000) return { title: 'عَالِم بالسيرة النبوية 👑', color: 'from-amber-400 to-yellow-600' };
-    if (xp > 1500) return { title: 'مُحَقِّق بالسيرة المطهرة 💎', color: 'from-cyan-400 to-emerald-600' };
-    if (xp > 500) return { title: 'مُتَدَارِس السيرة الشريفة 🥇', color: 'from-emerald-500 to-teal-700' };
-    return { title: 'مُحِبّ السيرة النبوية 🌱', color: 'from-teal-600 to-emerald-800' };
+    if (xp > 3000) return { title: 'عَالِم بالسيرة النبوية', color: 'from-amber-400 to-yellow-600' };
+    if (xp > 1500) return { title: 'مُحَقِّق بالسيرة المطهرة', color: 'from-cyan-400 to-emerald-600' };
+    if (xp > 500) return { title: 'مُتَدَارِس السيرة الشريفة', color: 'from-emerald-500 to-teal-700' };
+    return { title: 'مُحِبّ السيرة النبوية', color: 'from-teal-600 to-emerald-800' };
   };
 
   const userRank = getRankTitle(userXP);
@@ -114,7 +114,7 @@ export const AnalyticsView: React.FC = () => {
   const DEFAULT_BADGE_STYLE = {
     cardBg: 'bg-gradient-to-br from-slate-400/20 via-slate-300/10 to-slate-500/20 border-slate-400/60 shadow-m3-1',
     chipBg: 'bg-slate-600 text-white font-bold shadow-xs',
-    label: 'وسام 🏅',
+    label: 'وسام',
     icon: <Award className="w-5 h-5 text-slate-500 dark:text-slate-300" />,
   };
 
@@ -123,7 +123,7 @@ export const AnalyticsView: React.FC = () => {
       return {
         cardBg: 'bg-m3-surface-dim/40 dark:bg-m3-surface-darkContainer/40 border-m3-outline-variant/20 opacity-70 grayscale',
         chipBg: 'bg-gray-500/20 text-gray-700 dark:text-gray-300 font-semibold',
-        label: 'مغلق 🔒',
+        label: 'مغلق',
         icon: <ShieldCheck className="w-5 h-5 text-gray-400" />,
       };
     }
@@ -133,7 +133,7 @@ export const AnalyticsView: React.FC = () => {
         return {
           cardBg: 'bg-gradient-to-br from-amber-900/20 via-amber-800/10 to-amber-950/30 border-amber-700/60 shadow-m3-1',
           chipBg: 'bg-amber-800 text-amber-100 font-bold shadow-xs',
-          label: 'برونزي 🥉',
+          label: 'برونزي',
           icon: <Medal className="w-5 h-5 text-amber-600 dark:text-amber-500 animate-bounce-gentle" />,
         };
       case 'silver':
@@ -141,21 +141,21 @@ export const AnalyticsView: React.FC = () => {
         return {
           cardBg: 'bg-gradient-to-br from-slate-400/20 via-slate-300/10 to-slate-500/20 border-slate-400/60 shadow-m3-1',
           chipBg: 'bg-slate-700 text-white font-bold shadow-xs',
-          label: 'فضي 🥈',
+          label: 'فضي',
           icon: <Award className="w-5 h-5 text-slate-400 dark:text-slate-200 animate-bounce-gentle" />,
         };
       case 'gold':
         return {
           cardBg: 'bg-gradient-to-br from-amber-500/20 via-yellow-500/15 to-amber-600/20 border-amber-400 shadow-m3-2',
           chipBg: 'bg-amber-500 text-slate-950 font-black shadow-sm',
-          label: 'ذهبي 🥇',
+          label: 'ذهبي',
           icon: <Crown className="w-5 h-5 text-amber-400 animate-bounce-gentle" />,
         };
       case 'diamond':
         return {
           cardBg: 'bg-gradient-to-br from-emerald-500/25 via-cyan-500/20 to-indigo-500/25 border-emerald-400 shadow-m3-3 ring-2 ring-emerald-400/40',
           chipBg: 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-black shadow-md',
-          label: 'ماسي 💎',
+          label: 'ماسي',
           icon: <Diamond className="w-5 h-5 text-emerald-400 animate-pulse" />,
         };
       default:
@@ -343,7 +343,7 @@ export const AnalyticsView: React.FC = () => {
               <span>معرض الأوسمة والإنجازات</span>
             </h2>
             <p className="text-xs text-m3-onSurface-variant mt-0.5">
-              تتدرج الأوسمة عبر 4 مستويات: برونزي 🥉 ← فضي 🥈 ← ذهبي 🥇 ← ماسي 💎
+              تتدرج الأوسمة عبر 4 مستويات: برونزي ← فضي ← ذهبي ← ماسي
             </p>
           </div>
 
@@ -369,10 +369,10 @@ export const AnalyticsView: React.FC = () => {
             <div className="flex items-center gap-1 p-1 bg-m3-surface-container dark:bg-m3-surface-darkContainer rounded-full border border-m3-outline-variant/20 overflow-x-auto">
               {[
                 { id: 'all', label: 'الكل' },
-                { id: 'bronze', label: 'برونزي 🥉' },
-                { id: 'silver', label: 'فضي 🥈' },
-                { id: 'gold', label: 'ذهبي 🥇' },
-                { id: 'diamond', label: 'ماسي 💎' },
+                { id: 'bronze', label: 'برونزي' },
+                { id: 'silver', label: 'فضي' },
+                { id: 'gold', label: 'ذهبي' },
+                { id: 'diamond', label: 'ماسي' },
               ].map((pill) => (
                 <button
                   key={pill.id}

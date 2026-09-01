@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAppStore } from '../store/useAppStore';
-import { X, BookOpen, Award, UserCheck, Github, Code, Sparkles, CheckCircle2 } from 'lucide-react';
+import { X, BookOpen, Award, UserCheck, Github, Code, Sparkles, CheckCircle2, HelpCircle } from 'lucide-react';
 
 export const AboutModal: React.FC = () => {
   const { isAboutModalOpen, setAboutModalOpen } = useAppStore();
@@ -46,8 +46,9 @@ export const AboutModal: React.FC = () => {
             <span className="px-3 py-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 rounded-full text-xs font-semibold">
               اسأل الله ان يكون عملى هذا مقبولا
             </span>
-            <span className="px-3 py-1 bg-amber-500/10 text-amber-700 dark:text-amber-300 rounded-full text-xs font-semibold">
-              📚 1,200 سؤال وجواب
+            <span className="px-3 py-1 bg-amber-500/10 text-amber-700 dark:text-amber-300 rounded-full text-xs font-semibold flex items-center gap-1">
+              <HelpCircle className="w-3.5 h-3.5 text-amber-500" />
+              <span>1,200 سؤال وجواب</span>
             </span>
             <span className="px-3 py-1 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 rounded-full text-xs font-semibold">
               تصميم Material You 3

@@ -43,19 +43,19 @@ export const GiftDedicationModal: React.FC = () => {
     },
     {
       label: 'تهادوا تحابوا',
-      text: 'تهادوا تحابوا — أتمنى لك قراءة ممتعة واستفادة كبيرة من كتاب الرحيق المختوم ❤️',
+      text: 'تهادوا تحابوا — أتمنى لك قراءة ممتعة واستفادة كبيرة من كتاب الرحيق المختوم',
     },
     {
       label: 'هدية من القلب',
-      text: 'هدية بسيطة من القلب.. منصة رائعة لقراءة السيرة النبوية وحل اختباراتها 📖',
+      text: 'هدية بسيطة من القلب.. منصة رائعة لقراءة السيرة النبوية وحل اختباراتها',
     },
     {
       label: 'دعاء وتبريك',
-      text: 'أسأل الله أن يرزقك حب النبي ﷺ والعمل بسنته الشريفة، وأن يبارك لك في علمك 🤲',
+      text: 'أسأل الله أن يرزقك حب النبي ﷺ والعمل بسنته الشريفة، وأن يبارك لك في علمك',
     },
     {
       label: 'تشجيع وترحيب',
-      text: 'دعوة طيبة لتصفح وقراءة السيرة النبوية الشريفة واكتشاف معالمها المباركة 🌱',
+      text: 'دعوة طيبة لتصفح وقراءة السيرة النبوية الشريفة واكتشاف معالمها المباركة',
     },
   ];
 
@@ -383,12 +383,12 @@ export const GiftDedicationModal: React.FC = () => {
 
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                 {[
-                  { id: 'emerald', name: 'الأخضر 🌿', class: 'bg-emerald-800 text-white border-emerald-500' },
-                  { id: 'royal', name: 'الملكي 👑', class: 'bg-blue-900 text-amber-300 border-amber-500' },
-                  { id: 'warm', name: 'الورقي 📜', class: 'bg-amber-100 text-amber-900 border-amber-600' },
-                  { id: 'dark_gold', name: 'الفخم 💎', class: 'bg-slate-950 text-amber-300 border-amber-400' },
-                  { id: 'rose', name: 'الزهري 🌸', class: 'bg-rose-800 text-white border-rose-400' },
-                  { id: 'cyan', name: 'السايان 🌊', class: 'bg-cyan-800 text-white border-cyan-400' },
+                  { id: 'emerald', name: 'الأخضر', class: 'bg-emerald-800 text-white border-emerald-500' },
+                  { id: 'royal', name: 'الملكي', class: 'bg-blue-900 text-amber-300 border-amber-500' },
+                  { id: 'warm', name: 'الورقي', class: 'bg-amber-100 text-amber-900 border-amber-600' },
+                  { id: 'dark_gold', name: 'الفخم', class: 'bg-slate-950 text-amber-300 border-amber-400' },
+                  { id: 'rose', name: 'الزهري', class: 'bg-rose-800 text-white border-rose-400' },
+                  { id: 'cyan', name: 'السايان', class: 'bg-cyan-800 text-white border-cyan-400' },
                 ].map((t) => (
                   <button
                     key={t.id}
