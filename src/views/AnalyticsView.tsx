@@ -75,7 +75,7 @@ export const AnalyticsView: React.FC = () => {
     ? achievements
     : achievements.filter((a) => a.tier === selectedTierFilter);
 
-  const getTierBadgeStyle = (tier: BadgeTier, unlocked: boolean) => {
+  const getTierBadgeStyle = (tier?: BadgeTier, unlocked?: boolean) => {
     if (!unlocked) {
       return {
         cardBg: 'bg-m3-surface-dim/40 dark:bg-m3-surface-darkContainer/40 border-m3-outline-variant/20 opacity-50 grayscale',
@@ -85,14 +85,9 @@ export const AnalyticsView: React.FC = () => {
       };
     }
 
-    switch (tier) {
-      case 'bronze':
-        return {
-          cardBg: 'bg-amber-900/10 dark:bg-amber-900/20 border-amber-700/50 shadow-m3-1',
-          chipBg: 'bg-amber-800 text-amber-100 font-bold',
-          label: 'وسام برونزي 🥉',
-          icon: <Medal className="w-5 h-5 text-amber-700 dark:text-amber-500" />,
-        };
+    const currentTier = tier || 'bronze';
+
+    switch (currentTier) {
       case 'gold':
         return {
           cardBg: 'bg-gradient-to-br from-amber-500/20 via-yellow-500/10 to-amber-600/20 border-amber-400 shadow-m3-2',
@@ -113,6 +108,14 @@ export const AnalyticsView: React.FC = () => {
           chipBg: 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-black shadow-md',
           label: 'وسام ماسي 💎✨',
           icon: <Diamond className="w-5 h-5 text-emerald-500 animate-pulse" />,
+        };
+      case 'bronze':
+      default:
+        return {
+          cardBg: 'bg-amber-900/10 dark:bg-amber-900/20 border-amber-700/50 shadow-m3-1',
+          chipBg: 'bg-amber-800 text-amber-100 font-bold',
+          label: 'وسام برونزي 🥉',
+          icon: <Medal className="w-5 h-5 text-amber-700 dark:text-amber-500" />,
         };
     }
   };

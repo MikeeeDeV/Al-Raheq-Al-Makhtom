@@ -320,7 +320,15 @@ export const useAppStore = create<AppState>()(
         const correctCount = Object.values(answeredQuestions).filter((a) => a.isCorrect).length;
 
         const updated = achievements.map((ach) => {
-          if (ach.unlocked) return ach;
+          // Guarantee tier is defined even for legacy localStorage data
+          const initialAch = INITIAL_ACHIEVEMENTS.find((i) => i.id === ach.id);
+          const safeTier = ach.tier || initialAch?.tier || 'bronze';
+          const safeTitle = initialAch?.title || ach.title;
+
+          if (ach.unlocked) {
+            return { ...ach, tier: safeTier, title: safeTitle };
+          }
+
           let unlock = false;
 
           switch (ach.id) {
@@ -350,9 +358,9 @@ export const useAppStore = create<AppState>()(
           }
 
           if (unlock) {
-            return { ...ach, unlocked: true, unlockedAt: new Date().toLocaleDateString('ar-EG') };
+            return { ...ach, tier: safeTier, title: safeTitle, unlocked: true, unlockedAt: new Date().toLocaleDateString('ar-EG') };
           }
-          return ach;
+          return { ...ach, tier: safeTier, title: safeTitle };
         });
 
         set({ achievements: updated });
