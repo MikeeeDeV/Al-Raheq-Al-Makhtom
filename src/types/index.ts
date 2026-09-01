@@ -89,3 +89,16 @@ export interface UserAchievement {
   unlocked: boolean;
   unlockedAt?: string;
 }
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email?: string;
+  avatarUrl?: string;
+  dailyGoalPages: number;
+  enableFlipSound: boolean;
+  isLoggedIn: boolean;
+  provider?: 'google' | 'email' | 'guest';
+  createdAt: string;
+}
+

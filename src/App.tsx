@@ -7,12 +7,14 @@ import { ReaderView } from './views/ReaderView';
 import { QuizArenaView } from './views/QuizArenaView';
 import { MistakesBankView } from './views/MistakesBankView';
 import { AnalyticsView } from './views/AnalyticsView';
+import { SettingsView } from './views/SettingsView';
 import { ShareModal } from './components/ShareModal';
 import { AboutModal } from './components/AboutModal';
 import { InstallPwaModal } from './components/InstallPwaModal';
 import { GiftDedicationModal } from './components/GiftDedicationModal';
 import { ContactModal } from './components/ContactModal';
 import { BookCompletionModal } from './components/BookCompletionModal';
+import { AuthModal } from './components/AuthModal';
 import { SeoMeta } from './components/SeoMeta';
 import { trackNewVisitorSession, sendErrorTelemetryToTelegram } from './services/telegramTelemetry';
 import { initGoogleAnalytics } from './services/googleAnalytics';
@@ -26,6 +28,7 @@ export const App: React.FC = () => {
     isGiftModalOpen,
     isContactModalOpen,
     isCompletionModalOpen,
+    isAuthModalOpen,
   } = useAppStore();
 
   // Sync URL changes, track new visitor session, & register real-time error telemetry
@@ -48,22 +51,20 @@ export const App: React.FC = () => {
         source: event.filename,
         lineno: event.lineno,
         colno: event.colno,
-        stack: event.error?.stack,
+        stack: event.error ? event.error.stack : undefined,
       });
     };
 
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      const reason = event.reason;
       sendErrorTelemetryToTelegram({
-        message: `Unhandled Promise Rejection: ${event.reason}`,
-        stack: event.reason?.stack,
+        message: typeof reason === 'string' ? reason : reason?.message || 'وعد مرفوض غير معالج (Unhandled Rejection)',
+        stack: reason?.stack,
       });
     };
 
     window.addEventListener('error', handleGlobalError);
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
-
-    // Initial URL check
-    handleUrlChange();
 
     return () => {
       window.removeEventListener('popstate', handleUrlChange);
@@ -77,20 +78,20 @@ export const App: React.FC = () => {
     switch (currentView) {
       case 'home':
         return {
-          title: 'الرحيق المختوم | المنصة التفاعلية للسيرة النبوية المطهرة',
-          description: 'منظومة تفاعلية عصرية لقراءة ودراسة واختبار كتاب الرحيق المختوم في السيرة النبوية للمباركفوري. تضم 1200 سؤال موثق.',
+          title: 'الرحيق المختوم | المنصة التفاعلية الموثقة للسيرة النبوية الشريفة',
+          description: 'منصة تفاعلية عصرية لقراءة ودراسة كتاب الرحيق المختوم وإجراء اختبارات تفاعلية في السيرة النبوية.',
           path: '/',
         };
       case 'reader':
         return {
-          title: 'قارئ الكتاب التفاعلي | الرحيق المختوم',
-          description: 'اقرأ صفحات كتاب الرحيق المختوم بعالي الدقة مع الوضع الليلي والعلامات المرجعية.',
+          title: 'القارئ الرقمي المتطور | الرحيق المختوم',
+          description: 'تصفح صفحات كتاب الرحيق المختوم كاملاً بوضع القراءة الفاخر، وضع الليل، العلامات المرجعية والتكبير.',
           path: '/reader',
         };
       case 'quiz':
         return {
-          title: 'ساحة المسابقات والتحديات | الرحيق المختوم',
-          description: 'اختبر حصيلتك في السيرة النبوية مع 1200 سؤال وجواب تفاعلي وموثق مقسمة على كافة فصول الكتاب.',
+          title: 'ساحة الاختبارات والتحديات | الرحيق المختوم',
+          description: 'اختبر معرفتك في السيرة النبوية الشريفة عبر أكثر من 1200 سؤال وجواب تفاعلي وموثق.',
           path: '/quiz',
         };
       case 'mistakes':
@@ -104,6 +105,12 @@ export const App: React.FC = () => {
           title: 'لوحة الإحصائيات والأوسمة الماسية | الرحيق المختوم',
           description: 'تابع تقدمك في مسارات السيرة النبوية وافتح الأوسمة البرونزية والفضية والذهبية والماسية.',
           path: '/analytics',
+        };
+      case 'settings':
+        return {
+          title: 'إعدادات الحساب والقارئ | الرحيق المختوم',
+          description: 'تخصيص ملف القارئ والورد اليومي وتأثيرات الصوت والمزامنة السحابية.',
+          path: '/settings',
         };
       default:
         return {
@@ -128,6 +135,8 @@ export const App: React.FC = () => {
         return <MistakesBankView />;
       case 'analytics':
         return <AnalyticsView />;
+      case 'settings':
+        return <SettingsView />;
       default:
         return <HomeView />;
     }
@@ -167,6 +176,7 @@ export const App: React.FC = () => {
         {isGiftModalOpen && <GiftDedicationModal key="gift-modal" />}
         {isContactModalOpen && <ContactModal key="contact-modal" />}
         {isCompletionModalOpen && <BookCompletionModal key="completion-modal" />}
+        {isAuthModalOpen && <AuthModal key="auth-modal" />}
       </AnimatePresence>
     </div>
   );

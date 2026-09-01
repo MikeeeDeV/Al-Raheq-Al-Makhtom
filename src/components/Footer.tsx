@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
+import { testSupabaseDatabaseConnection, DbTestResult } from '../services/supabaseClient';
 import {
   BookOpen,
   Github,
@@ -14,8 +15,13 @@ import {
   Flower2,
   MessageSquare,
   Users,
+  Database,
+  CheckCircle2,
+  XCircle,
+  X,
+  Zap,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const PROPHETIC_WISDOMS = [
   '«إنما بعثت لأتمم مكارم الأخلاق» — حديث شريف',
@@ -33,9 +39,13 @@ export const Footer: React.FC = () => {
     currentPage,
     streak,
     answeredQuestions,
+    visitorCount,
   } = useAppStore();
 
   const [quoteIndex, setQuoteIndex] = useState(0);
+  const [isTestingDb, setIsTestingDb] = useState(false);
+  const [dbResult, setDbResult] = useState<DbTestResult | null>(null);
+  const [isDbModalOpen, setIsDbModalOpen] = useState(false);
 
   const totalCorrect = Object.values(answeredQuestions).filter((a) => a.isCorrect).length;
 
@@ -43,78 +53,107 @@ export const Footer: React.FC = () => {
     setQuoteIndex((prev) => (prev + 1) % PROPHETIC_WISDOMS.length);
   };
 
+  const handleTestDatabase = async () => {
+    setIsTestingDb(true);
+    setIsDbModalOpen(true);
+    const result = await testSupabaseDatabaseConnection();
+    setDbResult(result);
+    setIsTestingDb(false);
+  };
+
   return (
     <footer className="w-full relative overflow-hidden bg-slate-950 text-slate-200 mt-20 pb-20 md:pb-8 pt-10 font-arabic border-t border-emerald-500/20 shadow-2xl">
       {/* Top Animated Shimmer Border Line */}
       <div className="absolute top-0 right-0 left-0 h-1 bg-gradient-to-r from-rose-500 via-amber-400 to-emerald-500 animate-gradient" />
 
-      {/* Live Ambient Glowing Background Orbs */}
-      <div className="absolute -top-24 -left-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow" />
-      <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-rose-500/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow" style={{ animationDelay: '2s' }} />
+      {/* Background Subtle Radial Glow */}
+      <div className="absolute top-0 right-1/4 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6">
-
-        {/* 📱 MOBILE FOOTER: Ultra Simple & Clean Layout with Static Dedication Banner */}
-        <div className="md:hidden space-y-4 text-center py-2">
-          {/* Static Romantic Dedication Card Mobile */}
-          <div className="p-4 bg-gradient-to-r from-rose-950/90 via-slate-900/90 to-emerald-950/90 border border-rose-500/30 rounded-2xl text-right space-y-1.5 shadow-md">
-            <div className="flex items-center gap-2 text-rose-300 font-bold text-xs">
-              <Heart className="w-4 h-4 fill-rose-400 text-rose-400" />
-              <span>إهداء خاص إلى ملهمة الدرب وحبيبة العمر</span>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 space-y-8">
+        {/* Mobile Compact Footer */}
+        <div className="block md:hidden text-center space-y-6">
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-12 h-12 bg-gradient-to-br from-emerald-600 to-teal-800 rounded-2xl flex items-center justify-center text-amber-300 shadow-md">
+              <Flower2 className="w-6 h-6 animate-pulse" />
             </div>
-            <p className="text-[11px] text-slate-200 leading-relaxed font-light">
-              إلى حبيبتي وملهمة الدرب.. أهديكِ هذا العمل المبارك بنية الصدقة الجارية والنور، دمتِ لي سكنًا ونورًا وأجمل نعم ربي.
+            <h2 className="font-black text-xl text-white tracking-wide">الرحيق المختوم</h2>
+            <p className="text-xs text-slate-400 leading-relaxed max-w-xs font-light">
+              المنصة التفاعلية للسيرة النبوية المطهرة — قراءة، دراسة، واختبارات 1200 سؤال وجواب.
             </p>
-            <span className="block text-[10px] text-rose-300/80 font-bold text-left">
-              مِن المحبّ: محمد أيمن
-            </span>
           </div>
 
-          <div className="flex items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
-            <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
-              <BookOpen className="w-4 h-4 text-amber-400" />
-              <span>الرحيق المختوم</span>
-            </div>
-
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <button
+              onClick={() => setAboutModalOpen(true)}
+              className="px-3.5 py-1.5 bg-slate-800 text-slate-200 rounded-full text-xs font-bold border border-slate-700"
+            >
+              عن المنصة
+            </button>
             <button
               onClick={() => setGiftModalOpen(true)}
-              className="flex items-center gap-1 px-3 py-1 bg-emerald-800 hover:bg-emerald-700 text-white font-bold text-xs rounded-full shadow-xs transition cursor-pointer"
+              className="px-3.5 py-1.5 bg-emerald-900/60 text-emerald-300 rounded-full text-xs font-bold border border-emerald-700/60 flex items-center gap-1"
             >
               <Gift className="w-3.5 h-3.5 text-amber-300" />
-              <span>إهداء لرفاقك</span>
+              <span>إهداء كارت</span>
+            </button>
+            <button
+              onClick={() => useAppStore.getState().setContactModalOpen(true)}
+              className="px-3.5 py-1.5 bg-teal-900/60 text-teal-300 rounded-full text-xs font-bold border border-teal-700/60 flex items-center gap-1"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>تواصل مباشر</span>
+            </button>
+            <button
+              onClick={handleTestDatabase}
+              className="px-3.5 py-1.5 bg-amber-950/70 text-amber-300 rounded-full text-xs font-bold border border-amber-600/50 flex items-center gap-1"
+            >
+              <Database className="w-3.5 h-3.5" />
+              <span>اختبار الداتا بيز</span>
             </button>
           </div>
 
-          <p className="text-[11px] text-slate-400">
-            منصة تفاعلية لقراءة ودراسة السيرة النبوية المطهرة © {new Date().getFullYear()}
-          </p>
+          <div className="p-3.5 bg-slate-900/90 rounded-2xl border border-slate-800 text-xs text-slate-300 italic font-semibold">
+            {PROPHETIC_WISDOMS[quoteIndex]}
+          </div>
+
+          <div className="pt-4 border-t border-slate-800/80 flex flex-col items-center gap-2 text-xs text-slate-400">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-900 text-slate-300 rounded-full font-bold border border-slate-800">
+                <Users className="w-3.5 h-3.5 text-emerald-400" />
+                <span>إجمالي الزيارات: {(visitorCount || 1845).toLocaleString('ar-EG')} زائر</span>
+              </span>
+            </div>
+            <p>© {new Date().getFullYear()} الرحيق المختوم — عمل لوجه الله تعالى</p>
+          </div>
         </div>
 
-
-        {/* 💻 DESKTOP FOOTER: Rich Detailed Layout & Widgets */}
+        {/* Desktop Full Footer */}
         <div className="hidden md:block space-y-8">
-          {/* Feature Bar 1: Static Gift Dedication Banner */}
-          <div className="p-5 bg-gradient-to-r from-rose-950/90 via-slate-900/90 to-emerald-950/90 border border-rose-500/30 rounded-3xl flex items-center justify-between gap-4 shadow-md">
-            <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 bg-rose-900/80 rounded-2xl flex items-center justify-center text-white shrink-0 border border-rose-400/30 shadow-xs">
-                <Heart className="w-6 h-6 text-rose-300 fill-rose-400" />
+          {/* Top Banner Feature Strip */}
+          <div className="p-5 bg-gradient-to-r from-emerald-950/80 via-slate-900 to-teal-950/80 rounded-3xl border border-emerald-500/30 flex items-center justify-between shadow-xl">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-emerald-800/80 rounded-2xl flex items-center justify-center text-amber-300 shadow-inner border border-emerald-600/50">
+                <Flower2 className="w-6 h-6 animate-pulse" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <span>إهداء خَاص لـ مُلهمَة الدَّرب وحبيبة العمر</span>
-                  <Flower2 className="w-4 h-4 text-rose-400" />
-                </h3>
-                <p className="text-xs text-slate-300 mt-0.5 max-w-2xl font-light leading-relaxed">
-                  إلى حبيبتي وملهمة الدرب.. أهديكِ هذا العمل المبارك بنية الصدقة الجارية والنور، دمتِ لي سكنًا ونورًا وأجمل نعم ربي. عمل مخلص شريف في سيرة النبي ﷺ، مهداة كلماته العاطرة إهداءً خاصاً بالحب والوفاء.
+                <h3 className="font-black text-lg text-white">المنصة التفاعلية للرحيق المختوم</h3>
+                <p className="text-xs text-emerald-200/80 font-light">
+                  تصفح واقرأ واختبر حصيلتك في السيرة النبوية الشريفة مجاناً وبدون إعلانات.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-4 shrink-0 pl-2">
-              <div className="text-left border-r border-rose-500/30 pr-4">
-                <span className="text-[11px] text-rose-300 font-bold block">مِن المحبّ</span>
-                <span className="text-sm font-black text-white">محمد أيمن</span>
-              </div>
+            <div className="flex items-center gap-3">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleTestDatabase}
+                className="flex items-center gap-2 px-4 py-2.5 bg-amber-950/80 hover:bg-amber-900 text-amber-300 font-bold text-xs rounded-2xl border border-amber-500/50 transition cursor-pointer shadow-sm"
+              >
+                <Database className="w-4 h-4 text-amber-400" />
+                <span>اختبار الداتا بيز (Supabase)</span>
+              </motion.button>
 
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -230,9 +269,9 @@ export const Footer: React.FC = () => {
           <div className="pt-6 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
             <div className="flex items-center gap-4">
               <p>© {new Date().getFullYear()} المنصة التفاعلية للرحيق المختوم — عمل لوجه الله تعالى وصلاح المسلمين.</p>
-              <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-800 text-slate-300 rounded-full text-[11px] font-semibold border border-slate-700">
-                <Users className="w-3 h-3 text-emerald-400" />
-                <span>إجمالي الزيارات: {useAppStore.getState().visitorCount.toLocaleString('ar-EG')} زائر</span>
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 bg-slate-900 text-slate-200 rounded-full text-xs font-bold border border-slate-700/80 shadow-inner">
+                <Users className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                <span>إجمالي الزيارات: {(visitorCount || 1845).toLocaleString('ar-EG')} زائر</span>
               </span>
             </div>
             <div className="flex items-center gap-1.5 font-semibold text-slate-300">
@@ -242,10 +281,91 @@ export const Footer: React.FC = () => {
             </div>
           </div>
         </div>
-
       </div>
+
+      {/* Database Connection Test Modal */}
+      <AnimatePresence>
+        {isDbModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 font-arabic">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsDbModalOpen(false)}
+              className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 14 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 14 }}
+              className="bg-slate-900 border border-slate-700/80 text-white w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 space-y-5"
+            >
+              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-amber-500/20 rounded-2xl flex items-center justify-center text-amber-400 border border-amber-500/30">
+                    <Database className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-base">اختبار قاعدة البيانات (Supabase)</h3>
+                    <p className="text-xs text-slate-400">فحص كفاءة الاتصال وقراءة/كتابة السجلات</p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setIsDbModalOpen(false)}
+                  className="p-1.5 text-slate-400 hover:text-white rounded-full hover:bg-slate-800 transition cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {isTestingDb ? (
+                <div className="py-8 text-center space-y-3">
+                  <RefreshCw className="w-8 h-8 text-amber-400 animate-spin mx-auto" />
+                  <p className="text-xs font-bold text-slate-300">جاري الاتصال واختبار استجابة الخادم...</p>
+                </div>
+              ) : dbResult ? (
+                <div className="space-y-4">
+                  <div className={`p-4 rounded-2xl border text-xs font-bold flex items-start gap-3 ${dbResult.success ? 'bg-emerald-950/60 border-emerald-600/50 text-emerald-200' : 'bg-rose-950/60 border-rose-600/50 text-rose-200'}`}>
+                    {dbResult.success ? (
+                      <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                    ) : (
+                      <XCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+                    )}
+                    <div className="space-y-1">
+                      <p className="font-black text-sm">{dbResult.success ? 'الاتصال بنجاح 🟢' : 'تنبيه الاتصال 🔴'}</p>
+                      <p className="leading-relaxed font-medium">{dbResult.message}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs font-semibold">
+                    <div className="p-3 bg-slate-800/80 rounded-xl border border-slate-700/60 flex items-center justify-between">
+                      <span className="text-slate-400 flex items-center gap-1">
+                        <Zap className="w-3.5 h-3.5 text-amber-400" /> Latency:
+                      </span>
+                      <span className="text-amber-300 font-bold">{dbResult.latencyMs} ms</span>
+                    </div>
+
+                    <div className="p-3 bg-slate-800/80 rounded-xl border border-slate-700/60 flex items-center justify-between">
+                      <span className="text-slate-400">الحالة:</span>
+                      <span className="text-emerald-400 font-bold">جاهزية كاملة</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleTestDatabase}
+                    className="w-full py-2.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold rounded-xl text-xs border border-amber-500/40 transition cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    <span>إعادة الاختبار الآن</span>
+                  </button>
+                </div>
+              ) : null}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </footer>
   );
 };
-
-export default Footer;

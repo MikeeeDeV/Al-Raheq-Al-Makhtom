@@ -177,6 +177,14 @@ export async function trackNewVisitorSession(): Promise<VisitorInfo | null> {
     sessionStorage.setItem(sessionKey, 'true');
   }
 
+  // Increment total visitor count reactively
+  try {
+    const { useAppStore } = await import('../store/useAppStore');
+    useAppStore.getState().incrementVisitorCount();
+  } catch {
+    // Ignore dynamic import fallback
+  }
+
   return location;
 }
 

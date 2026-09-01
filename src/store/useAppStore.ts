@@ -8,17 +8,27 @@ import {
   CorrectedMistakeEntry,
   ReaderTheme,
   UserAchievement,
+  UserProfile,
 } from '../types';
 import { sendBookCompletionToTelegram } from '../services/telegramTelemetry';
 import { syncUserProgressToSupabase } from '../services/supabaseClient';
+import { loadStoredUserProfile, saveStoredUserProfile, signOutUser } from '../services/authService';
 
-export type AppView = 'home' | 'reader' | 'quiz' | 'mistakes' | 'analytics';
+export type AppView = 'home' | 'reader' | 'quiz' | 'mistakes' | 'analytics' | 'settings';
 
 interface AppState {
   // Questions Data
   quizData: QuizData | null;
   isLoadingQuestions: boolean;
   fetchQuestions: () => Promise<void>;
+
+  // User Profile & Authentication
+  userProfile: UserProfile;
+  isAuthModalOpen: boolean;
+  setUserProfile: (profile: UserProfile) => void;
+  setAuthModalOpen: (open: boolean) => void;
+  updateUserProfile: (updates: Partial<UserProfile>) => void;
+  logoutUser: () => Promise<void>;
 
   // Navigation
   currentView: AppView;
@@ -476,6 +486,23 @@ export const useAppStore = create<AppState>()(
         }
       },
 
+      // User Profile & Authentication State
+      userProfile: loadStoredUserProfile(),
+      isAuthModalOpen: false,
+      setUserProfile: (profile) => {
+        saveStoredUserProfile(profile);
+        set({ userProfile: profile });
+      },
+      setAuthModalOpen: (open) => set({ isAuthModalOpen: open }),
+      updateUserProfile: (updates) => {
+        const updated = saveStoredUserProfile(updates);
+        set({ userProfile: updated });
+      },
+      logoutUser: async () => {
+        const reset = await signOutUser();
+        set({ userProfile: reset });
+      },
+
       currentView: getInitialViewFromUrl(),
       setCurrentView: (view) => {
         updateUrlForView(view);
@@ -703,12 +730,12 @@ export const useAppStore = create<AppState>()(
       isAboutModalOpen: false,
       isGiftModalOpen: false,
       isContactModalOpen: false,
-      visitorCount: 1420,
+      visitorCount: 1845,
       setShareModalOpen: (open) => set({ isShareModalOpen: open }),
       setAboutModalOpen: (open) => set({ isAboutModalOpen: open }),
       setGiftModalOpen: (open) => set({ isGiftModalOpen: open }),
       setContactModalOpen: (open) => set({ isContactModalOpen: open }),
-      incrementVisitorCount: () => set((state) => ({ visitorCount: state.visitorCount + 1 })),
+      incrementVisitorCount: () => set((state) => ({ visitorCount: (state.visitorCount || 1845) + 1 })),
 
       // Achievements
       achievements: INITIAL_ACHIEVEMENTS,

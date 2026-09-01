@@ -10,6 +10,8 @@ import {
   Info,
   Home,
   MessageSquare,
+  User,
+  Settings,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -21,6 +23,8 @@ export const Navbar: React.FC = () => {
     mistakesBank,
     setShareModalOpen,
     setAboutModalOpen,
+    setAuthModalOpen,
+    userProfile,
   } = useAppStore();
 
   const mistakesCount = Object.keys(mistakesBank).length;
@@ -36,12 +40,13 @@ export const Navbar: React.FC = () => {
       badge: mistakesCount > 0 ? mistakesCount : undefined,
     },
     { id: 'analytics', label: 'الإحصائيات', icon: <BarChart3 className="w-5 h-5" /> },
+    { id: 'settings', label: 'الإعدادات', icon: <Settings className="w-5 h-5" /> },
   ];
 
   return (
     <>
       {/* Top Header Bar (Desktop & Mobile Optimized) */}
-      <header className="sticky top-0 z-40 bg-m3-surface/95 dark:bg-m3-surface-dark/95 backdrop-blur-lg border-b border-m3-outline-variant/30 transition-colors shadow-xs">
+      <header className="sticky top-0 z-40 bg-m3-surface/95 dark:bg-m3-surface-dark/95 backdrop-blur-lg border-b border-m3-outline-variant/30 transition-colors shadow-xs font-arabic dir-rtl">
         <div className="max-w-7xl mx-auto px-3.5 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
           {/* Logo & Title */}
           <div
@@ -69,7 +74,7 @@ export const Navbar: React.FC = () => {
                 <button
                   key={item.id}
                   onClick={() => setCurrentView(item.id)}
-                  className={`relative flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer ${
+                  className={`relative flex items-center gap-2 px-3.5 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer ${
                     isActive
                       ? 'text-m3-primary-onContainer font-bold'
                       : 'text-m3-onSurface-variant hover:text-m3-onSurface hover:bg-black/5 dark:hover:bg-white/5'
@@ -82,7 +87,7 @@ export const Navbar: React.FC = () => {
                       transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                     />
                   )}
-                  <span className="relative z-10 flex items-center gap-2">
+                  <span className="relative z-10 flex items-center gap-1.5">
                     {item.icon}
                     <span>{item.label === 'المراجعة' ? 'بنك المراجعة' : item.label}</span>
                     {item.badge !== undefined && (
@@ -98,6 +103,22 @@ export const Navbar: React.FC = () => {
 
           {/* Top Actions & Badges */}
           <div className="flex items-center gap-1.5 sm:gap-2.5">
+            {/* User Reader Profile Button */}
+            <button
+              onClick={() => {
+                if (userProfile.isLoggedIn) {
+                  setCurrentView('settings');
+                } else {
+                  setAuthModalOpen(true);
+                }
+              }}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-emerald-500/10 dark:bg-emerald-400/10 text-emerald-800 dark:text-emerald-300 rounded-full border border-emerald-500/30 text-xs font-bold shrink-0 hover:bg-emerald-500/20 transition cursor-pointer"
+              title="ملف القارئ والإعدادات"
+            >
+              <User className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span className="max-w-[100px] truncate">{userProfile.name || 'القارئ الزائر'}</span>
+            </button>
+
             {/* Streak Counter Pill */}
             <div
               className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-amber-500/15 dark:bg-amber-400/15 text-amber-800 dark:text-amber-300 rounded-full border border-amber-500/30 text-xs font-bold shrink-0"
@@ -138,20 +159,20 @@ export const Navbar: React.FC = () => {
       </header>
 
       {/* Mobile Bottom Navigation Bar (M3 Ergonomic & Safe-Area Aware) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-m3-surface/95 dark:bg-m3-surface-dark/95 backdrop-blur-xl border-t border-m3-outline-variant/30 px-1 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] flex items-center justify-around shadow-2xl">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-m3-surface/95 dark:bg-m3-surface-dark/95 backdrop-blur-xl border-t border-m3-outline-variant/30 px-1 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] flex items-center justify-around shadow-2xl font-arabic dir-rtl">
         {navItems.map((item) => {
           const isActive = currentView === item.id;
           return (
             <button
               key={item.id}
               onClick={() => setCurrentView(item.id)}
-              className={`relative flex flex-col items-center gap-1 px-2.5 py-1 rounded-2xl transition-all cursor-pointer ${
+              className={`relative flex flex-col items-center gap-1 px-2 py-1 rounded-2xl transition-all cursor-pointer ${
                 isActive
                   ? 'text-m3-primary dark:text-m3-primary-dark font-black'
                   : 'text-m3-onSurface-variant/70 hover:text-m3-onSurface font-medium'
               }`}
             >
-              <div className="relative p-1.5 rounded-full">
+              <div className="relative p-1 rounded-full">
                 {isActive && (
                   <motion.div
                     layoutId="activeMobileNavPill"
@@ -168,7 +189,7 @@ export const Navbar: React.FC = () => {
                   </span>
                 )}
               </div>
-              <span className="text-[10px] sm:text-[11px] leading-tight">{item.label}</span>
+              <span className="text-[10px] leading-tight">{item.label}</span>
             </button>
           );
         })}
