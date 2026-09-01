@@ -1,17 +1,20 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import { useAppStore } from '../store/useAppStore';
-import { Loader2, AlertCircle, Sparkles, ChevronRight, ChevronLeft } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Loader2, AlertCircle, Sparkles, ChevronRight, ChevronLeft, RotateCw } from 'lucide-react';
 
 // Configure PDF.js worker using stable CDN worker URL
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
 interface PdfCanvasViewerProps {
   pdfUrl?: string;
+  isFullscreen?: boolean;
 }
 
-export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({ pdfUrl = '/book.pdf' }) => {
+export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({
+  pdfUrl = '/book.pdf',
+  isFullscreen = false,
+}) => {
   const {
     currentPage,
     totalPages,
@@ -26,6 +29,9 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({ pdfUrl = '/boo
   const [docLoading, setDocLoading] = useState<boolean>(true);
   const [pageRendering, setPageRendering] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLandscape, setIsLandscape] = useState<boolean>(
+    typeof window !== 'undefined' && window.innerWidth > window.innerHeight
+  );
 
   const canvasRef1 = useRef<HTMLCanvasElement | null>(null);
   const canvasRef2 = useRef<HTMLCanvasElement | null>(null);
@@ -36,16 +42,29 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({ pdfUrl = '/boo
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
 
+  // Detect Orientation Change (Portrait vs Landscape mode)
+  useEffect(() => {
+    const handleResize = () => {
+      setIsLandscape(window.innerWidth > window.innerHeight);
+    };
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+    };
+  }, []);
+
   // Load PDF Document progressively (range requests / streaming)
   useEffect(() => {
     let isMounted = true;
     setDocLoading(true);
     setError(null);
 
-    // Disable full stream download blocking, enable range chunk loading
     const loadingTask = pdfjsLib.getDocument({
       url: pdfUrl,
-      rangeChunkSize: 65536, // 64KB chunks for rapid first-page streaming
+      rangeChunkSize: 65536, // 64KB chunks for rapid streaming
       disableStream: false,
       disableAutoFetch: false,
     });
@@ -80,7 +99,6 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({ pdfUrl = '/boo
     ) => {
       if (!pdfDocument || !canvas) return;
 
-      // Cancel any ongoing rendering task on this canvas
       if (renderTaskRef.current) {
         try {
           renderTaskRef.current.cancel();
@@ -98,18 +116,26 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({ pdfUrl = '/boo
 
         const unscaledViewport = page.getViewport({ scale: 1.0 });
 
-        // Mobile responsive width optimization: use almost full screen width on mobile (<768px)
+        // Screen geometry calculation for Landscape & Fullscreen modes
         const isMobileScreen = window.innerWidth < 768;
-        const availableWidth = isMobileScreen
-          ? window.innerWidth - 16 // Almost 100% width on phone screens!
-          : Math.min(window.innerWidth - 64, viewMode === 'double' ? 620 : 920);
+        const landscapeMode = window.innerWidth > window.innerHeight;
+
+        let availableWidth = window.innerWidth - 16;
+        if (isFullscreen) {
+          availableWidth = landscapeMode ? window.innerWidth - 24 : window.innerWidth - 12;
+        } else if (landscapeMode && isMobileScreen) {
+          // Phone turned sideways (Landscape) -> maximize reading width!
+          availableWidth = window.innerWidth - 24;
+        } else if (!isMobileScreen) {
+          availableWidth = Math.min(window.innerWidth - 64, viewMode === 'double' ? 620 : 920);
+        }
 
         const baseScale = availableWidth / unscaledViewport.width;
         const finalScale = baseScale * zoomLevel;
 
         const viewport = page.getViewport({ scale: finalScale });
 
-        // Cap DPR at 2 to ensure ultra-smooth rendering without memory lag on mobile
+        // Cap DPR at 2 for fast & crisp rendering
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
         canvas.width = viewport.width * dpr;
@@ -130,7 +156,7 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({ pdfUrl = '/boo
 
         setPageRendering(false);
 
-        // Pre-fetch next page silently in background for 0ms transition latency
+        // Pre-fetch next page in background memory
         if (pageNumber < pdfDocument.numPages) {
           pdfDocument.getPage(pageNumber + 1).catch(() => {});
         }
@@ -141,7 +167,7 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({ pdfUrl = '/boo
         setPageRendering(false);
       }
     },
-    [pdfDocument, zoomLevel, viewMode]
+    [pdfDocument, zoomLevel, viewMode, isFullscreen]
   );
 
   // Trigger page render when currentPage, zoom, or viewMode changes
@@ -150,13 +176,12 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({ pdfUrl = '/boo
 
     renderPage(currentPage, canvasRef1.current, renderTask1);
 
-    // Render second page only on desktop/wide screens if double mode is active
     if (viewMode === 'double' && window.innerWidth >= 768 && currentPage < totalPages) {
       renderPage(currentPage + 1, canvasRef2.current, renderTask2);
     }
-  }, [pdfDocument, currentPage, zoomLevel, viewMode, totalPages, renderPage]);
+  }, [pdfDocument, currentPage, zoomLevel, viewMode, totalPages, renderPage, isLandscape]);
 
-  // Handle Touch Swipe Gestures for Mobile Reading
+  // Touch Swipe Gestures
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.targetTouches[0].clientX;
   };
@@ -182,24 +207,6 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({ pdfUrl = '/boo
     touchEndX.current = null;
   };
 
-  // Keyboard Navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-
-      if (e.key === 'ArrowLeft') {
-        // Next page in RTL
-        if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-      } else if (e.key === 'ArrowRight') {
-        // Previous page in RTL
-        if (currentPage > 1) setCurrentPage(currentPage - 1);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentPage, totalPages, setCurrentPage]);
-
   // Theme Wrapper CSS
   const themeClassMap = {
     paper: 'theme-paper bg-white text-slate-900',
@@ -212,7 +219,9 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({ pdfUrl = '/boo
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      className={`relative flex flex-col items-center justify-center min-h-[60vh] sm:min-h-[75vh] p-1 sm:p-4 rounded-3xl transition-colors duration-300 ${themeClassMap[readingTheme]} select-none`}
+      className={`relative flex flex-col items-center justify-center min-h-[60vh] sm:min-h-[75vh] p-1 sm:p-4 rounded-3xl transition-colors duration-300 ${
+        themeClassMap[readingTheme]
+      } ${isFullscreen ? 'w-full h-full min-h-screen rounded-none p-0' : ''} select-none`}
     >
       {/* Document Loading State */}
       {docLoading && (
@@ -247,6 +256,14 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({ pdfUrl = '/boo
       {/* Rendered Book Pages Display */}
       {!docLoading && !error && (
         <div className="w-full flex flex-col items-center justify-center relative">
+          {/* Landscape Orientation Active Badge */}
+          {isLandscape && (
+            <div className="mb-2 px-3 py-1 bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 rounded-full text-[10px] sm:text-xs font-bold flex items-center gap-1.5 shrink-0">
+              <RotateCw className="w-3.5 h-3.5 animate-spin-slow" />
+              <span>الشاشة الأفقية مفعّلة • عرض متسق للقصة</span>
+            </div>
+          )}
+
           {/* Quick Page Render Indicator Overlay */}
           {pageRendering && (
             <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-3 py-1 bg-slate-900/80 backdrop-blur-md text-emerald-300 rounded-full text-[11px] font-semibold flex items-center gap-1.5 shadow-lg border border-emerald-500/30">

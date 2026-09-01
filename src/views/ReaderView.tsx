@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { PdfCanvasViewer } from '../components/PdfCanvasViewer';
 import { AutoResumeBanner } from '../components/AutoResumeBanner';
@@ -17,6 +17,9 @@ import {
   X,
   Trash2,
   BookOpen,
+  Maximize,
+  Minimize,
+  RotateCw,
 } from 'lucide-react';
 import { ReaderTheme } from '../types';
 
@@ -41,8 +44,32 @@ export const ReaderView: React.FC = () => {
   const [isAddingBookmark, setIsAddingBookmark] = useState<boolean>(false);
   const [bookmarkTitle, setBookmarkTitle] = useState<string>('');
   const [bookmarkNote, setBookmarkNote] = useState<string>('');
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
   const progressPercentage = totalPages > 0 ? Math.round((currentPage / totalPages) * 100) : 0;
+
+  // Sync Fullscreen API
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement
+        .requestFullscreen()
+        .then(() => setIsFullscreen(true))
+        .catch((err) => console.log('Fullscreen failed:', err));
+    } else {
+      document
+        .exitFullscreen()
+        .then(() => setIsFullscreen(false))
+        .catch((err) => console.log('Exit fullscreen failed:', err));
+    }
+  };
 
   const handlePageSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,12 +98,22 @@ export const ReaderView: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-3 sm:space-y-6 pb-20 px-0 sm:px-0">
+    <div
+      className={`space-y-3 sm:space-y-6 pb-20 px-0 sm:px-0 font-arabic dir-rtl ${
+        isFullscreen
+          ? 'fixed inset-0 z-50 overflow-y-auto bg-slate-950 p-2 sm:p-4 text-slate-100'
+          : ''
+      }`}
+    >
       {/* Auto Resume Banner */}
-      <AutoResumeBanner />
+      {!isFullscreen && <AutoResumeBanner />}
 
       {/* Reader Control Toolbar (Sticky Glassmorphic Container) */}
-      <div className="sticky top-14 sm:top-16 z-30 bg-m3-surface/95 dark:bg-m3-surface-dark/95 backdrop-blur-md p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl border border-m3-outline-variant/30 shadow-m3-2 space-y-2 sm:space-y-3">
+      <div
+        className={`sticky ${
+          isFullscreen ? 'top-2' : 'top-14 sm:top-16'
+        } z-30 bg-m3-surface/95 dark:bg-m3-surface-dark/95 backdrop-blur-md p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl border border-m3-outline-variant/30 shadow-m3-2 space-y-2 sm:space-y-3`}
+      >
         {/* Top Control Line */}
         <div className="flex flex-wrap items-center justify-between gap-2">
           {/* Right: Page Stepper Navigation */}
@@ -116,8 +153,21 @@ export const ReaderView: React.FC = () => {
             </button>
           </div>
 
-          {/* Center: Zoom & View Mode Controls */}
+          {/* Center: Zoom, View Mode, & Fullscreen Controls */}
           <div className="flex items-center gap-1.5">
+            {/* Fullscreen Toggle Button */}
+            <button
+              onClick={toggleFullscreen}
+              className={`p-1.5 sm:p-2.5 rounded-full transition cursor-pointer ${
+                isFullscreen
+                  ? 'bg-emerald-600 text-white font-bold shadow-md'
+                  : 'bg-m3-surface-dim dark:bg-m3-surface-darkContainer text-m3-onSurface hover:bg-m3-primary-container/40'
+              }`}
+              title={isFullscreen ? 'إلغاء وضع الشاشة الكاملة' : 'وضع الشاشة الكاملة'}
+            >
+              {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+            </button>
+
             {/* Zoom Out */}
             <button
               onClick={() => setZoomLevel(zoomLevel - 0.15)}
@@ -217,7 +267,7 @@ export const ReaderView: React.FC = () => {
       </div>
 
       {/* Main Canvas Viewer */}
-      <PdfCanvasViewer pdfUrl="/book.pdf" />
+      <PdfCanvasViewer pdfUrl="/book.pdf" isFullscreen={isFullscreen} />
 
       {/* Add Bookmark Modal Dialog */}
       {isAddingBookmark && (
