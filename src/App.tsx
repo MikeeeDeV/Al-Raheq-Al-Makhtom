@@ -33,15 +33,16 @@ export const App: React.FC = () => {
   // Sync URL changes, track new visitor session, & register real-time error telemetry
   useEffect(() => {
     initGoogleAnalytics();
-    trackNewVisitorSession();
+
+    // Defer network telemetry so initial page render and animations are 60fps fast
+    const timer = setTimeout(() => {
+      trackNewVisitorSession();
+    }, 2500);
 
     const handleUrlChange = () => {
       const view = getInitialViewFromUrl();
       useAppStore.getState().setCurrentViewWithoutUrlUpdate(view);
     };
-
-    window.addEventListener('popstate', handleUrlChange);
-    window.addEventListener('hashchange', handleUrlChange);
 
     // Global Error Handlers (Sentry replacement dispatching alerts directly to Telegram)
     const handleGlobalError = (event: ErrorEvent) => {
@@ -70,10 +71,13 @@ export const App: React.FC = () => {
       });
     };
 
+    window.addEventListener('popstate', handleUrlChange);
+    window.addEventListener('hashchange', handleUrlChange);
     window.addEventListener('error', handleGlobalError);
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
 
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('popstate', handleUrlChange);
       window.removeEventListener('hashchange', handleUrlChange);
       window.removeEventListener('error', handleGlobalError);
@@ -154,10 +158,10 @@ export const App: React.FC = () => {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentView}
-            initial={{ opacity: 0, y: 14, scale: 0.985 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -14, scale: 0.985 }}
-            transition={{ duration: 0.24, ease: [0.25, 1, 0.5, 1] }}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
           >
             {renderView()}
           </motion.div>

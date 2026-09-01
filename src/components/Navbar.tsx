@@ -45,7 +45,7 @@ export const Navbar: React.FC = () => {
   return (
     <>
       {/* Top Header Bar - Spacious & High-Contrast Mobile Header */}
-      <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl border-b border-slate-200/80 dark:border-slate-800/80 transition-all shadow-xs font-arabic dir-rtl pt-[env(safe-area-inset-top,0px)]">
+      <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-950/95 backdrop-blur-sm border-b border-slate-200/80 dark:border-slate-800/80 transition-all shadow-xs font-arabic dir-rtl pt-[env(safe-area-inset-top,0px)]">
         {/* Subtle Top Ambient Glow Accent */}
         <div className="h-[2px] w-full bg-gradient-to-r from-emerald-500/0 via-emerald-500/90 to-teal-500/0" />
 
