@@ -137,7 +137,7 @@ export const AboutModal: React.FC = () => {
             </div>
             <div className="p-2.5 bg-m3-surface-container rounded-xl flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>Telegram Telemetry API</span>
+              <span>Live Telemetry Engine</span>
             </div>
           </div>
         </div>

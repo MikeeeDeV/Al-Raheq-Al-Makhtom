@@ -2,6 +2,8 @@ export type QuestionType = 'multiple_choice' | 'true_false';
 
 export interface Question {
   id: number;
+  originalId?: number;
+  sectionId?: number;
   section: string; // e.g. "الجزء الأول: من النسب والنشأة حتى الهجرة"
   type: QuestionType;
   question: string;
@@ -62,6 +64,11 @@ export interface QuizHistoryEntry {
   correctAnswers: number;
   scorePercentage: number;
   durationSeconds: number;
+}
+
+export interface CorrectedMistakeEntry {
+  question: Question;
+  correctedAt: string;
 }
 
 export type ReaderTheme = 'paper' | 'sepia' | 'night';

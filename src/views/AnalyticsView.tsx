@@ -19,20 +19,82 @@ import {
   Zap,
   Target,
   ChevronDown,
+  XCircle,
+  HelpCircle,
+  ArrowRight,
+  TrendingUp,
+  Play,
+  RotateCcw,
+  Layers,
+  Info,
+  SlidersHorizontal,
 } from 'lucide-react';
 import {
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
-  Tooltip,
 } from 'recharts';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Custom Tooltip for 4 Parts Mastery Bar Chart
+const CustomBarTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="p-3.5 bg-slate-900/95 border border-emerald-500/40 rounded-2xl shadow-xl text-white space-y-1.5 font-arabic text-xs z-50 min-w-[200px] text-right dir-rtl">
+        <p className="font-extrabold text-sm text-emerald-400 flex items-center gap-1.5">
+          <BookOpen className="w-4 h-4 text-amber-400 shrink-0" />
+          <span>{data.fullTitle}</span>
+        </p>
+        <div className="space-y-1 text-slate-300 pt-1.5 border-t border-slate-800">
+          <div className="flex justify-between gap-4">
+            <span className="text-slate-400">نسبة الإتقان:</span>
+            <span className="font-bold text-emerald-300">{data.rawMastery}%</span>
+          </div>
+          <div className="flex justify-between gap-4">
+            <span className="text-slate-400">الأسئلة المجابة:</span>
+            <span className="font-bold text-white">{data.solvedCount} / 300</span>
+          </div>
+          <div className="flex justify-between gap-4">
+            <span className="text-slate-400">إجابات صحيحة:</span>
+            <span className="font-bold text-emerald-400">{data.correctCount}</span>
+          </div>
+          <div className="flex justify-between gap-4">
+            <span className="text-slate-400">دقة الإجابات:</span>
+            <span className="font-bold text-amber-300">{data.accuracy}%</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+// Custom Tooltip for Donut Chart
+const CustomPieTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="p-3 bg-slate-900/95 border border-slate-700 rounded-xl shadow-xl text-white font-arabic text-xs text-right dir-rtl space-y-1">
+        <p className="font-bold flex items-center gap-1.5" style={{ color: data.color }}>
+          <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ backgroundColor: data.color }} />
+          <span>{data.name}</span>
+        </p>
+        <p className="text-slate-300">
+          العدد: <span className="font-bold text-white">{data.value}</span> سؤال ({data.percent}%)
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
 
 export const AnalyticsView: React.FC = () => {
   const {
@@ -42,23 +104,29 @@ export const AnalyticsView: React.FC = () => {
     answeredQuestions,
     achievements,
     checkAchievements,
+    setCurrentView,
+    startQuiz,
   } = useAppStore();
 
   const [selectedTierFilter, setSelectedTierFilter] = useState<'all' | BadgeTier>('all');
   const [activeTrackFilter, setActiveTrackFilter] = useState<string>('all');
+  const [masteryViewMode, setMasteryViewMode] = useState<'chart' | 'cards'>('chart');
+  const [donutDisplayMode, setDonutDisplayMode] = useState<'count' | 'percent'>('count');
 
   useEffect(() => {
     checkAchievements();
   }, [checkAchievements]);
 
+  const TOTAL_SYSTEM_QUESTIONS = 1200;
   const totalSolved = Object.keys(answeredQuestions).length;
   const correctCount = Object.values(answeredQuestions).filter((a) => a.isCorrect).length;
   const wrongCount = totalSolved - correctCount;
+  const unansweredCount = Math.max(0, TOTAL_SYSTEM_QUESTIONS - totalSolved);
   const accuracy = totalSolved > 0 ? Math.round((correctCount / totalSolved) * 100) : 0;
   const readingPercent = Math.round((currentPage / (totalPages || 543)) * 100);
 
   // Overall User XP Calculation
-  const userXP = (correctCount * 15) + (currentPage * 10) + (streak * 25);
+  const userXP = correctCount * 15 + currentPage * 10 + streak * 25;
 
   const getRankTitle = (xp: number) => {
     if (xp > 3000) return { title: 'عَالِم بالسيرة النبوية', color: 'from-amber-400 to-yellow-600' };
@@ -69,30 +137,78 @@ export const AnalyticsView: React.FC = () => {
 
   const userRank = getRankTitle(userXP);
 
-  // Radar Data per Section
-  const radarData = SECTIONS_INFO.map((sec) => {
-    const sectionSolved = Object.entries(answeredQuestions).filter(([qId]) => {
+  // Calculate detailed mastery for each of the 4 sections
+  const sectionsMastery = SECTIONS_INFO.map((sec) => {
+    const minId = (sec.id - 1) * 300 + 1;
+    const maxId = sec.id * 300;
+
+    const sectionAnswered = Object.entries(answeredQuestions).filter(([qId, res]: [string, any]) => {
+      if (res?.sectionId === sec.id) return true;
       const idNum = parseInt(qId, 10);
-      const minId = (sec.id - 1) * 300 + 1;
-      const maxId = sec.id * 300;
-      return idNum >= minId && idNum <= maxId;
+      return !isNaN(idNum) && idNum >= minId && idNum <= maxId;
     });
 
-    const secCorrect = sectionSolved.filter(([_, res]) => res.isCorrect).length;
-    const secMastery = Math.min(100, Math.round((secCorrect / 300) * 100));
+    const solvedCount = sectionAnswered.length;
+    const secCorrect = sectionAnswered.filter(([_, res]) => res.isCorrect).length;
+    const secWrong = solvedCount - secCorrect;
+    const secAccuracy = solvedCount > 0 ? Math.round((secCorrect / solvedCount) * 100) : 0;
+    const rawMastery = Math.min(100, Math.round((secCorrect / 300) * 100));
+
+    let statusText = 'لم يبدأ بعد';
+    let statusBg = 'bg-slate-700/40 text-slate-400 border-slate-700';
+
+    if (solvedCount > 0) {
+      if (rawMastery >= 80) {
+        statusText = 'إتقان ممتاز 🌟';
+        statusBg = 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40';
+      } else if (rawMastery >= 40) {
+        statusText = 'مستوى متقدم ⚡';
+        statusBg = 'bg-teal-500/20 text-teal-300 border-teal-500/40';
+      } else {
+        statusText = 'قيد التقدّم 📖';
+        statusBg = 'bg-amber-500/20 text-amber-300 border-amber-500/40';
+      }
+    }
 
     return {
-      subject: `الجزء ${sec.id}`,
-      mastery: Math.max(15, secMastery),
-      rawMastery: secMastery,
+      id: sec.id,
+      key: sec.key,
+      title: `الجزء ${sec.id}`,
+      fullTitle: sec.title,
+      subtitle: sec.subtitle,
+      description: sec.description,
+      mastery: rawMastery,
+      rawMastery,
+      solvedCount,
+      correctCount: secCorrect,
+      wrongCount: secWrong,
+      accuracy: secAccuracy,
+      statusText,
+      statusBg,
     };
   });
 
-  // Donut Chart Data
+  // Donut Chart Data (3-way breakdown: Correct, Wrong, Unanswered)
   const pieData = [
-    { name: 'إجابات صحيحة', value: correctCount || 1, color: '#059669' },
-    { name: 'إجابات خاطئة', value: wrongCount || 0, color: '#DC2626' },
-  ];
+    {
+      name: 'إجابات صحيحة',
+      value: correctCount,
+      color: '#059669',
+      percent: Math.round((correctCount / TOTAL_SYSTEM_QUESTIONS) * 100),
+    },
+    {
+      name: 'إجابات خاطئة',
+      value: wrongCount,
+      color: '#E11D48',
+      percent: Math.round((wrongCount / TOTAL_SYSTEM_QUESTIONS) * 100),
+    },
+    {
+      name: 'أسئلة متبقية',
+      value: unansweredCount,
+      color: '#334155',
+      percent: Math.round((unansweredCount / TOTAL_SYSTEM_QUESTIONS) * 100),
+    },
+  ].filter((item) => item.value > 0 || item.name === 'إجابات صحيحة');
 
   // Group achievements by Track
   const tracks = [
@@ -271,65 +387,305 @@ export const AnalyticsView: React.FC = () => {
         </motion.div>
       </div>
 
-      {/* Visual Charts Grid (Radar & Donut) */}
+      {/* 🚀 UPGRADED VISUAL CHARTS GRID (Mastery Chart & Answer Analysis) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Radar Chart for 4 Sections */}
-        <div className="p-5 sm:p-6 bg-m3-surface-container dark:bg-m3-surface-darkContainer rounded-3xl border border-m3-outline-variant/30 shadow-m3-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-m3-primary dark:text-m3-primary-dark font-bold text-sm sm:text-base">
-              <BarChart3 className="w-5 h-5" />
-              <span>مخطط الإتقان لأجزاء السيرة الـ 4</span>
+        {/* ========================================================================= */}
+        {/* 📊 CHART 1: مخطط الإتقان لأجزاء السيرة الـ 4 */}
+        {/* ========================================================================= */}
+        <div className="p-5 sm:p-6 bg-m3-surface-container dark:bg-m3-surface-darkContainer rounded-3xl border border-m3-outline-variant/30 shadow-m3-2 space-y-5 flex flex-col justify-between">
+          {/* Header & Controls */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-m3-outline-variant/20 pb-4">
+            <div>
+              <div className="flex items-center gap-2 text-m3-primary dark:text-m3-primary-dark font-black text-base sm:text-lg">
+                <BarChart3 className="w-5 h-5 text-emerald-500 shrink-0" />
+                <span>مخطط الإتقان لأجزاء السيرة الـ 4</span>
+              </div>
+              <p className="text-xs text-m3-onSurface-variant mt-0.5 font-medium">
+                مقياس الإتقان لكل جزء من أجزاء الكتاب الـ 4 (300 سؤال / جزء)
+              </p>
             </div>
-            <span className="text-xs text-m3-onSurface-variant font-semibold">مقياس الإتقان</span>
+
+            {/* View Mode Toggle Switcher */}
+            <div className="flex items-center gap-1 p-1 bg-slate-900/40 border border-slate-700/50 rounded-2xl shrink-0 self-start sm:self-auto">
+              <button
+                onClick={() => setMasteryViewMode('chart')}
+                className={`px-3 py-1 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  masteryViewMode === 'chart'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <BarChart3 className="w-3.5 h-3.5" />
+                <span>بياني</span>
+              </button>
+
+              <button
+                onClick={() => setMasteryViewMode('cards')}
+                className={`px-3 py-1 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  masteryViewMode === 'cards'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>بطاقات</span>
+              </button>
+            </div>
           </div>
 
-          <div className="h-64 sm:h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
-                <PolarGrid stroke="#707974" strokeDasharray="3 3" opacity={0.3} />
-                <PolarAngleAxis dataKey="subject" stroke="#404944" tick={{ fontSize: 12, fontWeight: 'bold' }} />
-                <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#707974" opacity={0.3} />
-                <Radar
-                  name="نسبة الإتقان"
-                  dataKey="mastery"
-                  stroke="#059669"
-                  fill="#059669"
-                  fillOpacity={0.45}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
-          </div>
+          {/* Body Content depending on View Mode */}
+          {masteryViewMode === 'chart' ? (
+            <div className="space-y-4">
+              <div className="h-64 sm:h-72 w-full pt-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={sectionsMastery} margin={{ top: 15, right: 10, left: -20, bottom: 5 }}>
+                    <defs>
+                      <linearGradient id="masteryGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#10B981" stopOpacity={0.95} />
+                        <stop offset="100%" stopColor="#047857" stopOpacity={0.4} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#475569" opacity={0.2} vertical={false} />
+                    <XAxis
+                      dataKey="title"
+                      stroke="#94A3B8"
+                      tick={{ fontSize: 12, fontWeight: 'bold', fill: 'currentColor' }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      domain={[0, 100]}
+                      ticks={[0, 25, 50, 75, 100]}
+                      stroke="#94A3B8"
+                      tick={{ fontSize: 11, fontWeight: 'bold', fill: 'currentColor' }}
+                      axisLine={false}
+                      tickLine={false}
+                      unit="%"
+                    />
+                    <Tooltip content={<CustomBarTooltip />} cursor={{ fill: 'rgba(16, 185, 129, 0.08)' }} />
+                    <Bar
+                      dataKey="mastery"
+                      fill="url(#masteryGradient)"
+                      radius={[12, 12, 0, 0]}
+                      maxBarSize={54}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Quick Section Indicators */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-m3-outline-variant/10">
+                {sectionsMastery.map((sec) => (
+                  <div
+                    key={sec.id}
+                    onClick={() => {
+                      startQuiz(sec.id);
+                      setCurrentView('quiz');
+                    }}
+                    className="p-2.5 bg-m3-surface/60 dark:bg-m3-surface-dark/60 rounded-2xl border border-m3-outline-variant/20 hover:border-emerald-500/50 transition cursor-pointer text-center space-y-0.5 group"
+                  >
+                    <span className="text-[11px] font-bold text-m3-onSurface group-hover:text-emerald-400 transition block">
+                      {sec.title}
+                    </span>
+                    <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 block">
+                      {sec.mastery}% إتقان
+                    </span>
+                    <span className="text-[10px] text-m3-onSurface-variant block font-medium">
+                      ({sec.solvedCount} / 300)
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            /* Cards View for 4 Sections */
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {sectionsMastery.map((sec) => (
+                <div
+                  key={sec.id}
+                  className="p-4 bg-slate-900/60 border border-slate-800 rounded-2xl space-y-3 hover:border-emerald-500/40 transition flex flex-col justify-between"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black text-emerald-400">{sec.title}</span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${sec.statusBg}`}>
+                        {sec.statusText}
+                      </span>
+                    </div>
+                    <h4 className="text-xs font-bold text-white line-clamp-1">{sec.fullTitle}</h4>
+                    <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">{sec.subtitle}</p>
+                  </div>
+
+                  {/* Section Progress Bar */}
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center justify-between text-[11px] font-bold">
+                      <span className="text-slate-400">نسبة الإتقان:</span>
+                      <span className="text-emerald-400">{sec.mastery}% ({sec.solvedCount}/300)</span>
+                    </div>
+                    <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                      <div
+                        className="bg-gradient-to-r from-emerald-600 to-teal-400 h-full rounded-full transition-all duration-500"
+                        style={{ width: `${sec.mastery}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* CTA button */}
+                  <button
+                    onClick={() => {
+                      startQuiz(sec.id);
+                      setCurrentView('quiz');
+                    }}
+                    className="w-full py-1.5 bg-emerald-950/80 hover:bg-emerald-800 text-emerald-200 font-bold text-xs rounded-xl border border-emerald-700/50 flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  >
+                    <Play className="w-3.5 h-3.5 fill-emerald-300" />
+                    <span>اختبر هذا الجزء</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Donut Chart for Accuracy Breakdown */}
-        <div className="p-5 sm:p-6 bg-m3-surface-container dark:bg-m3-surface-darkContainer rounded-3xl border border-m3-outline-variant/30 shadow-m3-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-m3-primary dark:text-m3-primary-dark font-bold text-sm sm:text-base">
-              <PieChartIcon className="w-5 h-5" />
-              <span>تحليل الإجابات الموثقة</span>
+        {/* ========================================================================= */}
+        {/* 🥧 CHART 2: تحليل الإجابات الموثقة */}
+        {/* ========================================================================= */}
+        <div className="p-5 sm:p-6 bg-m3-surface-container dark:bg-m3-surface-darkContainer rounded-3xl border border-m3-outline-variant/30 shadow-m3-2 space-y-5 flex flex-col justify-between">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-m3-outline-variant/20 pb-4">
+            <div>
+              <div className="flex items-center gap-2 text-m3-primary dark:text-m3-primary-dark font-black text-base sm:text-lg">
+                <PieChartIcon className="w-5 h-5 text-teal-500 shrink-0" />
+                <span>تحليل الإجابات الموثقة</span>
+              </div>
+              <p className="text-xs text-m3-onSurface-variant mt-0.5 font-medium">
+                تفنيط إجاباتك عبر كافة أسئلة كتاب الرحيق المختوم الـ 1,200
+              </p>
             </div>
-            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-bold">{correctCount} صحيحة</span>
+
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-extrabold text-xs rounded-full">
+                {totalSolved} مجاب
+              </span>
+            </div>
           </div>
 
-          <div className="h-64 sm:h-72 w-full flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={65}
-                  outerRadius={90}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+          {/* Donut Chart with Dynamic Center KPI */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+            <div className="h-60 w-full relative flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={68}
+                    outerRadius={92}
+                    paddingAngle={4}
+                    dataKey="value"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<CustomPieTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+
+              {/* Center Donut Label */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                <span className="text-2xl sm:text-3xl font-black text-m3-onSurface tracking-tight">
+                  {accuracy}%
+                </span>
+                <span className="text-[10px] font-bold text-m3-onSurface-variant">الدقة العامة</span>
+              </div>
+            </div>
+
+            {/* Detailed Legend & KPI Cards */}
+            <div className="space-y-3">
+              {/* Correct Answers Pill */}
+              <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center justify-between shadow-xs">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <CheckCircle2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-m3-onSurface block">إجابات صحيحة</span>
+                    <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold block">
+                      {correctCount} سؤال
+                    </span>
+                  </div>
+                </div>
+                <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">
+                  {totalSolved > 0 ? Math.round((correctCount / totalSolved) * 100) : 0}%
+                </span>
+              </div>
+
+              {/* Wrong Answers Pill (with quick navigation to mistakes bank) */}
+              <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex items-center justify-between shadow-xs">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <XCircle className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-m3-onSurface block">إجابات خاطئة</span>
+                    <span className="text-[11px] text-rose-500 dark:text-rose-400 font-semibold block">
+                      {wrongCount} سؤال بحاجة مراجعة
+                    </span>
+                  </div>
+                </div>
+
+                {wrongCount > 0 ? (
+                  <button
+                    onClick={() => setCurrentView('mistakes')}
+                    className="px-2.5 py-1 bg-rose-950 hover:bg-rose-900 text-rose-200 font-bold text-[11px] rounded-xl border border-rose-700/50 flex items-center gap-1 transition cursor-pointer"
+                  >
+                    <span>راجعها</span>
+                    <ArrowRight className="w-3 h-3 rotate-180" />
+                  </button>
+                ) : (
+                  <span className="text-xs font-black text-rose-500">0%</span>
+                )}
+              </div>
+
+              {/* Remaining Questions Pill */}
+              <div className="p-3 bg-slate-800/40 border border-slate-700/40 rounded-2xl flex items-center justify-between shadow-xs">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-slate-700 text-slate-300 flex items-center justify-center shrink-0 shadow-xs">
+                    <HelpCircle className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-m3-onSurface block">أسئلة غير مجابة</span>
+                    <span className="text-[11px] text-slate-400 font-semibold block">
+                      {unansweredCount} من 1,200 سؤال
+                    </span>
+                  </div>
+                </div>
+                <span className="text-xs font-black text-slate-400">
+                  {Math.round((unansweredCount / TOTAL_SYSTEM_QUESTIONS) * 100)}%
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Status Evaluation Footer */}
+          <div className="p-3 bg-slate-900/50 border border-slate-800 rounded-2xl flex items-center justify-between text-xs text-slate-300">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>
+                {accuracy >= 80
+                  ? 'أداء ممتاز! واصل الحفاظ على نسبة الدقة العالية.'
+                  : accuracy >= 50
+                  ? 'تحصيل جيد جداً، استعن ببنك الأخطاء لتصحيح المفاهيم.'
+                  : 'ابدأ بحل المزيد من الاختبارات لرفع حصيلتك المعرفية.'}
+              </span>
+            </div>
+            <button
+              onClick={() => setCurrentView('quiz')}
+              className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 underline underline-offset-4 cursor-pointer shrink-0"
+            >
+              <span>تابع التحدي</span>
+            </button>
           </div>
         </div>
       </div>

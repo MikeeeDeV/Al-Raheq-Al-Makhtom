@@ -221,7 +221,7 @@ export const Footer: React.FC = () => {
                 className="inline-flex items-center gap-2 text-xs text-emerald-400 hover:underline font-bold mt-1"
               >
                 <Github className="w-4 h-4" />
-                <span>تطوير وإخراج: محمد أيمن (MikeeeDeV)</span>
+                <span>تطوير: محمد أيمن (MikeeeDeV)</span>
               </a>
             </div>
           </div>

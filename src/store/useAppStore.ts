@@ -5,6 +5,7 @@ import {
   Question,
   Bookmark,
   QuizHistoryEntry,
+  CorrectedMistakeEntry,
   ReaderTheme,
   UserAchievement,
 } from '../types';
@@ -45,11 +46,13 @@ interface AppState {
   // Quiz & Mistakes State
   answeredQuestions: Record<number, { isCorrect: boolean; selectedAnswer: string; timestamp: string }>;
   mistakesBank: Record<number, Question>;
+  correctedMistakesArchive: Record<number, CorrectedMistakeEntry>;
   quizHistory: QuizHistoryEntry[];
   streak: number;
   lastActiveDate: string;
   recordAnswer: (question: Question, selectedAnswer: string) => boolean;
   removeFromMistakesBank: (questionId: number) => void;
+  clearCorrectedArchive: () => void;
   saveQuizSession: (entry: Omit<QuizHistoryEntry, 'id' | 'date'>) => void;
   checkAndUpdateStreak: () => void;
 
@@ -407,39 +410,56 @@ export const useAppStore = create<AppState>()(
           const res = await fetch('/questions.json');
           const data: QuizData = await res.json();
 
-          // Auto-sanitize questions to guarantee 100% authentic Seerah content with zero placeholders
+          // Auto-sanitize questions and assign 100% unique global IDs (1..1200) across all 4 sections
           for (const secKey of Object.keys(data.sections) as (keyof typeof data.sections)[]) {
+            const secId = parseInt(secKey.replace('section_', ''), 10);
             const sec = data.sections[secKey];
-            for (const type of ['mcq', 'true_false'] as (keyof typeof sec)[]) {
-              sec[type] = sec[type].map((q: Question) => {
-                const hasValidOptions = Array.isArray(q.options) && q.options.length > 0;
-                const defaultOptions = q.type === 'true_false' ? ["صواب", "خطأ"] : ["الخيار الأول", "الخيار الثاني", "الخيار الثالث", "الخيار الرابع"];
-                const finalOptions = hasValidOptions ? (q.options as string[]) : defaultOptions;
 
-                // Strip any numbers or 'سيرة نبوية رقم' or 'سؤال توثيقي رقم' or 'عبارة رقم' from question title
-                let cleanQuestion = q.question.replace(/(عبارة|سيرة نبوية|سؤال سيرة نبوية|سؤال توثيقي)\s*(رقم)?\s*\d*\s*(تتعلق بـ|تتعلق بأحداث|في|حول)?/g, '').trim();
-                if (!cleanQuestion || cleanQuestion.length < 5) {
-                  cleanQuestion = `دراسة وتوثيق في أحداث السيرة النبوية العطرة — ${q.section}`;
-                }
+            // MCQ questions get global IDs: (secId - 1) * 300 + 1 .. (secId - 1) * 300 + 150
+            sec.mcq = sec.mcq.map((q: Question, idx: number) => {
+              const globalId = (secId - 1) * 300 + (idx + 1);
+              const hasValidOptions = Array.isArray(q.options) && q.options.length > 0;
+              const defaultOptions = ["الخيار الأول", "الخيار الثاني", "الخيار الثالث", "الخيار الرابع"];
+              const finalOptions = hasValidOptions ? (q.options as string[]) : defaultOptions;
 
-                if (q.question.includes('سؤال سيرة نبوية رقم') || (hasValidOptions && q.options.some((o) => o.includes('الخيار')))) {
-                  return {
-                    ...q,
-                    question: `دراسة وتوثيق في معالم السيرة النبوية العطرة`,
-                    options: finalOptions,
-                    correct_answer: q.type === 'true_false' ? (q.correct_answer || "صواب") : finalOptions[0],
-                    explanation: "مبحث توثيقي مفصل من واقع أحداث السيرة النبوية العطرة في كتاب الرحيق المختوم."
-                  };
-                }
+              let cleanQuestion = q.question.replace(/(عبارة|سيرة نبوية|سؤال سيرة نبوية|سؤال توثيقي)\s*(رقم)?\s*\d*\s*(تتعلق بـ|تتعلق بأحداث|في|حول)?/g, '').trim();
+              if (!cleanQuestion || cleanQuestion.length < 5) {
+                cleanQuestion = `دراسة وتوثيق في أحداث السيرة النبوية العطرة — ${q.section}`;
+              }
 
-                return {
-                  ...q,
-                  question: cleanQuestion,
-                  options: finalOptions,
-                  correct_answer: q.correct_answer || (q.type === 'true_false' ? "صواب" : finalOptions[0]),
-                };
-              });
-            }
+              return {
+                ...q,
+                id: globalId,
+                originalId: q.id,
+                sectionId: secId,
+                question: cleanQuestion,
+                options: finalOptions,
+                correct_answer: q.correct_answer || finalOptions[0],
+              };
+            });
+
+            // True/False questions get global IDs: (secId - 1) * 300 + 151 .. secId * 300
+            sec.true_false = sec.true_false.map((q: Question, idx: number) => {
+              const globalId = (secId - 1) * 300 + 150 + (idx + 1);
+              const hasValidOptions = Array.isArray(q.options) && q.options.length > 0;
+              const defaultOptions = ["صواب", "خطأ"];
+              const finalOptions = hasValidOptions ? (q.options as string[]) : defaultOptions;
+
+              let cleanQuestion = q.question.replace(/(عبارة|سيرة نبوية|سؤال سيرة نبوية|سؤال توثيقي)\s*(رقم)?\s*\d*\s*(تتعلق بـ|تتعلق بأحداث|في|حول)?/g, '').trim();
+              if (!cleanQuestion || cleanQuestion.length < 5) {
+                cleanQuestion = `دراسة وتوثيق في أحداث السيرة النبوية العطرة — ${q.section}`;
+              }
+
+              return {
+                ...q,
+                id: globalId,
+                originalId: q.id,
+                sectionId: secId,
+                question: cleanQuestion,
+                options: finalOptions,
+                correct_answer: q.correct_answer || "صواب",
+              };
+            });
           }
 
           set({ quizData: data, isLoadingQuestions: false });
@@ -509,6 +529,7 @@ export const useAppStore = create<AppState>()(
       // Quiz & Mistakes
       answeredQuestions: {},
       mistakesBank: {},
+      correctedMistakesArchive: {},
       quizHistory: [],
       streak: 1,
       lastActiveDate: new Date().toISOString().split('T')[0],
@@ -518,21 +539,32 @@ export const useAppStore = create<AppState>()(
         const timestamp = new Date().toISOString();
 
         set((state) => {
+          const secId = question.sectionId || Math.ceil(question.id / 300);
           const newAnswered = {
             ...state.answeredQuestions,
-            [question.id]: { isCorrect, selectedAnswer, timestamp },
+            [question.id]: { isCorrect, selectedAnswer, timestamp, sectionId: secId },
           };
 
           const newMistakes = { ...state.mistakesBank };
+          const newArchive = { ...state.correctedMistakesArchive };
+
           if (!isCorrect) {
             newMistakes[question.id] = question;
           } else {
-            delete newMistakes[question.id];
+            if (newMistakes[question.id]) {
+              // Archive corrected mistake
+              newArchive[question.id] = {
+                question: newMistakes[question.id],
+                correctedAt: new Date().toLocaleDateString('ar-EG'),
+              };
+              delete newMistakes[question.id];
+            }
           }
 
           return {
             answeredQuestions: newAnswered,
             mistakesBank: newMistakes,
+            correctedMistakesArchive: newArchive,
           };
         });
 
@@ -544,10 +576,24 @@ export const useAppStore = create<AppState>()(
       removeFromMistakesBank: (questionId) => {
         set((state) => {
           const newMistakes = { ...state.mistakesBank };
-          delete newMistakes[questionId];
-          return { mistakesBank: newMistakes };
+          const newArchive = { ...state.correctedMistakesArchive };
+
+          if (newMistakes[questionId]) {
+            newArchive[questionId] = {
+              question: newMistakes[questionId],
+              correctedAt: new Date().toLocaleDateString('ar-EG'),
+            };
+            delete newMistakes[questionId];
+          }
+
+          return {
+            mistakesBank: newMistakes,
+            correctedMistakesArchive: newArchive,
+          };
         });
       },
+
+      clearCorrectedArchive: () => set({ correctedMistakesArchive: {} }),
 
       saveQuizSession: (entryData) => {
         const newEntry: QuizHistoryEntry = {
@@ -659,6 +705,7 @@ export const useAppStore = create<AppState>()(
         bookmarks: state.bookmarks,
         answeredQuestions: state.answeredQuestions,
         mistakesBank: state.mistakesBank,
+        correctedMistakesArchive: state.correctedMistakesArchive,
         quizHistory: state.quizHistory,
         streak: state.streak,
         lastActiveDate: state.lastActiveDate,
