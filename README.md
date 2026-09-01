@@ -5,11 +5,13 @@
 
 ```text
  ───▄▀▀▀▄▄▄▄▄▄▄▀▀▀▄───
- ───█▒▒░░░░░░░░░▒▒█───   الرحيق المختوم — المنصة التفاعلية المتقدمة
- ────█░░█░░░░░█░░█────   لدارسة وقراءة واستيعاب كتاب السيرة النبوية المطهرة
- ─▄▄██▄▄▄▀▀▀▀▀▄▄▄██▄▄─   طُوّرت بأحدث تقنيات الويب الحديثة (React 19 + TypeScript + Vite)
+ ───█▒▒░░░░░░░░░▒▒█───   
+ ────█░░█░░░░░█░░█──── 
+ ─▄▄██▄▄▄▀▀▀▀▀▄▄▄██▄▄─ 
+الرحيق المختوم — المنصة التفاعلية المتقدمة
+  لدارسة وقراءة واستيعاب كتاب السيرة النبوية المطهرة
+  طُوّرت بأحدث تقنيات الويب الحديثة (React 19 + TypeScript + Vite)
 ```
-
 [![React 19](https://img.shields.io/badge/React-19.0.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-6.1-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
