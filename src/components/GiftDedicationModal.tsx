@@ -8,11 +8,12 @@ import {
   Download,
   BookOpen,
   Sparkles,
-  Palette,
   Send,
   Heart,
+  Palette,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
 
 type CardTheme = 'emerald' | 'royal' | 'warm' | 'dark_gold' | 'rose' | 'cyan';
 
@@ -35,11 +36,10 @@ export const GiftDedicationModal: React.FC = () => {
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Friendly, simple, and warm Arabic preset messages
   const presetMessages: PresetMessage[] = [
     {
       label: 'محبة وود',
-      text: 'أهديك رابط هذه المنصة المباركة لقراءة وتدارس سيرة نبينا الكريم ﷺ  ',
+      text: 'أهديك رابط هذه المنصة المباركة لقراءة وتدارس سيرة نبينا الكريم ﷺ',
     },
     {
       label: 'تهادوا تحابوا',
@@ -62,7 +62,7 @@ export const GiftDedicationModal: React.FC = () => {
   const activeMessage = customMsg.trim() || presetMessages[selectedMsgIndex].text;
   const appLink = window.location.origin || 'https://al-raheq-al-makhtom.vercel.app';
 
-  // Render High-Res Canvas Card with Unique Visual Identity & Corner Ornaments
+  // Render High-Res Canvas Card with Clean Text & 6 Distinct Visual Frame Designs
   const drawCardOnCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -74,52 +74,51 @@ export const GiftDedicationModal: React.FC = () => {
     canvas.width = width;
     canvas.height = height;
 
-    // 6 Unique Brand Themes Configuration
-    const themes = {
+    const themesConfig = {
       emerald: {
-        bg: '#F4FBF7',
-        outerBorder: '#065F46',
-        innerFrame: '#D97706',
-        titleColor: '#065F46',
-        subtitleColor: '#0F172A',
-        toColor: '#065F46',
-        fromColor: '#D97706',
-        boxBg: '#FFFFFF',
-        boxBorder: 'rgba(6, 95, 70, 0.25)',
-        textColor: '#1E293B',
-        footerLink: '#065F46',
-        ornament: '#D97706',
+        bg: '#044E3A',
+        outerBorder: '#34D399',
+        innerFrame: '#F59E0B',
+        titleColor: '#FDE68A',
+        subtitleColor: '#A7F3D0',
+        toColor: '#6EE7B7',
+        fromColor: '#FBBF24',
+        boxBg: '#065F46',
+        boxBorder: 'rgba(245, 158, 11, 0.4)',
+        textColor: '#FFFFFF',
+        footerLink: '#FDE68A',
+        ornament: '#F59E0B',
       },
       royal: {
-        bg: '#F8FAFC',
-        outerBorder: '#1E3A8A',
-        innerFrame: '#F59E0B',
-        titleColor: '#1E3A8A',
-        subtitleColor: '#0F172A',
-        toColor: '#1E3A8A',
-        fromColor: '#D97706',
-        boxBg: '#FFFFFF',
-        boxBorder: 'rgba(30, 58, 138, 0.25)',
-        textColor: '#1E293B',
-        footerLink: '#1E3A8A',
+        bg: '#0F172A',
+        outerBorder: '#F59E0B',
+        innerFrame: '#60A5FA',
+        titleColor: '#FBBF24',
+        subtitleColor: '#93C5FD',
+        toColor: '#93C5FD',
+        fromColor: '#FBBF24',
+        boxBg: '#1E293B',
+        boxBorder: 'rgba(245, 158, 11, 0.4)',
+        textColor: '#FFFFFF',
+        footerLink: '#FBBF24',
         ornament: '#F59E0B',
       },
       warm: {
-        bg: '#FDFBF7',
+        bg: '#FDF6E2',
         outerBorder: '#78350F',
         innerFrame: '#B45309',
         titleColor: '#78350F',
-        subtitleColor: '#451A03',
+        subtitleColor: '#92400E',
         toColor: '#78350F',
         fromColor: '#B45309',
         boxBg: '#FFFBEB',
-        boxBorder: 'rgba(120, 53, 15, 0.25)',
+        boxBorder: 'rgba(180, 83, 9, 0.4)',
         textColor: '#451A03',
         footerLink: '#78350F',
         ornament: '#B45309',
       },
       dark_gold: {
-        bg: '#0F172A',
+        bg: '#090D16',
         outerBorder: '#F59E0B',
         innerFrame: '#FBBF24',
         titleColor: '#FBBF24',
@@ -127,85 +126,113 @@ export const GiftDedicationModal: React.FC = () => {
         toColor: '#F59E0B',
         fromColor: '#38BDF8',
         boxBg: '#1E293B',
-        boxBorder: 'rgba(245, 158, 11, 0.35)',
+        boxBorder: 'rgba(245, 158, 11, 0.4)',
         textColor: '#F8FAFC',
         footerLink: '#FBBF24',
         ornament: '#FBBF24',
       },
       rose: {
-        bg: '#FFF1F2',
-        outerBorder: '#9F1239',
-        innerFrame: '#F43F5E',
-        titleColor: '#9F1239',
-        subtitleColor: '#4C0519',
-        toColor: '#9F1239',
-        fromColor: '#E11D48',
-        boxBg: '#FFFFFF',
-        boxBorder: 'rgba(159, 18, 57, 0.25)',
-        textColor: '#1E293B',
-        footerLink: '#9F1239',
-        ornament: '#F43F5E',
+        bg: '#4C0519',
+        outerBorder: '#FB7185',
+        innerFrame: '#F59E0B',
+        titleColor: '#FFE4E6',
+        subtitleColor: '#FECDD3',
+        toColor: '#FECDD3',
+        fromColor: '#FBBF24',
+        boxBg: '#881337',
+        boxBorder: 'rgba(251, 113, 133, 0.4)',
+        textColor: '#FFFFFF',
+        footerLink: '#FFE4E6',
+        ornament: '#FB7185',
       },
       cyan: {
-        bg: '#F0FDF4',
-        outerBorder: '#0891B2',
-        innerFrame: '#10B981',
-        titleColor: '#0891B2',
-        subtitleColor: '#064E3B',
-        toColor: '#0891B2',
-        fromColor: '#059669',
-        boxBg: '#FFFFFF',
-        boxBorder: 'rgba(8, 145, 178, 0.25)',
-        textColor: '#1E293B',
-        footerLink: '#0891B2',
-        ornament: '#10B981',
+        bg: '#062C38',
+        outerBorder: '#22D3EE',
+        innerFrame: '#F59E0B',
+        titleColor: '#CFFAFE',
+        subtitleColor: '#A5F3FC',
+        toColor: '#A5F3FC',
+        fromColor: '#FBBF24',
+        boxBg: '#083344',
+        boxBorder: 'rgba(34, 211, 238, 0.4)',
+        textColor: '#FFFFFF',
+        footerLink: '#CFFAFE',
+        ornament: '#22D3EE',
       },
     };
 
-    const cfg = themes[selectedTheme];
+    const cfg = themesConfig[selectedTheme];
 
-    // Background
+    // Background Fill
     ctx.fillStyle = cfg.bg;
     ctx.fillRect(0, 0, width, height);
 
-    // Outer Thick Border
-    ctx.strokeStyle = cfg.outerBorder;
-    ctx.lineWidth = 10;
-    ctx.strokeRect(28, 28, width - 56, height - 56);
-
-    // Inner Gold Fine Frame
-    ctx.strokeStyle = cfg.innerFrame;
-    ctx.lineWidth = 2.5;
-    ctx.strokeRect(40, 40, width - 80, height - 80);
-
-    // Corner Ornaments (Islamic Star Motif Accent)
-    const drawCornerStar = (x: number, y: number) => {
-      ctx.fillStyle = cfg.ornament;
+    // Frame Geometry Styles according to theme
+    if (selectedTheme === 'cyan') {
+      // Chamfered Polygon Corners
+      ctx.strokeStyle = cfg.outerBorder;
+      ctx.lineWidth = 6;
       ctx.beginPath();
-      ctx.arc(x, y, 9, 0, Math.PI * 2);
-      ctx.fill();
-    };
-    drawCornerStar(40, 40);
-    drawCornerStar(width - 40, 40);
-    drawCornerStar(40, height - 40);
-    drawCornerStar(width - 40, height - 40);
+      ctx.moveTo(55, 30);
+      ctx.lineTo(width - 55, 30);
+      ctx.lineTo(width - 30, 55);
+      ctx.lineTo(width - 30, height - 55);
+      ctx.lineTo(width - 55, height - 30);
+      ctx.lineTo(55, height - 30);
+      ctx.lineTo(30, height - 55);
+      ctx.lineTo(30, 55);
+      ctx.closePath();
+      ctx.stroke();
+    } else if (selectedTheme === 'rose') {
+      // Rounded Pill Outer Frame
+      ctx.strokeStyle = cfg.outerBorder;
+      ctx.lineWidth = 6;
+      if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(28, 28, width - 56, height - 56, 28);
+        ctx.stroke();
+      } else {
+        ctx.strokeRect(28, 28, width - 56, height - 56);
+      }
+    } else {
+      // Classic Double Rect Frame
+      ctx.strokeStyle = cfg.outerBorder;
+      ctx.lineWidth = 8;
+      ctx.strokeRect(28, 28, width - 56, height - 56);
 
-    // Header Title
+      ctx.strokeStyle = cfg.innerFrame;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(40, 40, width - 80, height - 80);
+
+      // Corner Stars
+      const drawCornerStar = (x: number, y: number) => {
+        ctx.fillStyle = cfg.ornament;
+        ctx.beginPath();
+        ctx.arc(x, y, 9, 0, Math.PI * 2);
+        ctx.fill();
+      };
+      drawCornerStar(40, 40);
+      drawCornerStar(width - 40, 40);
+      drawCornerStar(40, height - 40);
+      drawCornerStar(width - 40, height - 40);
+    }
+
+    // Header Calligraphy & Title (Exact Requested Clean Text)
     ctx.fillStyle = cfg.titleColor;
     ctx.font = 'bold 24px Readex Pro, Cairo, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('« الرحيق المختوم — كارت إهداء »', width / 2, 108);
+    ctx.fillText('« الرحيق المختوم — كارت إهداء »', width / 2, 105);
 
     ctx.fillStyle = cfg.subtitleColor;
     ctx.font = 'bold 36px Readex Pro, Cairo, sans-serif';
-    ctx.fillText('منصة السيرة النبوية التفاعلية', width / 2, 162);
+    ctx.fillText('منصة السيرة النبوية التفاعلية', width / 2, 160);
 
     // Elegant Divider Line
     ctx.strokeStyle = cfg.innerFrame;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(220, 192);
-    ctx.lineTo(width - 220, 192);
+    ctx.moveTo(220, 195);
+    ctx.lineTo(width - 220, 195);
     ctx.stroke();
 
     // To & From Names Block
@@ -213,18 +240,18 @@ export const GiftDedicationModal: React.FC = () => {
 
     ctx.textAlign = 'right';
     ctx.fillStyle = cfg.toColor;
-    ctx.fillText(`إلى:  ${recipientName || 'أخي الغالي'}`, width - 130, 252);
+    ctx.fillText(`إلى:  ${recipientName || 'أخي الغالي'}`, width - 120, 252);
 
     ctx.textAlign = 'left';
     ctx.fillStyle = cfg.fromColor;
-    ctx.fillText(`من:  ${senderName || 'محب السيرة'}`, 130, 252);
+    ctx.fillText(`من:  ${senderName || 'محب السيرة'}`, 120, 252);
 
     // Dedicated Message Container Box
     ctx.fillStyle = cfg.boxBg;
-    ctx.fillRect(90, 290, width - 180, 205);
+    ctx.fillRect(80, 290, width - 160, 215);
     ctx.strokeStyle = cfg.boxBorder;
     ctx.lineWidth = 1.5;
-    ctx.strokeRect(90, 290, width - 180, 205);
+    ctx.strokeRect(80, 290, width - 160, 215);
 
     // Wrap Message Text Lines
     ctx.fillStyle = cfg.textColor;
@@ -233,7 +260,7 @@ export const GiftDedicationModal: React.FC = () => {
 
     const words = activeMessage.split(' ');
     let line = '';
-    let y = 362;
+    let y = 360;
     const maxWidth = width - 240;
 
     for (let n = 0; n < words.length; n++) {
@@ -249,7 +276,7 @@ export const GiftDedicationModal: React.FC = () => {
     }
     ctx.fillText(line, width / 2, y);
 
-    // Footer Platform Branding Watermark & Link
+    // Footer Platform Branding Watermark & Link (Clean)
     ctx.fillStyle = cfg.footerLink;
     ctx.font = 'bold 22px Readex Pro, Cairo, sans-serif';
     ctx.fillText(`🔗 ${appLink}`, width / 2, 558);
@@ -258,12 +285,11 @@ export const GiftDedicationModal: React.FC = () => {
     ctx.font = '17px Readex Pro, Cairo, sans-serif';
     ctx.fillText('بطاقة إهداء رقمية ✦ منصة قراءة واختبارات السيرة النبوية', width / 2, 594);
 
-    // Export preview Image Data URI
     try {
       const uri = canvas.toDataURL('image/png');
       setPreviewImageUri(uri);
     } catch {
-      // Ignore fallback
+      // Ignore
     }
   }, [senderName, recipientName, activeMessage, appLink, selectedTheme]);
 
@@ -277,6 +303,12 @@ export const GiftDedicationModal: React.FC = () => {
     setIsDownloading(true);
     drawCardOnCanvas();
 
+    confetti({
+      particleCount: 70,
+      spread: 60,
+      origin: { y: 0.6 },
+    });
+
     setTimeout(() => {
       const canvas = canvasRef.current;
       if (canvas) {
@@ -289,7 +321,7 @@ export const GiftDedicationModal: React.FC = () => {
         document.body.removeChild(link);
       }
       setIsDownloading(false);
-    }, 120);
+    }, 100);
   };
 
   const fullShareText =
@@ -322,7 +354,7 @@ export const GiftDedicationModal: React.FC = () => {
           return;
         }
       } catch {
-        // Fallback to web link
+        // Fallback
       }
     }
     const url = `https://wa.me/?text=${encodeURIComponent(fullShareText)}`;
@@ -360,42 +392,42 @@ export const GiftDedicationModal: React.FC = () => {
     }
   };
 
+  if (!isGiftModalOpen) return null;
+
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 font-arabic dir-rtl"
-    >
-      {/* Hidden Canvas for Export */}
-      <canvas ref={canvasRef} className="hidden" />
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 font-arabic dir-rtl overflow-hidden">
+        <canvas ref={canvasRef} className="hidden" />
 
-      {/* Backdrop */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.18 }}
-        onClick={() => setGiftModalOpen(false)}
-        className="fixed inset-0 bg-slate-950/75 backdrop-blur-xs"
-      />
+        {/* Backdrop */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+          onClick={() => setGiftModalOpen(false)}
+          className="fixed inset-0 bg-slate-950/80 backdrop-blur-md"
+        />
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.93, y: 12 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.93, y: 12 }}
-        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-        className="bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant/30 w-full max-w-xl rounded-3xl shadow-2xl relative overflow-hidden flex flex-col max-h-[92vh] z-10 my-auto"
+        <motion.div
+          initial={{ opacity: 0, scale: 0.94, y: 16 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.94, y: 16 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+          className="bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant/30 w-full max-w-xl rounded-3xl shadow-2xl relative overflow-hidden flex flex-col max-h-[92vh] z-10 my-auto"
         >
-          {/* Top Modal Header */}
-          <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-emerald-950 text-white p-4 sm:p-5 flex items-center justify-between shadow-xs">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-emerald-950 text-white p-4 sm:p-5 flex items-center justify-between shadow-xs shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-emerald-800 rounded-2xl flex items-center justify-center text-amber-300 shadow-xs">
+              <div className="w-10 h-10 bg-emerald-800 rounded-2xl flex items-center justify-center text-amber-300 shadow-md shrink-0">
                 <BookOpen className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-black text-base sm:text-lg leading-tight flex items-center gap-2">
+                <h3 className="font-extrabold text-base sm:text-lg leading-tight flex items-center gap-2">
                   <span>إهداء كارت السيرة النبوية</span>
                   <Heart className="w-4 h-4 text-rose-400 fill-rose-400 animate-pulse" />
                 </h3>
-                <p className="text-xs text-emerald-200/90 font-light">
+                <p className="text-xs text-emerald-200/90 font-medium">
                   اصنع كارت إهداء بسيط وجميل لأحبابك مع رابط المنصة
                 </p>
               </div>
@@ -409,10 +441,10 @@ export const GiftDedicationModal: React.FC = () => {
             </button>
           </div>
 
-          {/* Modal Main Content */}
-          <div className="p-4 sm:p-6 overflow-y-auto space-y-5">
-            {/* Theme Picker Selector */}
-            <div className="space-y-2">
+          {/* Clean Scrollable Content */}
+          <div className="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1">
+            {/* Theme Pills Selector */}
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs font-bold text-m3-onSurface">
                 <span className="flex items-center gap-1.5">
                   <Palette className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -421,20 +453,23 @@ export const GiftDedicationModal: React.FC = () => {
                 <span className="text-m3-onSurface-variant text-[11px] font-normal">اختر الألوان المناسبة</span>
               </div>
 
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
                 {[
                   { id: 'emerald', name: 'الأخضر', class: 'bg-emerald-800 text-white border-emerald-500' },
-                  { id: 'royal', name: 'الملكي', class: 'bg-blue-900 text-amber-300 border-amber-500' },
+                  { id: 'royal', name: 'الملكي', class: 'bg-blue-950 text-amber-300 border-amber-500' },
                   { id: 'warm', name: 'الورقي', class: 'bg-amber-100 text-amber-900 border-amber-600' },
                   { id: 'dark_gold', name: 'الفخم', class: 'bg-slate-950 text-amber-300 border-amber-400' },
-                  { id: 'rose', name: 'الزهري', class: 'bg-rose-800 text-white border-rose-400' },
-                  { id: 'cyan', name: 'السايان', class: 'bg-cyan-800 text-white border-cyan-400' },
+                  { id: 'rose', name: 'الزهري', class: 'bg-rose-900 text-rose-100 border-rose-400' },
+                  { id: 'cyan', name: 'السايان', class: 'bg-cyan-900 text-cyan-100 border-cyan-400' },
                 ].map((t) => (
                   <button
                     key={t.id}
                     onClick={() => setSelectedTheme(t.id as CardTheme)}
-                    className={`px-2 py-2 rounded-xl text-xs font-bold transition border flex items-center justify-center cursor-pointer ${t.class} ${selectedTheme === t.id ? 'ring-2 ring-emerald-500 shadow-md scale-105' : 'opacity-70 hover:opacity-100'
-                      }`}
+                    className={`py-2 px-2 rounded-xl text-xs font-bold transition border flex items-center justify-center cursor-pointer ${t.class} ${
+                      selectedTheme === t.id
+                        ? 'ring-2 ring-emerald-500 shadow-md scale-105 font-black'
+                        : 'opacity-70 hover:opacity-100'
+                    }`}
                   >
                     <span>{t.name}</span>
                   </button>
@@ -442,8 +477,8 @@ export const GiftDedicationModal: React.FC = () => {
               </div>
             </div>
 
-            {/* Live High-Res Image Preview */}
-            <div className="space-y-1.5">
+            {/* Live Card Preview */}
+            <div className="space-y-1">
               <div className="flex items-center justify-between text-xs font-bold text-m3-onSurface">
                 <span>معاينة الكارت الحية:</span>
                 <span className="text-emerald-600 dark:text-emerald-400 text-[11px] flex items-center gap-1">
@@ -452,7 +487,7 @@ export const GiftDedicationModal: React.FC = () => {
                 </span>
               </div>
 
-              <div className="relative rounded-2xl overflow-hidden border border-m3-outline-variant/30 shadow-m3-2 group transition-transform duration-300 hover:scale-[1.01]">
+              <div className="rounded-2xl overflow-hidden border border-m3-outline-variant/30 shadow-md">
                 {previewImageUri ? (
                   <img
                     src={previewImageUri}
@@ -460,15 +495,15 @@ export const GiftDedicationModal: React.FC = () => {
                     className="w-full h-auto object-cover rounded-2xl"
                   />
                 ) : (
-                  <div className="p-8 text-center text-xs text-m3-onSurface-variant bg-m3-surface-container">
-                    جاري إعداد الكارت...
+                  <div className="p-6 text-center text-xs text-m3-onSurface-variant bg-m3-surface-container">
+                    جاري تجهيز الكارت...
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Sender and Recipient Inputs */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Inputs: Names */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
                 <label className="block text-xs font-bold text-m3-onSurface mb-1">
                   اسمك (من):
@@ -497,7 +532,7 @@ export const GiftDedicationModal: React.FC = () => {
             </div>
 
             {/* Preset Messages */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="block text-xs font-bold text-m3-onSurface">
                 اختر رسالة الإهداء:
               </label>
@@ -510,10 +545,11 @@ export const GiftDedicationModal: React.FC = () => {
                       setSelectedMsgIndex(idx);
                       setCustomMsg('');
                     }}
-                    className={`w-full p-2.5 rounded-xl text-right text-xs transition border cursor-pointer ${selectedMsgIndex === idx && !customMsg
+                    className={`w-full p-2.5 rounded-xl text-right text-xs transition border cursor-pointer ${
+                      selectedMsgIndex === idx && !customMsg
                         ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-600 text-emerald-900 dark:text-emerald-200 font-bold shadow-xs'
                         : 'bg-m3-surface-container dark:bg-m3-surface-darkContainer border-m3-outline-variant/20 text-m3-onSurface-variant hover:border-emerald-500/40'
-                      }`}
+                    }`}
                   >
                     <div className="flex items-center gap-2">
                       <span className="px-2 py-0.5 bg-emerald-600/10 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold rounded-md">
@@ -536,7 +572,7 @@ export const GiftDedicationModal: React.FC = () => {
           </div>
 
           {/* Action Bar */}
-          <div className="p-4 bg-m3-surface-container dark:bg-m3-surface-darkContainer border-t border-m3-outline-variant/20 flex flex-wrap items-center justify-between gap-2">
+          <div className="p-4 bg-m3-surface-container dark:bg-m3-surface-darkContainer border-t border-m3-outline-variant/20 flex flex-wrap items-center justify-between gap-2 shrink-0">
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
@@ -584,6 +620,7 @@ export const GiftDedicationModal: React.FC = () => {
           </div>
         </motion.div>
       </div>
+    </AnimatePresence>
   );
 };
 
