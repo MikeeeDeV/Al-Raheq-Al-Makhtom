@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://al-raheeq-al-makhtom.vercel.app/sitemap.xml
+Sitemap: https://al-raheq-al-makhtom.vercel.app/sitemap.xml

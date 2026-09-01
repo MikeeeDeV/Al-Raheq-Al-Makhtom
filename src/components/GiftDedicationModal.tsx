@@ -60,7 +60,7 @@ export const GiftDedicationModal: React.FC = () => {
   ];
 
   const activeMessage = customMsg.trim() || presetMessages[selectedMsgIndex].text;
-  const appLink = window.location.origin || 'https://al-raheeq-al-makhtom.vercel.app';
+  const appLink = window.location.origin || 'https://al-raheq-al-makhtom.vercel.app';
 
   // Render High-Res Canvas Card with Unique Visual Identity & Corner Ornaments
   const drawCardOnCanvas = useCallback(() => {

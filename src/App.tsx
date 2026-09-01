@@ -15,6 +15,7 @@ import { ContactModal } from './components/ContactModal';
 import { BookCompletionModal } from './components/BookCompletionModal';
 import { SeoMeta } from './components/SeoMeta';
 import { trackNewVisitorSession, sendErrorTelemetryToTelegram } from './services/telegramTelemetry';
+import { initGoogleAnalytics } from './services/googleAnalytics';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const App: React.FC = () => {
@@ -29,6 +30,7 @@ export const App: React.FC = () => {
 
   // Sync URL changes, track new visitor session, & register real-time error telemetry
   useEffect(() => {
+    initGoogleAnalytics();
     trackNewVisitorSession();
 
     const handleUrlChange = () => {
