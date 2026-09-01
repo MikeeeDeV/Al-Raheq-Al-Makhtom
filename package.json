@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.48.1",
+    "@use-gesture/react": "^10.3.1",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "framer-motion": "^12.4.7",
@@ -19,6 +20,7 @@
     "react-dom": "^19.0.0",
     "react-helmet-async": "^3.0.0",
     "recharts": "^2.15.1",
+    "screenfull": "^6.0.2",
     "tailwind-merge": "^3.0.1",
     "zustand": "^5.0.3"
   },

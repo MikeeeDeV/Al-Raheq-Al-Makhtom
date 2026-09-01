@@ -1,7 +1,19 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
+import screenfull from 'screenfull';
 import { useAppStore } from '../store/useAppStore';
-import { Loader2, AlertCircle, Sparkles, ChevronRight, ChevronLeft, RotateCw } from 'lucide-react';
+import {
+  Loader2,
+  AlertCircle,
+  Sparkles,
+  ChevronRight,
+  ChevronLeft,
+  RotateCw,
+  Maximize,
+  Minimize,
+  Volume2,
+  VolumeX,
+} from 'lucide-react';
 
 // Configure PDF.js worker using stable CDN worker URL
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
@@ -10,6 +22,31 @@ interface PdfCanvasViewerProps {
   pdfUrl?: string;
   isFullscreen?: boolean;
 }
+
+// Synthesize authentic paper page-flip sound using Web Audio API
+const playPaperFlipSound = () => {
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    const bufferSize = ctx.sampleRate * 0.08;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.25));
+    }
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 1000;
+    noise.connect(filter);
+    filter.connect(ctx.destination);
+    noise.start();
+  } catch (e) {
+    // Audio Context optional
+  }
+};
 
 export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({
   pdfUrl = '/book.pdf',
@@ -20,6 +57,7 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({
     totalPages,
     setTotalPages,
     zoomLevel,
+    setZoomLevel,
     viewMode,
     readingTheme,
     setCurrentPage,
@@ -29,6 +67,8 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({
   const [docLoading, setDocLoading] = useState<boolean>(true);
   const [pageRendering, setPageRendering] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+  const [isOrientationLocked, setIsOrientationLocked] = useState<boolean>(false);
   const [isLandscape, setIsLandscape] = useState<boolean>(
     typeof window !== 'undefined' && window.innerWidth > window.innerHeight
   );
@@ -38,11 +78,13 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({
   const renderTask1 = useRef<any>(null);
   const renderTask2 = useRef<any>(null);
 
-  // Touch Swipe State
+  // Multi-Touch Pinch & Swipe State
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
+  const initialPinchDist = useRef<number | null>(null);
+  const lastTapTime = useRef<number>(0);
 
-  // Detect Orientation Change (Portrait vs Landscape mode)
+  // Detect Orientation Change
   useEffect(() => {
     const handleResize = () => {
       setIsLandscape(window.innerWidth > window.innerHeight);
@@ -56,7 +98,26 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({
     };
   }, []);
 
-  // Load PDF Document progressively (range requests / streaming)
+  // Force Lock Orientation to Landscape on Mobile
+  const toggleOrientationLock = async () => {
+    try {
+      if ('orientation' in screen && 'lock' in (screen as any).orientation) {
+        if (!isOrientationLocked) {
+          await (screen as any).orientation.lock('landscape');
+          setIsOrientationLocked(true);
+        } else {
+          await (screen as any).orientation.unlock();
+          setIsOrientationLocked(false);
+        }
+      } else {
+        alert('خاصية قفل التدوير الآلي غير مدعومة مباشرة في متصفحك الحالي. يرجى تدوير شاشة الهاتف يدويًا.');
+      }
+    } catch (err) {
+      console.log('Orientation lock error:', err);
+    }
+  };
+
+  // Load PDF Document progressively (range requests / 64KB chunk streaming)
   useEffect(() => {
     let isMounted = true;
     setDocLoading(true);
@@ -64,7 +125,7 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({
 
     const loadingTask = pdfjsLib.getDocument({
       url: pdfUrl,
-      rangeChunkSize: 65536, // 64KB chunks for rapid streaming
+      rangeChunkSize: 65536,
       disableStream: false,
       disableAutoFetch: false,
     });
@@ -89,6 +150,13 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({
       loadingTask.destroy();
     };
   }, [pdfUrl, setTotalPages]);
+
+  // Play flip sound when page changes
+  useEffect(() => {
+    if (soundEnabled && !docLoading) {
+      playPaperFlipSound();
+    }
+  }, [currentPage, soundEnabled, docLoading]);
 
   // Render a specific page asynchronously to a canvas
   const renderPage = useCallback(
@@ -116,7 +184,6 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({
 
         const unscaledViewport = page.getViewport({ scale: 1.0 });
 
-        // Screen geometry calculation for Landscape & Fullscreen modes
         const isMobileScreen = window.innerWidth < 768;
         const landscapeMode = window.innerWidth > window.innerHeight;
 
@@ -124,7 +191,6 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({
         if (isFullscreen) {
           availableWidth = landscapeMode ? window.innerWidth - 24 : window.innerWidth - 12;
         } else if (landscapeMode && isMobileScreen) {
-          // Phone turned sideways (Landscape) -> maximize reading width!
           availableWidth = window.innerWidth - 24;
         } else if (!isMobileScreen) {
           availableWidth = Math.min(window.innerWidth - 64, viewMode === 'double' ? 620 : 920);
@@ -134,8 +200,6 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({
         const finalScale = baseScale * zoomLevel;
 
         const viewport = page.getViewport({ scale: finalScale });
-
-        // Cap DPR at 2 for fast & crisp rendering
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
         canvas.width = viewport.width * dpr;
@@ -156,7 +220,7 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({
 
         setPageRendering(false);
 
-        // Pre-fetch next page in background memory
+        // Pre-fetch next page silently
         if (pageNumber < pdfDocument.numPages) {
           pdfDocument.getPage(pageNumber + 1).catch(() => {});
         }
@@ -181,30 +245,67 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({
     }
   }, [pdfDocument, currentPage, zoomLevel, viewMode, totalPages, renderPage, isLandscape]);
 
-  // Touch Swipe Gestures
+  // Touch Swipe & Pinch-to-Zoom Event Handlers
   const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.targetTouches[0].clientX;
+    if (e.touches.length === 1) {
+      touchStartX.current = e.touches[0].clientX;
+    } else if (e.touches.length === 2) {
+      // Pinch Gesture Start
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      initialPinchDist.current = dist;
+    }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.targetTouches[0].clientX;
+    if (e.touches.length === 1) {
+      touchEndX.current = e.touches[0].clientX;
+    } else if (e.touches.length === 2 && initialPinchDist.current !== null) {
+      // Pinch Gesture Move
+      const currentDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const scaleDiff = currentDist / initialPinchDist.current;
+
+      if (scaleDiff > 1.1) {
+        setZoomLevel(Math.min(zoomLevel + 0.05, 2.5));
+        initialPinchDist.current = currentDist;
+      } else if (scaleDiff < 0.9) {
+        setZoomLevel(Math.max(zoomLevel - 0.05, 0.7));
+        initialPinchDist.current = currentDist;
+      }
+    }
   };
 
   const handleTouchEnd = () => {
-    if (!touchStartX.current || !touchEndX.current) return;
-    const distance = touchStartX.current - touchEndX.current;
-    const isSwipeLeft = distance > 50;
-    const isSwipeRight = distance < -50;
+    // Handle Double Tap to Reset Zoom
+    const now = Date.now();
+    if (now - lastTapTime.current < 300) {
+      setZoomLevel(zoomLevel === 1.0 ? 1.4 : 1.0);
+      lastTapTime.current = 0;
+      return;
+    }
+    lastTapTime.current = now;
 
-    // RTL Layout: Swipe Left -> Next Page, Swipe Right -> Prev Page
-    if (isSwipeLeft && currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    } else if (isSwipeRight && currentPage > 1) {
-      setCurrentPage(currentPage - 1);
+    // Handle Swipe Gestures
+    if (touchStartX.current && touchEndX.current) {
+      const distance = touchStartX.current - touchEndX.current;
+      const isSwipeLeft = distance > 50;
+      const isSwipeRight = distance < -50;
+
+      if (isSwipeLeft && currentPage < totalPages) {
+        setCurrentPage(currentPage + 1);
+      } else if (isSwipeRight && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      }
     }
 
     touchStartX.current = null;
     touchEndX.current = null;
+    initialPinchDist.current = null;
   };
 
   // Theme Wrapper CSS
@@ -256,17 +357,56 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({
       {/* Rendered Book Pages Display */}
       {!docLoading && !error && (
         <div className="w-full flex flex-col items-center justify-center relative">
-          {/* Landscape Orientation Active Badge */}
-          {isLandscape && (
-            <div className="mb-2 px-3 py-1 bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 rounded-full text-[10px] sm:text-xs font-bold flex items-center gap-1.5 shrink-0">
-              <RotateCw className="w-3.5 h-3.5 animate-spin-slow" />
-              <span>الشاشة الأفقية مفعّلة • عرض متسق للقصة</span>
-            </div>
-          )}
+          {/* Top Floating Mobile Toolbar Badges */}
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-2">
+            {/* Landscape Status & Lock Toggle Button */}
+            <button
+              onClick={toggleOrientationLock}
+              className={`px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold flex items-center gap-1.5 transition cursor-pointer ${
+                isLandscape
+                  ? 'bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/40'
+                  : 'bg-slate-800/10 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-800/20'
+              }`}
+              title="قفل/فك تدوير الشاشة أفقياً"
+            >
+              <RotateCw className={`w-3.5 h-3.5 ${isOrientationLocked ? 'animate-spin' : ''}`} />
+              <span>
+                {isLandscape ? 'وضع الشاشة الأفقية مفعّل' : 'تدوير أفقياً'}
+              </span>
+            </button>
+
+            {/* Flip Sound Toggle Button */}
+            <button
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              className={`px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold flex items-center gap-1 transition cursor-pointer ${
+                soundEnabled
+                  ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
+                  : 'bg-slate-800/10 dark:bg-white/10 text-slate-500 opacity-60'
+              }`}
+              title={soundEnabled ? 'صوت تقليب الورق مفعّل' : 'تفعيل صوت الورق'}
+            >
+              {soundEnabled ? <Volume2 className="w-3.5 h-3.5 text-emerald-500" /> : <VolumeX className="w-3.5 h-3.5" />}
+              <span className="hidden sm:inline">{soundEnabled ? 'صوت الورق' : 'مكتوم'}</span>
+            </button>
+
+            {/* Native Fullscreen Library Toggle */}
+            <button
+              onClick={() => {
+                if (screenfull.isEnabled) {
+                  screenfull.toggle();
+                }
+              }}
+              className="px-2.5 py-1 bg-slate-800/10 dark:bg-white/10 text-slate-700 dark:text-slate-200 rounded-full text-[10px] sm:text-xs font-bold flex items-center gap-1 hover:bg-slate-800/20 transition cursor-pointer"
+              title="ملء الشاشة عبر screenfull"
+            >
+              <Maximize className="w-3.5 h-3.5 text-teal-500" />
+              <span>ملء الشاشة</span>
+            </button>
+          </div>
 
           {/* Quick Page Render Indicator Overlay */}
           {pageRendering && (
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-3 py-1 bg-slate-900/80 backdrop-blur-md text-emerald-300 rounded-full text-[11px] font-semibold flex items-center gap-1.5 shadow-lg border border-emerald-500/30">
+            <div className="absolute top-10 left-1/2 -translate-x-1/2 z-20 px-3 py-1 bg-slate-900/80 backdrop-blur-md text-emerald-300 rounded-full text-[11px] font-semibold flex items-center gap-1.5 shadow-lg border border-emerald-500/30">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
               <span>جاري تقديم الصفحة {currentPage}...</span>
             </div>
@@ -304,8 +444,8 @@ export const PdfCanvasViewer: React.FC<PdfCanvasViewerProps> = ({
               <span>السابقة</span>
             </button>
 
-            <span className="text-[11px] font-semibold opacity-75">
-              اسحب يميناً أو يساراً للتنقل 👈👉
+            <span className="text-[10px] font-semibold opacity-75">
+              انقر مرتين للتكبير • اسحب للتصفح 👈👉
             </span>
 
             <button
