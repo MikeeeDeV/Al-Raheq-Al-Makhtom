@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { PdfCanvasViewer } from '../components/PdfCanvasViewer';
 import { AutoResumeBanner } from '../components/AutoResumeBanner';
 import {
   ChevronRight,
   ChevronLeft,
+  ChevronUp,
+  ChevronDown,
+  SlidersHorizontal,
   ZoomIn,
   ZoomOut,
   Sun,
@@ -19,11 +22,13 @@ import {
   BookOpen,
   Maximize,
   Minimize,
-  RotateCw,
+  EyeOff,
 } from 'lucide-react';
 import { ReaderTheme } from '../types';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const ReaderView: React.FC = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const {
     currentPage,
     totalPages,
@@ -45,13 +50,19 @@ export const ReaderView: React.FC = () => {
   const [bookmarkTitle, setBookmarkTitle] = useState<string>('');
   const [bookmarkNote, setBookmarkNote] = useState<string>('');
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [isToolbarCollapsed, setIsToolbarCollapsed] = useState<boolean>(false);
+  const [isToolbarHidden, setIsToolbarHidden] = useState<boolean>(false);
 
   const progressPercentage = totalPages > 0 ? Math.round((currentPage / totalPages) * 100) : 0;
 
-  // Sync Fullscreen API
+  // Sync Fullscreen API & auto-collapse toolbar when entering fullscreen
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const inFullscreen = !!document.fullscreenElement;
+      setIsFullscreen(inFullscreen);
+      if (inFullscreen) {
+        setIsToolbarCollapsed(true);
+      }
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
@@ -61,7 +72,10 @@ export const ReaderView: React.FC = () => {
     if (!document.fullscreenElement) {
       document.documentElement
         .requestFullscreen()
-        .then(() => setIsFullscreen(true))
+        .then(() => {
+          setIsFullscreen(true);
+          setIsToolbarCollapsed(true);
+        })
         .catch((err) => console.log('Fullscreen failed:', err));
     } else {
       document
@@ -99,172 +113,316 @@ export const ReaderView: React.FC = () => {
 
   return (
     <div
-      className={`space-y-3 sm:space-y-6 pb-20 px-0 sm:px-0 font-arabic dir-rtl ${
+      ref={containerRef}
+      className={`space-y-3 sm:space-y-6 pb-20 px-0 sm:px-0 font-arabic dir-rtl relative min-h-screen ${
         isFullscreen
           ? 'fixed inset-0 z-50 overflow-y-auto bg-slate-950 p-2 sm:p-4 text-slate-100'
           : ''
       }`}
     >
       {/* Auto Resume Banner */}
-      {!isFullscreen && <AutoResumeBanner />}
+      {!isFullscreen && !isToolbarHidden && <AutoResumeBanner />}
 
-      {/* Reader Control Toolbar (Sticky Glassmorphic Container) */}
-      <div
-        className={`sticky ${
-          isFullscreen ? 'top-2' : 'top-14 sm:top-16'
-        } z-30 bg-m3-surface/95 dark:bg-m3-surface-dark/95 backdrop-blur-md p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl border border-m3-outline-variant/30 shadow-m3-2 space-y-2 sm:space-y-3`}
-      >
-        {/* Top Control Line */}
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          {/* Right: Page Stepper Navigation */}
-          <div className="flex items-center gap-1 bg-m3-surface-dim dark:bg-m3-surface-darkContainer p-1 rounded-full border border-m3-outline-variant/20">
-            {/* Next in RTL */}
-            <button
-              onClick={() => setCurrentPage(currentPage + (viewMode === 'double' ? 2 : 1))}
-              disabled={currentPage >= totalPages}
-              className="p-1.5 sm:p-2 rounded-full text-m3-onSurface hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
-              title="الصفحة التالية"
+      {/* Reader Control Toolbar (Animated Sticky Glassmorphic Container) */}
+      {!isToolbarHidden && (
+        <motion.div
+          layout
+          transition={{ duration: 0.28, ease: [0.25, 1, 0.5, 1] }}
+          className={`sticky ${
+            isFullscreen ? 'top-2' : 'top-14 sm:top-16'
+          } z-30 bg-m3-surface/95 dark:bg-m3-surface-dark/95 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-m3-outline-variant/30 shadow-m3-2 overflow-hidden ${
+            isToolbarCollapsed ? 'p-2 sm:p-2.5' : 'p-2.5 sm:p-4 space-y-2 sm:space-y-3'
+          }`}
+        >
+          <AnimatePresence mode="wait">
+            {isToolbarCollapsed ? (
+              /* Compact Collapsed Toolbar */
+              <motion.div
+                key="collapsed-toolbar"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="flex items-center justify-between gap-2"
+              >
+                {/* Stepper Navigation */}
+                <div className="flex items-center gap-1 bg-m3-surface-dim dark:bg-m3-surface-darkContainer p-1 rounded-full border border-m3-outline-variant/20">
+                  <button
+                    onClick={() => setCurrentPage(currentPage + (viewMode === 'double' ? 2 : 1))}
+                    disabled={currentPage >= totalPages}
+                    className="p-1 sm:p-1.5 rounded-full text-m3-onSurface hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30 transition cursor-pointer"
+                    title="الصفحة التالية"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                  <span className="px-2 text-xs font-bold text-m3-onSurface">
+                    {currentPage} <span className="text-[10px] text-m3-onSurface-variant font-normal">/ {totalPages}</span>
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage(currentPage - (viewMode === 'double' ? 2 : 1))}
+                    disabled={currentPage <= 1}
+                    className="p-1 sm:p-1.5 rounded-full text-m3-onSurface hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30 transition cursor-pointer"
+                    title="الصفحة السابقة"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Compact Center Actions */}
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-bold text-m3-onSurface font-mono bg-m3-surface-dim dark:bg-m3-surface-darkContainer px-2 py-1 rounded-full border border-m3-outline-variant/20">
+                    {Math.round(zoomLevel * 100)}%
+                  </span>
+
+                  <button
+                    onClick={toggleFullscreen}
+                    className={`p-1.5 rounded-full transition cursor-pointer ${
+                      isFullscreen
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : 'bg-m3-surface-dim dark:bg-m3-surface-darkContainer text-m3-onSurface'
+                    }`}
+                    title={isFullscreen ? 'إلغاء الشاشة الكاملة' : 'الشاشة الكاملة'}
+                  >
+                    {isFullscreen ? <Minimize className="w-3.5 h-3.5" /> : <Maximize className="w-3.5 h-3.5" />}
+                  </button>
+
+                  {/* Red Complete Hide Button */}
+                  <button
+                    onClick={() => setIsToolbarHidden(true)}
+                    className="p-1.5 bg-rose-500/15 hover:bg-rose-500/30 text-rose-600 dark:text-rose-400 rounded-full border border-rose-500/30 transition cursor-pointer"
+                    title="إخفاء تام للشريط وتحويله لزر عائم أحمر"
+                  >
+                    <EyeOff className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                  </button>
+
+                  {/* Expand Toolbar Toggle Button */}
+                  <button
+                    onClick={() => setIsToolbarCollapsed(false)}
+                    className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-600/15 hover:bg-emerald-600/25 text-emerald-800 dark:text-emerald-200 rounded-full text-xs font-bold border border-emerald-500/30 transition cursor-pointer shadow-xs"
+                    title="إظهار أشرطة الإعدادات والتحكم الكاملة"
+                  >
+                    <SlidersHorizontal className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <span className="hidden sm:inline">أدوات القارئ</span>
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </motion.div>
+            ) : (
+              /* Full Expanded Toolbar */
+              <motion.div
+                key="expanded-toolbar"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-2 sm:space-y-3"
+              >
+                {/* Top Control Line */}
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  {/* Right: Page Stepper Navigation */}
+                  <div className="flex items-center gap-1 bg-m3-surface-dim dark:bg-m3-surface-darkContainer p-1 rounded-full border border-m3-outline-variant/20">
+                    {/* Next in RTL */}
+                    <button
+                      onClick={() => setCurrentPage(currentPage + (viewMode === 'double' ? 2 : 1))}
+                      disabled={currentPage >= totalPages}
+                      className="p-1.5 sm:p-2 rounded-full text-m3-onSurface hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
+                      title="الصفحة التالية"
+                    >
+                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
+
+                    {/* Jump Input */}
+                    <form onSubmit={handlePageSubmit} className="flex items-center gap-1 px-1 sm:px-2 text-xs font-semibold">
+                      <input
+                        type="number"
+                        min={1}
+                        max={totalPages}
+                        placeholder={`${currentPage}`}
+                        value={pageInput}
+                        onChange={(e) => setPageInput(e.target.value)}
+                        className="w-10 sm:w-12 h-7 sm:h-8 text-center bg-white dark:bg-m3-surface-darkDim border border-m3-outline-variant/40 rounded-lg text-m3-onSurface focus:outline-hidden focus:border-m3-primary text-xs"
+                      />
+                      <span className="text-m3-onSurface-variant text-[11px] sm:text-xs">/ {totalPages}</span>
+                    </form>
+
+                    {/* Prev in RTL */}
+                    <button
+                      onClick={() => setCurrentPage(currentPage - (viewMode === 'double' ? 2 : 1))}
+                      disabled={currentPage <= 1}
+                      className="p-1.5 sm:p-2 rounded-full text-m3-onSurface hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
+                      title="الصفحة السابقة"
+                    >
+                      <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
+                  </div>
+
+                  {/* Center: Zoom, View Mode, Fullscreen, & Collapse Toggle */}
+                  <div className="flex items-center gap-1.5">
+                    {/* Red Complete Hide Button */}
+                    <button
+                      onClick={() => setIsToolbarHidden(true)}
+                      className="p-1.5 sm:p-2 bg-rose-500/15 hover:bg-rose-500/30 text-rose-600 dark:text-rose-400 rounded-full border border-rose-500/30 transition cursor-pointer flex items-center justify-center gap-1 text-xs font-bold"
+                      title="إخفاء تام للشريط وتحويله لزر عائم أحمر"
+                    >
+                      <EyeOff className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                      <span className="hidden sm:inline">إخفاء كلي</span>
+                    </button>
+
+                    {/* Collapse Toolbar Toggle Button */}
+                    <button
+                      onClick={() => setIsToolbarCollapsed(true)}
+                      className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 bg-emerald-600/15 hover:bg-emerald-600/25 text-emerald-800 dark:text-emerald-200 rounded-full text-xs font-bold border border-emerald-500/30 transition cursor-pointer shadow-xs"
+                      title="تصغير شريط الإعدادات لعدم إخفاء محتوى الكتاب"
+                    >
+                      <ChevronUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      <span className="hidden sm:inline">تصغير الشريط</span>
+                    </button>
+
+                    {/* Fullscreen Toggle Button */}
+                    <button
+                      onClick={toggleFullscreen}
+                      className={`p-1.5 sm:p-2.5 rounded-full transition cursor-pointer ${
+                        isFullscreen
+                          ? 'bg-emerald-600 text-white font-bold shadow-md'
+                          : 'bg-m3-surface-dim dark:bg-m3-surface-darkContainer text-m3-onSurface hover:bg-m3-primary-container/40'
+                      }`}
+                      title={isFullscreen ? 'إلغاء وضع الشاشة الكاملة' : 'وضع الشاشة الكاملة'}
+                    >
+                      {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+                    </button>
+
+                    {/* Zoom Out */}
+                    <button
+                      onClick={() => setZoomLevel(zoomLevel - 0.15)}
+                      disabled={zoomLevel <= 0.6}
+                      className="p-1.5 sm:p-2.5 bg-m3-surface-dim dark:bg-m3-surface-darkContainer rounded-full text-m3-onSurface hover:bg-m3-primary-container/40 disabled:opacity-30 transition cursor-pointer"
+                      title="تصغير"
+                    >
+                      <ZoomOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    </button>
+
+                    <span className="text-xs font-bold w-10 sm:w-12 text-center text-m3-onSurface font-mono">
+                      {Math.round(zoomLevel * 100)}%
+                    </span>
+
+                    {/* Zoom In */}
+                    <button
+                      onClick={() => setZoomLevel(zoomLevel + 0.15)}
+                      disabled={zoomLevel >= 2.2}
+                      className="p-1.5 sm:p-2.5 bg-m3-surface-dim dark:bg-m3-surface-darkContainer rounded-full text-m3-onSurface hover:bg-m3-primary-container/40 disabled:opacity-30 transition cursor-pointer"
+                      title="تكبير"
+                    >
+                      <ZoomIn className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    </button>
+
+                    {/* View Mode Toggle (Desktop only) */}
+                    <button
+                      onClick={() => setViewMode(viewMode === 'single' ? 'double' : 'single')}
+                      className="hidden md:flex p-2.5 bg-m3-surface-dim dark:bg-m3-surface-darkContainer rounded-full text-m3-onSurface hover:bg-m3-primary-container/40 transition cursor-pointer"
+                      title={viewMode === 'single' ? 'عرض صفحتين' : 'عرض صفحة واحدة'}
+                    >
+                      {viewMode === 'single' ? <Columns className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+                    </button>
+                  </div>
+
+                  {/* Left: Themes & Bookmarks */}
+                  <div className="flex items-center gap-1.5">
+                    {/* Theme Picker */}
+                    <div className="flex items-center p-1 bg-m3-surface-dim dark:bg-m3-surface-darkContainer rounded-full border border-m3-outline-variant/20">
+                      {themeOptions.map((t) => (
+                        <button
+                          key={t.id}
+                          onClick={() => setReadingTheme(t.id)}
+                          className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition cursor-pointer ${
+                            readingTheme === t.id
+                              ? 'bg-m3-primary-container text-m3-primary-onContainer font-bold shadow-xs'
+                              : 'text-m3-onSurface-variant hover:text-m3-onSurface'
+                          }`}
+                        >
+                          {t.icon}
+                          <span className="hidden sm:inline">{t.label}</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Add Bookmark Action */}
+                    <button
+                      onClick={() => setIsAddingBookmark(true)}
+                      className={`p-2 sm:p-2.5 rounded-full transition cursor-pointer ${
+                        isCurrentPageBookmarked
+                          ? 'bg-amber-500 text-white'
+                          : 'bg-m3-surface-dim dark:bg-m3-surface-darkContainer text-m3-onSurface hover:bg-m3-primary-container/40'
+                      }`}
+                      title="حفظ علامة مرجعية"
+                    >
+                      <BookmarkPlus className="w-4 h-4" />
+                    </button>
+
+                    {/* Bookmarks Drawer Toggle */}
+                    <button
+                      onClick={() => setShowBookmarksDrawer(!showBookmarksDrawer)}
+                      className="relative p-2 sm:p-2.5 bg-m3-surface-dim dark:bg-m3-surface-darkContainer rounded-full text-m3-onSurface hover:bg-m3-primary-container/40 transition cursor-pointer"
+                      title="قائمة العلامات المرجعية"
+                    >
+                      <BookmarkIcon className="w-4 h-4" />
+                      {bookmarks.length > 0 && (
+                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-600 text-white rounded-full text-[10px] font-bold flex items-center justify-center">
+                          {bookmarks.length}
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Persistent Linear Reading Progress Bar */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-[11px] sm:text-xs text-m3-onSurface-variant font-medium">
+                    <span>نسبة الإنجاز: {progressPercentage}%</span>
+                    <span>الصفحة {currentPage} من أصل {totalPages}</span>
+                  </div>
+                  <div className="w-full h-1.5 sm:h-2 bg-m3-surface-dim dark:bg-m3-surface-darkDim rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-emerald-600 to-teal-500 rounded-full transition-all duration-300"
+                      style={{ width: `${progressPercentage}%` }}
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      )}
+
+      {/* Draggable Red Floating Action Button (FAB) strictly constrained within screen boundaries */}
+      <AnimatePresence>
+        {isToolbarHidden && (
+          <motion.div
+            drag
+            dragConstraints={containerRef}
+            dragElastic={0}
+            dragMomentum={false}
+            initial={{ opacity: 0, scale: 0.5, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.5, y: 20 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+            className="fixed bottom-6 left-6 z-50 cursor-grab active:cursor-grabbing font-arabic dir-rtl touch-none select-none"
+          >
+            <motion.button
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.94 }}
+              onClick={() => setIsToolbarHidden(false)}
+              className="flex items-center gap-2 px-3.5 py-2.5 bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 text-white font-extrabold text-xs rounded-full shadow-2xl border-2 border-white/40 hover:from-rose-500 hover:to-red-500 transition cursor-pointer select-none ring-4 ring-rose-500/20"
+              title="انقر لإعادة فتح شريط التحكم بالقارئ (يمكنك سحب هذا الزر وتحريكه داخل أبعاد الشاشة)"
             >
-              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-            </button>
-
-            {/* Jump Input */}
-            <form onSubmit={handlePageSubmit} className="flex items-center gap-1 px-1 sm:px-2 text-xs font-semibold">
-              <input
-                type="number"
-                min={1}
-                max={totalPages}
-                placeholder={`${currentPage}`}
-                value={pageInput}
-                onChange={(e) => setPageInput(e.target.value)}
-                className="w-10 sm:w-12 h-7 sm:h-8 text-center bg-white dark:bg-m3-surface-darkDim border border-m3-outline-variant/40 rounded-lg text-m3-onSurface focus:outline-hidden focus:border-m3-primary text-xs"
-              />
-              <span className="text-m3-onSurface-variant text-[11px] sm:text-xs">/ {totalPages}</span>
-            </form>
-
-            {/* Prev in RTL */}
-            <button
-              onClick={() => setCurrentPage(currentPage - (viewMode === 'double' ? 2 : 1))}
-              disabled={currentPage <= 1}
-              className="p-1.5 sm:p-2 rounded-full text-m3-onSurface hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
-              title="الصفحة السابقة"
-            >
-              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-            </button>
-          </div>
-
-          {/* Center: Zoom, View Mode, & Fullscreen Controls */}
-          <div className="flex items-center gap-1.5">
-            {/* Fullscreen Toggle Button */}
-            <button
-              onClick={toggleFullscreen}
-              className={`p-1.5 sm:p-2.5 rounded-full transition cursor-pointer ${
-                isFullscreen
-                  ? 'bg-emerald-600 text-white font-bold shadow-md'
-                  : 'bg-m3-surface-dim dark:bg-m3-surface-darkContainer text-m3-onSurface hover:bg-m3-primary-container/40'
-              }`}
-              title={isFullscreen ? 'إلغاء وضع الشاشة الكاملة' : 'وضع الشاشة الكاملة'}
-            >
-              {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
-            </button>
-
-            {/* Zoom Out */}
-            <button
-              onClick={() => setZoomLevel(zoomLevel - 0.15)}
-              disabled={zoomLevel <= 0.6}
-              className="p-1.5 sm:p-2.5 bg-m3-surface-dim dark:bg-m3-surface-darkContainer rounded-full text-m3-onSurface hover:bg-m3-primary-container/40 disabled:opacity-30 transition cursor-pointer"
-              title="تصغير"
-            >
-              <ZoomOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </button>
-
-            <span className="text-xs font-bold w-10 sm:w-12 text-center text-m3-onSurface font-mono">
-              {Math.round(zoomLevel * 100)}%
-            </span>
-
-            {/* Zoom In */}
-            <button
-              onClick={() => setZoomLevel(zoomLevel + 0.15)}
-              disabled={zoomLevel >= 2.2}
-              className="p-1.5 sm:p-2.5 bg-m3-surface-dim dark:bg-m3-surface-darkContainer rounded-full text-m3-onSurface hover:bg-m3-primary-container/40 disabled:opacity-30 transition cursor-pointer"
-              title="تكبير"
-            >
-              <ZoomIn className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </button>
-
-            {/* View Mode Toggle (Desktop only) */}
-            <button
-              onClick={() => setViewMode(viewMode === 'single' ? 'double' : 'single')}
-              className="hidden md:flex p-2.5 bg-m3-surface-dim dark:bg-m3-surface-darkContainer rounded-full text-m3-onSurface hover:bg-m3-primary-container/40 transition cursor-pointer"
-              title={viewMode === 'single' ? 'عرض صفحتين' : 'عرض صفحة واحدة'}
-            >
-              {viewMode === 'single' ? <Columns className="w-4 h-4" /> : <Square className="w-4 h-4" />}
-            </button>
-          </div>
-
-          {/* Left: Themes & Bookmarks */}
-          <div className="flex items-center gap-1.5">
-            {/* Theme Picker */}
-            <div className="flex items-center p-1 bg-m3-surface-dim dark:bg-m3-surface-darkContainer rounded-full border border-m3-outline-variant/20">
-              {themeOptions.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setReadingTheme(t.id)}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition cursor-pointer ${
-                    readingTheme === t.id
-                      ? 'bg-m3-primary-container text-m3-primary-onContainer font-bold shadow-xs'
-                      : 'text-m3-onSurface-variant hover:text-m3-onSurface'
-                  }`}
-                >
-                  {t.icon}
-                  <span className="hidden sm:inline">{t.label}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Add Bookmark Action */}
-            <button
-              onClick={() => setIsAddingBookmark(true)}
-              className={`p-2 sm:p-2.5 rounded-full transition cursor-pointer ${
-                isCurrentPageBookmarked
-                  ? 'bg-amber-500 text-white'
-                  : 'bg-m3-surface-dim dark:bg-m3-surface-darkContainer text-m3-onSurface hover:bg-m3-primary-container/40'
-              }`}
-              title="حفظ علامة مرجعية"
-            >
-              <BookmarkPlus className="w-4 h-4" />
-            </button>
-
-            {/* Bookmarks Drawer Toggle */}
-            <button
-              onClick={() => setShowBookmarksDrawer(!showBookmarksDrawer)}
-              className="relative p-2 sm:p-2.5 bg-m3-surface-dim dark:bg-m3-surface-darkContainer rounded-full text-m3-onSurface hover:bg-m3-primary-container/40 transition cursor-pointer"
-              title="قائمة العلامات المرجعية"
-            >
-              <BookmarkIcon className="w-4 h-4" />
-              {bookmarks.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-600 text-white rounded-full text-[10px] font-bold flex items-center justify-center">
-                  {bookmarks.length}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Persistent Linear Reading Progress Bar */}
-        <div className="space-y-1">
-          <div className="flex justify-between text-[11px] sm:text-xs text-m3-onSurface-variant font-medium">
-            <span>نسبة الإنجاز: {progressPercentage}%</span>
-            <span>الصفحة {currentPage} من أصل {totalPages}</span>
-          </div>
-          <div className="w-full h-1.5 sm:h-2 bg-m3-surface-dim dark:bg-m3-surface-darkDim rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-emerald-600 to-teal-500 rounded-full transition-all duration-300"
-              style={{ width: `${progressPercentage}%` }}
-            />
-          </div>
-        </div>
-      </div>
+              <SlidersHorizontal className="w-4 h-4 text-white animate-pulse" />
+              <span>أدوات القارئ</span>
+              <span className="bg-white/20 text-white px-2 py-0.5 rounded-full text-[10px] font-mono border border-white/30">
+                ص {currentPage}
+              </span>
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main Canvas Viewer */}
       <PdfCanvasViewer pdfUrl="/book.pdf" isFullscreen={isFullscreen} />

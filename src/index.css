@@ -175,3 +175,36 @@
   background-size: 200% 200%;
   animation: gradientMove 6s ease infinite;
 }
+
+/* Mobile Landscape Mode Optimizations */
+@media (orientation: landscape) and (max-height: 540px) {
+  header {
+    height: 2.5rem !important;
+  }
+
+  header > div {
+    height: 2.5rem !important;
+    padding-top: 0.2rem !important;
+    padding-bottom: 0.2rem !important;
+  }
+
+  nav.fixed.bottom-0 {
+    padding-top: 0.15rem !important;
+    padding-bottom: 0.15rem !important;
+    height: 2.35rem !important;
+  }
+
+  nav.fixed.bottom-0 button {
+    gap: 0 !important;
+    padding: 0.1rem 0.5rem !important;
+  }
+
+  nav.fixed.bottom-0 button span {
+    font-size: 8px !important;
+  }
+
+  .sticky.top-14, .sticky.top-16 {
+    top: 2.6rem !important;
+  }
+}
+
