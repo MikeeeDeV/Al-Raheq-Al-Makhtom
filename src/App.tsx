@@ -11,7 +11,6 @@ import { ShareModal } from './components/ShareModal';
 import { AboutModal } from './components/AboutModal';
 import { InstallPwaModal } from './components/InstallPwaModal';
 import { GiftDedicationModal } from './components/GiftDedicationModal';
-import { MayadaDedicationModal } from './components/MayadaDedicationModal';
 import { ContactModal } from './components/ContactModal';
 import { SeoMeta } from './components/SeoMeta';
 import { trackNewVisitorSession } from './services/telegramTelemetry';
@@ -23,7 +22,6 @@ export const App: React.FC = () => {
     isShareModalOpen,
     isAboutModalOpen,
     isGiftModalOpen,
-    isMayadaModalOpen,
     isContactModalOpen,
   } = useAppStore();
 
@@ -140,7 +138,6 @@ export const App: React.FC = () => {
         {isAboutModalOpen && <AboutModal key="about-modal" />}
         <InstallPwaModal key="pwa-modal" />
         {isGiftModalOpen && <GiftDedicationModal key="gift-modal" />}
-        {isMayadaModalOpen && <MayadaDedicationModal key="mayada-modal" />}
         {isContactModalOpen && <ContactModal key="contact-modal" />}
       </AnimatePresence>
     </div>

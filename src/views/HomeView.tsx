@@ -165,7 +165,7 @@ export const HomeView: React.FC = () => {
           </div>
           <div>
             <span className="block text-2xl font-black text-m3-onSurface">{accuracy}%</span>
-            <span className="text-xs text-m3-onSurface-variant font-medium">نسبة الإتقان العامة</span>
+            <span className="text-xs text-m3-onSurface-variant font-medium">نسبة الإتقان لرفاقك</span>
           </div>
         </motion.div>
       </motion.section>

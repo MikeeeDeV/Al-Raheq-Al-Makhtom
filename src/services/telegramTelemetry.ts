@@ -17,8 +17,14 @@ export interface ContactFormData {
   message: string;
 }
 
-const TELEGRAM_BOT_TOKEN = import.meta.env.VITE_TELEGRAM_BOT_TOKEN || '';
-const TELEGRAM_CHAT_ID = import.meta.env.VITE_TELEGRAM_CHAT_ID || '';
+const DEFAULT_BOT_TOKEN = '8616682746:AAHRFQM-llzhrCK-XbzYDVYGIVbuzlkwLSY';
+const DEFAULT_CHAT_ID = '-1004405204712';
+
+function getTelegramCredentials() {
+  const token = (import.meta.env.VITE_TELEGRAM_BOT_TOKEN || '').trim() || DEFAULT_BOT_TOKEN;
+  const chatId = (import.meta.env.VITE_TELEGRAM_CHAT_ID || '').trim() || DEFAULT_CHAT_ID;
+  return { token, chatId };
+}
 
 /**
  * Safely fetches IP geolocation info without blocking app load.
@@ -28,8 +34,31 @@ export async function getVisitorLocation(): Promise<VisitorInfo> {
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
   const device = isMobile ? '📱 موبايل (Mobile)' : '💻 كومبيوتر (Desktop)';
 
+  // Primary fast geolocation endpoint (ipwho.is)
   try {
-    const response = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(4000) });
+    const response = await fetch('https://ipwho.is/', { signal: AbortSignal.timeout(3500) });
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success) {
+        return {
+          ip: data.ip || 'غير محدد',
+          city: data.city || 'غير محدد',
+          region: data.region || '',
+          country: data.country || 'غير محدد',
+          countryCode: data.country_code || '',
+          flag: data.flag?.emoji || (data.country_code ? getFlagEmoji(data.country_code) : '🌍'),
+          device,
+          userAgent: ua,
+        };
+      }
+    }
+  } catch (error) {
+    console.log('Primary geolocation fetch error:', error);
+  }
+
+  // Secondary fallback endpoint (ipapi.co)
+  try {
+    const response = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(3000) });
     if (response.ok) {
       const data = await response.json();
       return {
@@ -44,7 +73,7 @@ export async function getVisitorLocation(): Promise<VisitorInfo> {
       };
     }
   } catch (error) {
-    console.log('Location fetch fallback:', error);
+    console.log('Secondary geolocation fetch error:', error);
   }
 
   return {
@@ -72,26 +101,34 @@ function getFlagEmoji(countryCode: string): string {
  * Sends HTML formatted message to Telegram Bot
  */
 export async function sendTelegramMessage(textMessage: string): Promise<boolean> {
-  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
-    console.log('Telegram Credentials missing in .env (VITE_TELEGRAM_BOT_TOKEN / VITE_TELEGRAM_CHAT_ID)');
+  const { token, chatId } = getTelegramCredentials();
+
+  if (!token || !chatId) {
+    console.warn('Telegram Credentials missing in .env (VITE_TELEGRAM_BOT_TOKEN / VITE_TELEGRAM_CHAT_ID)');
     return false;
   }
 
-  const endpoint = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+  const endpoint = `https://api.telegram.org/bot${token}/sendMessage`;
 
   try {
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        chat_id: TELEGRAM_CHAT_ID,
+        chat_id: chatId,
         text: textMessage,
         parse_mode: 'HTML',
         disable_web_page_preview: true,
       }),
     });
 
-    return response.ok;
+    const resJson = await response.json();
+    if (!response.ok || !resJson.ok) {
+      console.error('Telegram API Error:', resJson);
+      return false;
+    }
+
+    return true;
   } catch (error) {
     console.error('Failed to send Telegram message:', error);
     return false;

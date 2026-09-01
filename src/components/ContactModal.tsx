@@ -63,11 +63,7 @@ export const ContactModal: React.FC = () => {
         setSubject('');
         setMessage('');
       } else {
-        // Fallback info if telegram bot token isn't added to env yet
-        setIsSuccess(true);
-        setErrorMessage(
-          'تم استلام رسالتك محلية بنجاح! تذكر إضافة VITE_TELEGRAM_BOT_TOKEN في ملف .env ليصلك الإشعار فورياً على التليجرام.'
-        );
+        setErrorMessage('تعذر الإرسال إلى التليجرام حالياً. يرجى التأكد من الاتصال بالإنترنت ومحاولة الإرسال مجدداً.');
       }
     } catch (err) {
       setErrorMessage('حدث خطأ غير متوقع أثناء الإرسال. يرجى المحاولة مرة أخرى.');

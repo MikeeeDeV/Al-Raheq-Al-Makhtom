@@ -57,13 +57,11 @@ interface AppState {
   isShareModalOpen: boolean;
   isAboutModalOpen: boolean;
   isGiftModalOpen: boolean;
-  isMayadaModalOpen: boolean;
   isContactModalOpen: boolean;
   visitorCount: number;
   setShareModalOpen: (open: boolean) => void;
   setAboutModalOpen: (open: boolean) => void;
   setGiftModalOpen: (open: boolean) => void;
-  setMayadaModalOpen: (open: boolean) => void;
   setContactModalOpen: (open: boolean) => void;
   incrementVisitorCount: () => void;
 
@@ -581,13 +579,11 @@ export const useAppStore = create<AppState>()(
       isShareModalOpen: false,
       isAboutModalOpen: false,
       isGiftModalOpen: false,
-      isMayadaModalOpen: false,
       isContactModalOpen: false,
       visitorCount: 1420,
       setShareModalOpen: (open) => set({ isShareModalOpen: open }),
       setAboutModalOpen: (open) => set({ isAboutModalOpen: open }),
       setGiftModalOpen: (open) => set({ isGiftModalOpen: open }),
-      setMayadaModalOpen: (open) => set({ isMayadaModalOpen: open }),
       setContactModalOpen: (open) => set({ isContactModalOpen: open }),
       incrementVisitorCount: () => set((state) => ({ visitorCount: state.visitorCount + 1 })),
 
