@@ -10,21 +10,16 @@ import {
   AlertCircle,
   Loader2,
   Sparkles,
-  ShieldCheck,
-  Tag,
-  Zap,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { sendContactMessageToTelegram } from '../services/telegramTelemetry';
 
-// Preset subject suggestions to accelerate filling the form without adding new input fields
 const PRESET_SUBJECTS = [
-  '💡 اقتراح لميزة جديدة',
-  '🐛 الإبلاغ عن ملاحظة تقنية',
-  '✨ كلمة طيبة وتشجيع',
-  '📚 سؤال في السيرة النبوية',
-  '🤝 استفسار عام',
+  '💡 اقتراح ميزة',
+  '🐛 بلاغ تقني',
+  '✨ كلمة شكر',
+  '🤝 استفسار',
 ];
 
 export const ContactModal: React.FC = () => {
@@ -38,19 +33,14 @@ export const ContactModal: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [isAutofilled, setIsAutofilled] = useState(false);
 
-  // Auto-fill saved credentials from localStorage on modal open
   useEffect(() => {
     if (isContactModalOpen) {
       const savedName = localStorage.getItem('alraheeq_contact_name') || '';
       const savedContact = localStorage.getItem('alraheeq_contact_info') || '';
 
-      if (savedName || savedContact) {
-        if (savedName && !name) setName(savedName);
-        if (savedContact && !contactInfo) setContactInfo(savedContact);
-        setIsAutofilled(true);
-      }
+      if (savedName && !name) setName(savedName);
+      if (savedContact && !contactInfo) setContactInfo(savedContact);
     }
   }, [isContactModalOpen]);
 
@@ -60,7 +50,7 @@ export const ContactModal: React.FC = () => {
     e.preventDefault();
 
     if (!name.trim() || !message.trim()) {
-      setErrorMessage('يرجى ملء الاسم الكريم ونص الرسالة على الأقل.');
+      setErrorMessage('يرجى كتابة الاسم ونص الرسالة');
       return;
     }
 
@@ -68,7 +58,6 @@ export const ContactModal: React.FC = () => {
     setErrorMessage('');
 
     try {
-      // Save identity locally for instant zero-delay autofill next time
       localStorage.setItem('alraheeq_contact_name', name.trim());
       if (contactInfo.trim()) {
         localStorage.setItem('alraheeq_contact_info', contactInfo.trim());
@@ -77,26 +66,24 @@ export const ContactModal: React.FC = () => {
       const success = await sendContactMessageToTelegram({
         name: name.trim(),
         contactInfo: contactInfo.trim() || 'غير محدد',
-        subject: subject.trim() || 'استفسار عام',
+        subject: subject.trim() || 'تواصل عام',
         message: message.trim(),
       });
 
       if (success) {
         setIsSuccess(true);
         confetti({
-          particleCount: 70,
-          spread: 70,
+          particleCount: 60,
+          spread: 60,
           origin: { y: 0.6 },
         });
-
-        // Clear only subject & message for next use, keeping saved name/contact info ready
         setSubject('');
         setMessage('');
       } else {
-        setErrorMessage('تعذر الإرسال حالياً. يرجى التأكد من الاتصال بالإنترنت وتجربة الإرسال مجدداً.');
+        setErrorMessage('تعذر الإرسال حالياً. يرجى إعادة المحاولة.');
       }
-    } catch (err) {
-      setErrorMessage('حدث خطأ غير متوقع أثناء الإرسال. يرجى المحاولة مرة أخرى.');
+    } catch {
+      setErrorMessage('حدث خطأ أثناء الإرسال. حاول مجدداً.');
     } finally {
       setIsSubmitting(false);
     }
@@ -109,242 +96,218 @@ export const ContactModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto font-arabic dir-rtl">
-      {/* Backdrop with enhanced blur */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        onClick={handleClose}
-        className="fixed inset-0 bg-slate-950/80 backdrop-blur-md"
-      />
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 font-arabic dir-rtl overflow-y-auto">
+        {/* Backdrop */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          onClick={handleClose}
+          className="fixed inset-0 bg-slate-950/80 backdrop-blur-md"
+        />
 
-      {/* Modal Window Container */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.94, y: 16 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.94, y: 16 }}
-        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-        className="relative w-full max-w-lg bg-gradient-to-b from-slate-900 via-slate-900/95 to-slate-950 border border-emerald-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl text-slate-100 space-y-6 z-10 my-auto overflow-hidden"
-      >
-        {/* Ambient Light Orbs */}
-        <div className="absolute -top-24 -right-24 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+        {/* Modal Window Container */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.92, y: 20 }}
+          transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+          className="relative w-full max-w-md bg-slate-900/95 border border-slate-700/80 rounded-3xl p-5 sm:p-7 shadow-2xl text-slate-100 space-y-5 z-10 my-auto overflow-hidden backdrop-blur-2xl"
+        >
+          {/* Top Decorative Ambient Glow */}
+          <div className="absolute top-0 right-1/2 translate-x-1/2 h-1 w-3/4 bg-gradient-to-r from-emerald-500/0 via-emerald-400 to-teal-500/0" />
 
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800/80 pb-4 relative z-10">
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 bg-gradient-to-tr from-emerald-900/60 to-emerald-800/40 border border-emerald-500/40 rounded-2xl flex items-center justify-center text-emerald-400 shadow-md shrink-0">
-              <MessageSquare className="w-6 h-6" />
+          {/* Clean Header */}
+          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-tr from-emerald-600 to-teal-600 rounded-2xl flex items-center justify-center text-white shadow-md shadow-emerald-600/30">
+                <MessageSquare className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base sm:text-lg font-black text-white flex items-center gap-1.5">
+                  <span>تواصل مع المطور</span>
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                </h3>
+                <p className="text-[11px] text-slate-400">
+                  رسالتك تصل مباشرة وسريعة للمطور
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
-                <span>نموذج التواصل المباشر</span>
-                <Sparkles className="w-4 h-4 text-amber-400 animate-spin-slow" />
-              </h3>
-              <p className="text-xs text-slate-400 font-light">
-                تواصل مباشر وآمن مع مطوّر المنصة لإرسال ملاحظاتك واستفساراتك
-              </p>
-            </div>
+
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={handleClose}
+              className="p-2 text-slate-400 hover:text-white rounded-full bg-slate-800/80 hover:bg-slate-800 transition cursor-pointer"
+            >
+              <X className="w-4.5 h-4.5" />
+            </motion.button>
           </div>
 
-          <button
-            onClick={handleClose}
-            className="p-2 text-slate-400 hover:text-white rounded-full bg-slate-800/80 hover:bg-slate-800 transition cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+          {/* Success Screen View */}
+          {isSuccess ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="py-6 text-center space-y-4"
+            >
+              <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto border border-emerald-500/30 shadow-lg">
+                <CheckCircle2 className="w-9 h-9" />
+              </div>
+              <div className="space-y-1.5">
+                <h4 className="text-lg font-black text-white">وصلت رسالتك بنجاح!</h4>
+                <p className="text-xs text-slate-300 font-medium">
+                  شكراً لك، سيتم قراءة الرسالة والرد عليك في أقرب وقت.
+                </p>
+              </div>
 
-        {/* Encryption & Security Badge */}
-        <div className="flex items-center justify-between gap-2 p-2.5 bg-emerald-500/10 border border-emerald-500/25 rounded-2xl text-xs text-emerald-300 relative z-10">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span className="font-semibold text-[11px] sm:text-xs">
-              تشفير مباشر • اتصال آمن ومباشر لسرعة الاستجابة
-            </span>
-          </div>
+              <div className="pt-3 flex items-center justify-center gap-3">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setIsSuccess(false)}
+                  className="px-4 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl transition cursor-pointer"
+                >
+                  رسالة جديدة
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleClose}
+                  className="px-6 py-2 bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer"
+                >
+                  تم
+                </motion.button>
+              </div>
+            </motion.div>
+          ) : (
+            /* Clean Minimal Form */
+            <form onSubmit={handleSubmit} className="space-y-3.5">
+              {errorMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-2.5 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs font-semibold flex items-center gap-2"
+                >
+                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>{errorMessage}</span>
+                </motion.div>
+              )}
 
-          {isAutofilled && (
-            <span className="px-2 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold rounded-full flex items-center gap-1 shrink-0">
-              <Zap className="w-3 h-3" />
-              <span>مُعبأ آلياً</span>
-            </span>
+              {/* Name & Contact (2-Col Grid on Desktop) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-300 flex items-center gap-1">
+                    <User className="w-3 h-3 text-emerald-400" />
+                    <span>الاسم الكريم *</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="اسمك..."
+                    className="w-full px-3.5 py-2 bg-slate-950/70 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-hidden focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/40 transition"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-300 flex items-center gap-1">
+                    <Phone className="w-3 h-3 text-emerald-400" />
+                    <span>التواصل (اختياري)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={contactInfo}
+                    onChange={(e) => setContactInfo(e.target.value)}
+                    placeholder="بريد أو واتساب..."
+                    className="w-full px-3.5 py-2 bg-slate-950/70 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-hidden focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/40 transition"
+                  />
+                </div>
+              </div>
+
+              {/* Subject Presets */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-slate-300">موضوع الرسالة</label>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {PRESET_SUBJECTS.map((preset) => (
+                    <motion.button
+                      key={preset}
+                      type="button"
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setSubject(preset)}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                        subject === preset
+                          ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/50 shadow-xs'
+                          : 'bg-slate-800/80 text-slate-400 hover:text-slate-200 border border-slate-700/60'
+                      }`}
+                    >
+                      {preset}
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Message Field */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-300">نص الرسالة *</label>
+                <div className="relative">
+                  <textarea
+                    required
+                    rows={3.5}
+                    maxLength={800}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="اكتب ملاحظتك أو استفسارك هنا..."
+                    className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-hidden focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/40 transition resize-none leading-relaxed"
+                  />
+                  <span className="absolute bottom-2 left-3 text-[9px] text-slate-500 font-mono">
+                    {message.length}/800
+                  </span>
+                </div>
+              </div>
+
+              {/* Clean Action Buttons */}
+              <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl transition cursor-pointer"
+                >
+                  إلغاء
+                </button>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer border border-emerald-400/30 disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-200" />
+                      <span>جاري الإرسال...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-3.5 h-3.5 text-emerald-200" />
+                      <span>إرسال الآن</span>
+                    </>
+                  )}
+                </motion.button>
+              </div>
+            </form>
           )}
-        </div>
-
-        {/* Success Screen View */}
-        {isSuccess ? (
-          <div className="py-8 text-center space-y-5 relative z-10">
-            <div className="w-18 h-18 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto border border-emerald-500/40 shadow-xl animate-bounce-gentle">
-              <CheckCircle2 className="w-10 h-10" />
-            </div>
-            <div className="space-y-2 max-w-sm mx-auto">
-              <h4 className="text-xl font-black text-white">تم إرسال رسالتك بنجاح!</h4>
-              <p className="text-xs text-slate-300 leading-relaxed font-light">
-                وصلت رسالتك بنجاح ومباشرة إلى مطوّر المنصة، وسوف يتم الرد والاهتمام بملاحظتك في أقرب وقت.
-              </p>
-            </div>
-
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <button
-                onClick={() => setIsSuccess(false)}
-                className="w-full sm:w-auto px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl transition cursor-pointer"
-              >
-                كتابة رسالة أخرى
-              </button>
-              <button
-                onClick={handleClose}
-                className="w-full sm:w-auto px-7 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg transition cursor-pointer"
-              >
-                إغلاق النافذة
-              </button>
-            </div>
-          </div>
-        ) : (
-          /* Form Inputs */
-          <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
-            {errorMessage && (
-              <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-rose-300 text-xs font-medium flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                <span>{errorMessage}</span>
-              </div>
-            )}
-
-            {/* Field 1: Name */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>الاسم الكريم</span>
-                </span>
-                <span className="text-amber-400 text-[11px] font-bold">* مطلوب</span>
-              </label>
-              <input
-                type="text"
-                required
-                autoComplete="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="أدخل اسمك هنا..."
-                className="w-full px-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-2xl text-xs text-white placeholder-slate-500 focus:outline-hidden focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 transition font-arabic"
-              />
-            </div>
-
-            {/* Field 2: Contact Info */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>وسيلة التواصل</span>
-                </span>
-                <span className="text-slate-400 text-[10px] font-normal">(اختياري للرد عليك)</span>
-              </label>
-              <input
-                type="text"
-                autoComplete="email tel"
-                value={contactInfo}
-                onChange={(e) => setContactInfo(e.target.value)}
-                placeholder="مثال: email@domain.com أو 010xxxxxxxx"
-                className="w-full px-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-2xl text-xs text-white placeholder-slate-500 focus:outline-hidden focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 transition font-arabic dir-rtl"
-              />
-            </div>
-
-            {/* Field 3: Subject & Quick Preset Chips */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <Tag className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>موضوع الرسالة</span>
-                </span>
-              </label>
-              <input
-                type="text"
-                autoComplete="off"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="مثال: اقتراح ميزة جديدة / استفسار..."
-                className="w-full px-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-2xl text-xs text-white placeholder-slate-500 focus:outline-hidden focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 transition font-arabic"
-              />
-
-              {/* Subject Quick Selector Chips */}
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {PRESET_SUBJECTS.map((preset, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setSubject(preset)}
-                    className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition cursor-pointer ${
-                      subject === preset
-                        ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300'
-                        : 'bg-slate-800/60 border-slate-700/60 text-slate-400 hover:text-slate-200 hover:border-slate-600'
-                    }`}
-                  >
-                    {preset}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Field 4: Message & Character Counter */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>نص الرسالة</span>
-                </span>
-                <span className="text-amber-400 text-[11px] font-bold">* مطلوب</span>
-              </label>
-              <div className="relative">
-                <textarea
-                  required
-                  rows={4}
-                  maxLength={1000}
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="اكتب ملاحظتك أو استفسارك بالتفصيل هنا..."
-                  className="w-full px-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-2xl text-xs text-white placeholder-slate-500 focus:outline-hidden focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 transition font-arabic resize-none"
-                />
-                <span className="absolute bottom-2.5 left-3 text-[10px] text-slate-500 font-mono">
-                  {message.length} / 1000
-                </span>
-              </div>
-            </div>
-
-            {/* Submit & Cancel Actions */}
-            <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-800/80">
-              <button
-                type="button"
-                onClick={handleClose}
-                className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl transition cursor-pointer"
-              >
-                إلغاء
-              </button>
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex items-center gap-2 px-7 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-lg hover:shadow-emerald-500/20 transition cursor-pointer border border-emerald-400/30 disabled:opacity-50"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin text-emerald-200" />
-                    <span>جاري إرسال الرسالة...</span>
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4 text-emerald-200" />
-                    <span>إرسال الرسالة الآن</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-        )}
-      </motion.div>
-    </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
   );
 };
 
 export default ContactModal;
+
