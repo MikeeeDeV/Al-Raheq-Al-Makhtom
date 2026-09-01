@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
-import { Question } from '../types';
 import {
   AlertTriangle,
   CheckCircle2,
   XCircle,
-  RotateCcw,
-  Sparkles,
   Trash2,
   Info,
-  HelpCircle,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const MistakesBankView: React.FC = () => {
   const { mistakesBank, recordAnswer, removeFromMistakesBank, setCurrentView } = useAppStore();
@@ -22,7 +20,9 @@ export const MistakesBankView: React.FC = () => {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [showExplanation, setShowExplanation] = useState<boolean>(false);
 
-  const currentQuestion = mistakesList[currentIndex];
+  // Guard against index out of bounds
+  const safeIndex = Math.min(currentIndex, Math.max(0, mistakesList.length - 1));
+  const currentQuestion = mistakesList[safeIndex];
 
   const handleOptionClick = (option: string) => {
     if (selectedOption !== null || !currentQuestion) return;
@@ -32,20 +32,28 @@ export const MistakesBankView: React.FC = () => {
     setShowExplanation(true);
 
     if (isCorrect) {
-      // Remove from mistakes bank after 1.5 seconds or on next
+      // Safely queue removal from mistakes bank
       setTimeout(() => {
         removeFromMistakesBank(currentQuestion.id);
-      }, 1200);
+      }, 800);
     }
   };
 
   const handleNext = () => {
     setSelectedOption(null);
     setShowExplanation(false);
-    if (currentIndex + 1 < mistakesList.length) {
-      setCurrentIndex((prev) => prev + 1);
+    if (safeIndex + 1 < mistakesList.length) {
+      setCurrentIndex(safeIndex + 1);
     } else {
       setCurrentIndex(0);
+    }
+  };
+
+  const handlePrev = () => {
+    if (safeIndex > 0) {
+      setSelectedOption(null);
+      setShowExplanation(false);
+      setCurrentIndex(safeIndex - 1);
     }
   };
 
@@ -65,7 +73,7 @@ export const MistakesBankView: React.FC = () => {
 
         <button
           onClick={() => setCurrentView('quiz')}
-          className="px-7 py-3 bg-m3-primary text-white rounded-full font-bold text-sm shadow-m3-2 hover:bg-m3-primary/90 transition"
+          className="px-7 py-3 bg-m3-primary text-white rounded-full font-bold text-sm shadow-m3-2 hover:bg-m3-primary/90 transition cursor-pointer"
         >
           الانتقال لساحة الاختبارات الرئيسية
         </button>
@@ -97,14 +105,14 @@ export const MistakesBankView: React.FC = () => {
       {/* Question Card */}
       {currentQuestion && (
         <motion.div
-          key={currentQuestion.id}
+          key={`mistake-q-${safeIndex}-${currentQuestion.id}`}
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-3xl p-6 md:p-8 shadow-m3-3 space-y-6"
         >
           <div className="flex items-center justify-between text-xs text-m3-onSurface-variant font-semibold">
             <span className="px-3 py-1 bg-amber-500/20 text-amber-800 dark:text-amber-200 rounded-full">
-              سؤال مراجعة {currentIndex + 1} من {mistakesList.length}
+              سؤال مراجعة {safeIndex + 1} من {mistakesList.length}
             </span>
 
             <span className="text-m3-primary font-bold">{currentQuestion.section}</span>
@@ -141,7 +149,7 @@ export const MistakesBankView: React.FC = () => {
                   key={idx}
                   disabled={hasAnswered}
                   onClick={() => handleOptionClick(option)}
-                  className={`w-full p-4 rounded-2xl border text-right transition-all flex items-center justify-between gap-4 ${cardBg} ${textColor}`}
+                  className={`w-full p-4 rounded-2xl border text-right transition-all flex items-center justify-between gap-4 ${cardBg} ${textColor} cursor-pointer`}
                 >
                   <span className="text-sm md:text-base font-medium">{option}</span>
                   {badgeIcon}
@@ -150,34 +158,54 @@ export const MistakesBankView: React.FC = () => {
             })}
           </div>
 
-          {showExplanation && (
-            <div className="p-4 bg-m3-surface rounded-2xl border border-m3-outline-variant/20 space-y-3">
-              <div className="flex items-center gap-2 text-m3-primary font-bold text-sm">
-                <Info className="w-4 h-4" />
-                <span>الشرح والتصويب:</span>
-              </div>
-              <p className="text-sm text-m3-onSurface leading-relaxed">
-                {currentQuestion.explanation}
-              </p>
+          <AnimatePresence>
+            {showExplanation && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="p-4 bg-m3-surface rounded-2xl border border-m3-outline-variant/20 space-y-3"
+              >
+                <div className="flex items-center gap-2 text-m3-primary font-bold text-sm">
+                  <Info className="w-4 h-4" />
+                  <span>الشرح والتصويب:</span>
+                </div>
+                <p className="text-sm text-m3-onSurface leading-relaxed">
+                  {currentQuestion.explanation}
+                </p>
 
-              <div className="flex justify-between items-center pt-2">
-                <button
-                  onClick={() => removeFromMistakesBank(currentQuestion.id)}
-                  className="flex items-center gap-1.5 text-xs text-red-500 hover:underline"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span>إزالة من القائمة</span>
-                </button>
+                <div className="pt-2">
+                  <button
+                    onClick={() => removeFromMistakesBank(currentQuestion.id)}
+                    className="flex items-center gap-1.5 text-xs text-red-500 hover:underline cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>إزالة من بنك الأخطاء</span>
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-                <button
-                  onClick={handleNext}
-                  className="px-6 py-2 bg-m3-primary text-white rounded-full font-bold text-sm shadow-m3-1"
-                >
-                  السؤال التالي
-                </button>
-              </div>
-            </div>
-          )}
+          {/* Dedicated Navigation Bar */}
+          <div className="flex items-center justify-between gap-4 pt-4 border-t border-m3-outline-variant/20">
+            <button
+              onClick={handlePrev}
+              disabled={safeIndex === 0}
+              className="flex items-center gap-2 px-5 py-2.5 bg-m3-surface-dim dark:bg-m3-surface-darkContainer text-m3-onSurface hover:bg-m3-surface-high rounded-full font-semibold text-sm transition disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+            >
+              <ChevronRight className="w-4 h-4" />
+              <span>السؤال السابق</span>
+            </button>
+
+            <button
+              onClick={handleNext}
+              className="flex items-center gap-2 px-7 py-3 bg-m3-primary text-white hover:bg-m3-primary/90 font-bold text-sm rounded-full shadow-m3-2 transition active:scale-95 cursor-pointer"
+            >
+              <span>السؤال التالي</span>
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+          </div>
         </motion.div>
       )}
     </div>

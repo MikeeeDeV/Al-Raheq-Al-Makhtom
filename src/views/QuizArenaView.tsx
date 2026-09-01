@@ -9,15 +9,15 @@ import {
   XCircle,
   Clock,
   RotateCcw,
-  Sparkles,
   ChevronLeft,
   ChevronRight,
   Filter,
   Info,
   Trophy,
-  ArrowRight,
   Loader2,
   Share2,
+  ArrowLeft,
+  ArrowRight,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -29,7 +29,6 @@ export const QuizArenaView: React.FC = () => {
     isLoadingQuestions,
     activeQuizSection,
     activeQuizMode,
-    startQuiz,
     recordAnswer,
     saveQuizSession,
     setShareModalOpen,
@@ -92,7 +91,6 @@ export const QuizArenaView: React.FC = () => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          // Time's up for current question
           handleOptionClick('انتهى الوقت');
           return 30;
         }
@@ -123,7 +121,8 @@ export const QuizArenaView: React.FC = () => {
     setShowExplanation(false);
     setTimeLeft(30);
 
-    if (currentIndex + 1 < Math.min(30, questionsList.length)) {
+    const maxQs = Math.min(30, questionsList.length);
+    if (currentIndex + 1 < maxQs) {
       setCurrentIndex((prev) => prev + 1);
     } else {
       // Complete Session
@@ -134,18 +133,26 @@ export const QuizArenaView: React.FC = () => {
         origin: { y: 0.6 },
       });
 
-      const totalQs = Math.min(30, questionsList.length);
-      const scorePct = Math.round((sessionScore / totalQs) * 100);
+      const scorePct = Math.round((sessionScore / maxQs) * 100);
       const duration = Math.round((Date.now() - sessionStartTime) / 1000);
 
       saveQuizSession({
         sectionId: selectedSectionId,
         mode: quizMode,
-        totalQuestions: totalQs,
+        totalQuestions: maxQs,
         correctAnswers: sessionScore,
         scorePercentage: scorePct,
         durationSeconds: duration,
       });
+    }
+  };
+
+  const handlePrevQuestion = () => {
+    if (currentIndex > 0) {
+      setSelectedOption(null);
+      setShowExplanation(false);
+      setTimeLeft(30);
+      setCurrentIndex((prev) => prev - 1);
     }
   };
 
@@ -160,6 +167,7 @@ export const QuizArenaView: React.FC = () => {
   }
 
   const currentSectionInfo = SECTIONS_INFO.find((s) => s.id === selectedSectionId);
+  const maxSessionQuestions = Math.min(30, questionsList.length);
 
   return (
     <div className="space-y-8 pb-12">
@@ -279,7 +287,7 @@ export const QuizArenaView: React.FC = () => {
       {/* Main Question Arena Card */}
       {!isSessionComplete && currentQuestion && (
         <motion.div
-          key={currentQuestion.id}
+          key={`quiz-q-${currentIndex}-${currentQuestion.id}`}
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -15 }}
@@ -288,7 +296,7 @@ export const QuizArenaView: React.FC = () => {
           {/* Top Progress & Details */}
           <div className="flex items-center justify-between text-xs text-m3-onSurface-variant font-semibold">
             <span className="px-3 py-1 bg-m3-primary-container text-m3-primary-onContainer rounded-full">
-              السؤال {currentIndex + 1} من {Math.min(30, questionsList.length)}
+              السؤال {currentIndex + 1} من {maxSessionQuestions}
             </span>
 
             <span className="text-m3-secondary font-bold">
@@ -331,7 +339,7 @@ export const QuizArenaView: React.FC = () => {
                   key={idx}
                   disabled={hasAnswered}
                   onClick={() => handleOptionClick(option)}
-                  className={`w-full p-4 rounded-2xl border text-right transition-all flex items-center justify-between gap-4 ${cardBg} ${textColor} active:scale-[0.99]`}
+                  className={`w-full p-4 rounded-2xl border text-right transition-all flex items-center justify-between gap-4 ${cardBg} ${textColor} active:scale-[0.99] cursor-pointer`}
                 >
                   <div className="flex items-center gap-3">
                     <span className="w-7 h-7 rounded-full bg-m3-surface-container dark:bg-m3-surface-darkContainer text-m3-onSurface font-bold text-xs flex items-center justify-center border border-m3-outline-variant/30">
@@ -345,7 +353,7 @@ export const QuizArenaView: React.FC = () => {
             })}
           </div>
 
-          {/* Explanation Bottom Modal Sheet Trigger */}
+          {/* Explanation Section */}
           <AnimatePresence>
             {showExplanation && (
               <motion.div
@@ -361,19 +369,29 @@ export const QuizArenaView: React.FC = () => {
                 <p className="text-sm text-m3-onSurface leading-relaxed">
                   {currentQuestion.explanation}
                 </p>
-
-                <div className="flex justify-end pt-2">
-                  <button
-                    onClick={handleNextQuestion}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-m3-primary text-white hover:bg-m3-primary/90 font-bold text-sm rounded-full shadow-m3-2 transition active:scale-95"
-                  >
-                    <span>السؤال التالي</span>
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                </div>
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Prominent Navigation Controls Bar (Previous & Next Buttons) */}
+          <div className="flex items-center justify-between gap-4 pt-4 border-t border-m3-outline-variant/20">
+            <button
+              onClick={handlePrevQuestion}
+              disabled={currentIndex === 0}
+              className="flex items-center gap-2 px-5 py-2.5 bg-m3-surface-dim dark:bg-m3-surface-darkContainer text-m3-onSurface hover:bg-m3-surface-high rounded-full font-semibold text-sm transition disabled:opacity-30 disabled:pointer-events-none"
+            >
+              <ChevronRight className="w-4 h-4" />
+              <span>السؤال السابق</span>
+            </button>
+
+            <button
+              onClick={handleNextQuestion}
+              className="flex items-center gap-2 px-7 py-3 bg-m3-primary text-white hover:bg-m3-primary/90 font-bold text-sm rounded-full shadow-m3-2 transition active:scale-95 cursor-pointer"
+            >
+              <span>{currentIndex + 1 === maxSessionQuestions ? 'إنهاء الاختبار' : 'السؤال التالي'}</span>
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+          </div>
         </motion.div>
       )}
 
@@ -404,13 +422,13 @@ export const QuizArenaView: React.FC = () => {
             </div>
             <div className="p-4 bg-m3-surface rounded-2xl border border-m3-outline-variant/20">
               <span className="block text-2xl font-black text-m3-primary">
-                {Math.round((sessionScore / Math.min(30, questionsList.length)) * 100)}%
+                {Math.round((sessionScore / maxSessionQuestions) * 100)}%
               </span>
               <span className="text-xs text-m3-onSurface-variant">درجة الإتقان</span>
             </div>
             <div className="col-span-2 sm:col-span-1 p-4 bg-m3-surface rounded-2xl border border-m3-outline-variant/20">
               <span className="block text-2xl font-black text-amber-600">
-                {Math.min(30, questionsList.length)}
+                {maxSessionQuestions}
               </span>
               <span className="text-xs text-m3-onSurface-variant">إجمالي الأسئلة</span>
             </div>
@@ -423,6 +441,7 @@ export const QuizArenaView: React.FC = () => {
                 setCurrentIndex(0);
                 setSessionScore(0);
                 setSelectedOption(null);
+                setShowExplanation(false);
               }}
               className="flex items-center gap-2 px-6 py-3 bg-m3-primary text-white rounded-full font-bold text-sm shadow-m3-2 hover:bg-m3-primary/90 transition"
             >

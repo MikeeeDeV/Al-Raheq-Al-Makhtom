@@ -140,21 +140,25 @@ export const useAppStore = create<AppState>()(
             const sec = data.sections[secKey];
             for (const type of ['mcq', 'true_false'] as (keyof typeof sec)[]) {
               sec[type] = sec[type].map((q: Question) => {
-                if (q.question.includes('سؤال سيرة نبوية رقم') || (q.options && q.options.some((o) => o.includes('الخيار')))) {
+                const hasValidOptions = Array.isArray(q.options) && q.options.length > 0;
+                const defaultOptions = q.type === 'true_false' ? ["صواب", "خطأ"] : ["الخيار الأول", "الخيار الثاني", "الخيار الثالث", "الخيار الرابع"];
+                const finalOptions = hasValidOptions ? (q.options as string[]) : defaultOptions;
+
+                if (q.question.includes('سؤال سيرة نبوية رقم') || (hasValidOptions && q.options.some((o) => o.includes('الخيار')))) {
                   return {
                     ...q,
                     question: `سؤال توثيقي في السيرة النبوية الشريفة — ${q.section}`,
-                    options: q.options ? [
-                      "البيعة المباركة ودعوة القبائل",
-                      "الهجرة وحفظ السيرة النبوية العطرة",
-                      "غار حراء وتأسيس قباؤ",
-                      "جميع المحطات التاريخية المباركة"
-                    ] : q.options,
-                    correct_answer: q.options ? "جميع المحطات التاريخية المباركة" : q.correct_answer,
+                    options: finalOptions,
+                    correct_answer: q.type === 'true_false' ? (q.correct_answer || "صواب") : finalOptions[0],
                     explanation: "مبحث توثيقي مفصل من واقع أحداث السيرة النبوية العطرة في كتاب الرحيق المختوم."
                   };
                 }
-                return q;
+
+                return {
+                  ...q,
+                  options: finalOptions,
+                  correct_answer: q.correct_answer || (q.type === 'true_false' ? "صواب" : finalOptions[0]),
+                };
               });
             }
           }
