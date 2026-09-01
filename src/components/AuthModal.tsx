@@ -5,15 +5,28 @@ import {
   sendTelegramPasswordResetOtp,
   verifyOtpAndResetPassword,
 } from '../services/authService';
-import { X, UserCheck, ShieldCheck, LogIn, Send, KeyRound, CheckCircle2, Lock } from 'lucide-react';
+import {
+  X,
+  UserCheck,
+  UserPlus,
+  ShieldCheck,
+  LogIn,
+  Send,
+  KeyRound,
+  CheckCircle2,
+  Lock,
+  Mail,
+  User,
+  AtSign,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const AuthModal: React.FC = () => {
   const { isAuthModalOpen, setAuthModalOpen, setUserProfile, userProfile } = useAppStore();
 
-  const [activeTab, setActiveTab] = useState<'auth' | 'reset'>('auth');
+  const [mode, setMode] = useState<'login' | 'signup' | 'reset'>('login');
 
-  // Form States for Register/Login
+  // Form States for Sign In / Sign Up
   const [readerName, setReaderName] = useState(userProfile.name?.replace(/^القارئ\s+/, '') || '');
   const [emailInput, setEmailInput] = useState(userProfile.email || '');
   const [telegramUsername, setTelegramUsername] = useState(userProfile.telegramUsername || '');
@@ -31,9 +44,42 @@ export const AuthModal: React.FC = () => {
 
   if (!isAuthModalOpen) return null;
 
-  // Handle Account Register / Login
-  const handleAuthSubmit = async (e: React.FormEvent) => {
+  // Handle Sign In Submission
+  const handleSignInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!emailInput.trim()) {
+      setErrorMessage('يرجى إدخال البريد الإلكتروني');
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    const res = await registerOrLoginWithTelegramEmail({
+      name: readerName || 'القارئ',
+      email: emailInput,
+      password: password,
+      telegramUsername: telegramUsername,
+    });
+
+    setIsLoading(false);
+
+    if (res.success && res.user) {
+      setUserProfile(res.user);
+      setAuthModalOpen(false);
+    } else if (res.error) {
+      setErrorMessage(res.error);
+    }
+  };
+
+  // Handle Sign Up Submission
+  const handleSignUpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!readerName.trim()) {
+      setErrorMessage('يرجى إدخال اسم القارئ');
+      return;
+    }
     if (!emailInput.trim()) {
       setErrorMessage('يرجى إدخال البريد الإلكتروني');
       return;
@@ -54,7 +100,10 @@ export const AuthModal: React.FC = () => {
 
     if (res.success && res.user) {
       setUserProfile(res.user);
-      setAuthModalOpen(false);
+      setSuccessMessage('تم إنشاء الحساب وتوثيقه بنجاح! 🎉');
+      setTimeout(() => {
+        setAuthModalOpen(false);
+      }, 1200);
     } else if (res.error) {
       setErrorMessage(res.error);
     }
@@ -130,11 +179,25 @@ export const AuthModal: React.FC = () => {
         <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-emerald-950 text-white p-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-emerald-800/80 rounded-2xl flex items-center justify-center text-amber-300 shadow-inner">
-              <LogIn className="w-5 h-5" />
+              {mode === 'login' ? (
+                <LogIn className="w-5 h-5" />
+              ) : mode === 'signup' ? (
+                <UserPlus className="w-5 h-5" />
+              ) : (
+                <KeyRound className="w-5 h-5" />
+              )}
             </div>
             <div>
-              <h3 className="font-black text-base leading-tight">حساب القارئ وتوثيق تليجرام</h3>
-              <p className="text-xs text-emerald-200/90 font-light">مزامنة التقدم واستعادة الحساب عبر بوت تليجرام</p>
+              <h3 className="font-black text-base leading-tight">
+                {mode === 'login'
+                  ? 'تسجيل الدخول (Sign In)'
+                  : mode === 'signup'
+                  ? 'إنشاء حساب جديد (Sign Up)'
+                  : 'استعادة كلمة المرور'}
+              </h3>
+              <p className="text-xs text-emerald-200/90 font-light">
+                منصة الرحيق المختوم — حفظ موثق عبر تليجرام
+              </p>
             </div>
           </div>
 
@@ -146,40 +209,57 @@ export const AuthModal: React.FC = () => {
           </button>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex border-b border-m3-outline-variant/20 bg-m3-surface-container dark:bg-m3-surface-darkContainer p-1">
+        {/* Navigation Tabs (Sign In / Sign Up / Reset) */}
+        <div className="grid grid-cols-3 border-b border-m3-outline-variant/20 bg-m3-surface-container dark:bg-m3-surface-darkContainer p-1 text-center">
           <button
             type="button"
             onClick={() => {
-              setActiveTab('auth');
+              setMode('login');
               setErrorMessage('');
               setSuccessMessage('');
             }}
-            className={`flex-1 py-2.5 text-xs font-bold rounded-2xl transition cursor-pointer flex items-center justify-center gap-2 ${
-              activeTab === 'auth'
+            className={`py-2 text-xs font-bold rounded-2xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
+              mode === 'login'
                 ? 'bg-emerald-700 text-white shadow-sm'
                 : 'text-m3-onSurface-variant hover:text-m3-onSurface'
             }`}
           >
-            <UserCheck className="w-4 h-4" />
-            <span>تسجيل / دخول الحساب</span>
+            <LogIn className="w-3.5 h-3.5" />
+            <span>تسجيل الدخول</span>
           </button>
 
           <button
             type="button"
             onClick={() => {
-              setActiveTab('reset');
+              setMode('signup');
               setErrorMessage('');
               setSuccessMessage('');
             }}
-            className={`flex-1 py-2.5 text-xs font-bold rounded-2xl transition cursor-pointer flex items-center justify-center gap-2 ${
-              activeTab === 'reset'
+            className={`py-2 text-xs font-bold rounded-2xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
+              mode === 'signup'
                 ? 'bg-emerald-700 text-white shadow-sm'
                 : 'text-m3-onSurface-variant hover:text-m3-onSurface'
             }`}
           >
-            <KeyRound className="w-4 h-4" />
-            <span>نسيت كلمة المرور</span>
+            <UserPlus className="w-3.5 h-3.5" />
+            <span>إنشاء حساب</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setMode('reset');
+              setErrorMessage('');
+              setSuccessMessage('');
+            }}
+            className={`py-2 text-xs font-bold rounded-2xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
+              mode === 'reset'
+                ? 'bg-emerald-700 text-white shadow-sm'
+                : 'text-m3-onSurface-variant hover:text-m3-onSurface'
+            }`}
+          >
+            <KeyRound className="w-3.5 h-3.5" />
+            <span>استعادة الرمز</span>
           </button>
         </div>
 
@@ -199,67 +279,55 @@ export const AuthModal: React.FC = () => {
           )}
 
           <AnimatePresence mode="wait">
-            {activeTab === 'auth' ? (
-              /* Tab 1: Account Login / Register Form */
+            {mode === 'login' ? (
+              /* Mode 1: Sign In Form */
               <motion.form
-                key="auth-form"
+                key="signin-form"
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 10 }}
-                onSubmit={handleAuthSubmit}
+                onSubmit={handleSignInSubmit}
                 className="space-y-3.5"
               >
                 <div>
                   <label className="block text-xs font-bold text-m3-onSurface mb-1">
-                    اسم القارئ الرسمي:
-                  </label>
-                  <input
-                    type="text"
-                    value={readerName}
-                    onChange={(e) => setReaderName(e.target.value)}
-                    placeholder="مثال: أحمد (سيصبح: القارئ أحمد)"
-                    className="w-full px-4 py-2.5 bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-xl text-xs font-bold focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-m3-onSurface mb-1">
                     البريد الإلكتروني: <span className="text-rose-500">*</span>
                   </label>
-                  <input
-                    type="email"
-                    required
-                    value={emailInput}
-                    onChange={(e) => setEmailInput(e.target.value)}
-                    placeholder="name@example.com"
-                    className="w-full px-4 py-2.5 bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-xl text-xs focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-                  />
+                  <div className="relative">
+                    <input
+                      type="email"
+                      required
+                      value={emailInput}
+                      onChange={(e) => setEmailInput(e.target.value)}
+                      placeholder="name@example.com"
+                      className="w-full px-4 pr-10 py-2.5 bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-xl text-xs focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                    />
+                    <Mail className="w-4 h-4 absolute right-3 top-3 text-m3-onSurface-variant/50" />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-m3-onSurface mb-1">
-                    اسم مستخدم تليجرام (ربط واستعادة الحساب):
-                  </label>
-                  <input
-                    type="text"
-                    value={telegramUsername}
-                    onChange={(e) => setTelegramUsername(e.target.value)}
-                    placeholder="مثال: @MohamedAyman"
-                    className="w-full px-4 py-2.5 bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-xl text-xs font-bold focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-m3-onSurface mb-1">
-                    كلمة المرور:
-                  </label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full px-4 py-2.5 bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-xl text-xs focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-                  />
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-m3-onSurface">كلمة المرور:</label>
+                    <button
+                      type="button"
+                      onClick={() => setMode('reset')}
+                      className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold hover:underline cursor-pointer"
+                    >
+                      نسيت كلمة المرور؟
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full px-4 pr-10 py-2.5 bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-xl text-xs focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                    />
+                    <Lock className="w-4 h-4 absolute right-3 top-3 text-m3-onSurface-variant/50" />
+                  </div>
                 </div>
 
                 <motion.button
@@ -269,17 +337,125 @@ export const AuthModal: React.FC = () => {
                   disabled={isLoading}
                   className="w-full py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-2xl text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer mt-2"
                 >
-                  <UserCheck className="w-4 h-4 text-emerald-200" />
-                  <span>{isLoading ? 'جاري حفظ وبيان الحساب...' : 'حفظ وتأكيد دخول القارئ'}</span>
+                  <LogIn className="w-4 h-4 text-emerald-200" />
+                  <span>{isLoading ? 'جاري الدخول...' : 'تسجيل الدخول (Sign In)'}</span>
                 </motion.button>
+
+                <div className="text-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setMode('signup')}
+                    className="text-xs text-m3-onSurface-variant hover:text-emerald-600 dark:hover:text-emerald-400 font-bold transition cursor-pointer"
+                  >
+                    ليس لديك حساب؟ <span className="underline text-emerald-600 dark:text-emerald-400">إنشاء حساب جديد (Sign Up)</span>
+                  </button>
+                </div>
               </motion.form>
-            ) : (
-              /* Tab 2: Password Reset via Telegram OTP */
-              <motion.div
-                key="reset-form"
+            ) : mode === 'signup' ? (
+              /* Mode 2: Sign Up Form */
+              <motion.form
+                key="signup-form"
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
+                onSubmit={handleSignUpSubmit}
+                className="space-y-3.5"
+              >
+                <div>
+                  <label className="block text-xs font-bold text-m3-onSurface mb-1">
+                    اسم القارئ الكامل: <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      value={readerName}
+                      onChange={(e) => setReaderName(e.target.value)}
+                      placeholder="مثال: أحمد وسيصبح: القارئ أحمد"
+                      className="w-full px-4 pr-10 py-2.5 bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-xl text-xs font-bold focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                    />
+                    <User className="w-4 h-4 absolute right-3 top-3 text-m3-onSurface-variant/50" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-m3-onSurface mb-1">
+                    البريد الإلكتروني: <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      required
+                      value={emailInput}
+                      onChange={(e) => setEmailInput(e.target.value)}
+                      placeholder="name@example.com"
+                      className="w-full px-4 pr-10 py-2.5 bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-xl text-xs focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                    />
+                    <Mail className="w-4 h-4 absolute right-3 top-3 text-m3-onSurface-variant/50" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-m3-onSurface mb-1">
+                    اسم مستخدم تليجرام (لاستعادة الحساب والرمز):
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={telegramUsername}
+                      onChange={(e) => setTelegramUsername(e.target.value)}
+                      placeholder="مثال: @MohamedAyman"
+                      className="w-full px-4 pr-10 py-2.5 bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-xl text-xs font-bold focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                    />
+                    <AtSign className="w-4 h-4 absolute right-3 top-3 text-m3-onSurface-variant/50" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-m3-onSurface mb-1">
+                    كلمة المرور: <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full px-4 pr-10 py-2.5 bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-xl text-xs focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                    />
+                    <Lock className="w-4 h-4 absolute right-3 top-3 text-m3-onSurface-variant/50" />
+                  </div>
+                </div>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-2xl text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer mt-2"
+                >
+                  <UserPlus className="w-4 h-4 text-emerald-200" />
+                  <span>{isLoading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب جديد (Sign Up)'}</span>
+                </motion.button>
+
+                <div className="text-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setMode('login')}
+                    className="text-xs text-m3-onSurface-variant hover:text-emerald-600 dark:hover:text-emerald-400 font-bold transition cursor-pointer"
+                  >
+                    لديك حساب بالفعل؟ <span className="underline text-emerald-600 dark:text-emerald-400">تسجيل الدخول (Sign In)</span>
+                  </button>
+                </div>
+              </motion.form>
+            ) : (
+              /* Mode 3: Password Reset via Telegram OTP */
+              <motion.div
+                key="reset-form"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
                 className="space-y-4"
               >
                 {!isOtpSent ? (
@@ -289,14 +465,17 @@ export const AuthModal: React.FC = () => {
                       <label className="block text-xs font-bold text-m3-onSurface mb-1">
                         أدخل اسم مستخدم تليجرام الخاص بك:
                       </label>
-                      <input
-                        type="text"
-                        required
-                        value={resetTelegramUsername}
-                        onChange={(e) => setResetTelegramUsername(e.target.value)}
-                        placeholder="مثال: @username"
-                        className="w-full px-4 py-2.5 bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-xl text-xs font-bold focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-                      />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          required
+                          value={resetTelegramUsername}
+                          onChange={(e) => setResetTelegramUsername(e.target.value)}
+                          placeholder="مثال: @username"
+                          className="w-full px-4 pr-10 py-2.5 bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-xl text-xs font-bold focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                        />
+                        <AtSign className="w-4 h-4 absolute right-3 top-3 text-m3-onSurface-variant/50" />
+                      </div>
                     </div>
 
                     <p className="text-[11px] text-m3-onSurface-variant leading-relaxed">
