@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import { copyToClipboard, copyImageBlobToClipboard } from '../utils/clipboard';
+import { copyToClipboard } from '../utils/clipboard';
 
 type CardTheme = 'emerald' | 'royal' | 'warm' | 'dark_gold' | 'rose' | 'cyan';
 
@@ -321,15 +321,14 @@ export const GiftDedicationModal: React.FC = () => {
     }, 100);
   };
 
-  const getCardFile = async (): Promise<{ file: File; blob: Blob } | null> => {
+  const getCardFile = async (): Promise<File | null> => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
     try {
       const dataUrl = canvas.toDataURL('image/png');
       const res = await fetch(dataUrl);
       const blob = await res.blob();
-      const file = new File([blob], 'كارت_إهداء_الرحيق_المختوم.png', { type: 'image/png' });
-      return { file, blob };
+      return new File([blob], 'كارت_إهداء_الرحيق_المختوم.png', { type: 'image/png' });
     } catch (err) {
       console.warn('Failed to convert canvas to file:', err);
     }
@@ -341,7 +340,7 @@ export const GiftDedicationModal: React.FC = () => {
     `👤 *من:* ${senderName}\n` +
     `👤 *إلى:* ${recipientName}\n\n` +
     `💬 *الرسالة:*\n${activeMessage}\n\n` +
-    `📖 *رابط المنصة:*\n${appLink}`;
+    `📖 *رابط المنصة مع كارت المعاينة:*\n${appLink}`;
 
   const handleCopyText = async () => {
     const success = await copyToClipboard(fullShareText);
@@ -352,72 +351,54 @@ export const GiftDedicationModal: React.FC = () => {
   };
 
   const handleWhatsAppShare = async () => {
-    const cardData = await getCardFile();
+    const file = await getCardFile();
 
-    // 1. Try Mobile Native Web Share API with attached photo
-    if (navigator.share && cardData) {
+    // Try Mobile Native Web Share API with attached photo if supported
+    if (navigator.share && file && navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
-        if (navigator.canShare && navigator.canShare({ files: [cardData.file] })) {
-          await navigator.share({
-            files: [cardData.file],
-            title: 'إهداء كارت السيرة النبوية',
-            text: fullShareText,
-          });
-          return;
-        }
+        await navigator.share({
+          files: [file],
+          title: 'إهداء كارت السيرة النبوية',
+          text: fullShareText,
+        });
+        return;
       } catch {
-        // Fallback
+        // Fallback below
       }
     }
 
-    // 2. Fallback for Web Browsers: Download Image + Copy text + Copy Image to Clipboard
-    handleDownloadImage();
-    if (cardData) {
-      copyImageBlobToClipboard(cardData.blob);
-    }
-
-    alert('📸 تم تنزيل صورة الكارت في التنزيلات بجهازك تلقائياً!\n\nيمكنك الآن إرفاق الصورة من المعرض أثناء المحادثة.');
-
+    // Direct WhatsApp share with link + OG image preview
     const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(fullShareText)}`;
     window.open(url, '_blank');
   };
 
   const handleTelegramShare = async () => {
-    const cardData = await getCardFile();
+    const file = await getCardFile();
 
-    if (navigator.share && cardData) {
+    if (navigator.share && file && navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
-        if (navigator.canShare && navigator.canShare({ files: [cardData.file] })) {
-          await navigator.share({
-            files: [cardData.file],
-            title: 'إهداء كارت السيرة النبوية',
-            text: fullShareText,
-          });
-          return;
-        }
+        await navigator.share({
+          files: [file],
+          title: 'إهداء كارت السيرة النبوية',
+          text: fullShareText,
+        });
+        return;
       } catch {
-        // Fallback
+        // Fallback below
       }
     }
-
-    handleDownloadImage();
-    if (cardData) {
-      copyImageBlobToClipboard(cardData.blob);
-    }
-
-    alert('📸 تم تنزيل صورة الكارت بجهازك تلقائياً!\n\nيمكنك إرفاق الصورة من الاستوديو لمحادثة التلغرام.');
 
     const url = `https://t.me/share/url?url=${encodeURIComponent(appLink)}&text=${encodeURIComponent(fullShareText)}`;
     window.open(url, '_blank');
   };
 
   const handleNativeShare = async () => {
-    const cardData = await getCardFile();
+    const file = await getCardFile();
     if (navigator.share) {
       try {
-        if (cardData && navigator.canShare && navigator.canShare({ files: [cardData.file] })) {
+        if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({
-            files: [cardData.file],
+            files: [file],
             title: 'إهداء كارت السيرة النبوية',
             text: fullShareText,
           });
@@ -430,11 +411,9 @@ export const GiftDedicationModal: React.FC = () => {
           url: appLink,
         });
       } catch {
-        handleDownloadImage();
         handleCopyText();
       }
     } else {
-      handleDownloadImage();
       handleCopyText();
     }
   };
@@ -668,7 +647,7 @@ export const GiftDedicationModal: React.FC = () => {
                   whileTap={{ scale: 0.97 }}
                   onClick={handleNativeShare}
                   className="p-2.5 bg-m3-primary text-white font-bold rounded-2xl text-xs shadow-xs transition cursor-pointer"
-                  title="مشاركة شاملة (صورة + كلام)"
+                  title="مشاركة شاملة"
                 >
                   <Share2 className="w-4 h-4" />
                 </motion.button>
