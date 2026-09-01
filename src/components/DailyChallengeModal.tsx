@@ -133,8 +133,8 @@ export const DailyChallengeModal: React.FC = () => {
               </div>
 
               {/* Streak Badge */}
-              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/20 border border-amber-400/40 rounded-2xl text-amber-300 text-xs font-black shrink-0">
-                <Flame className="w-4 h-4 fill-amber-400 animate-bounce-gentle" />
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 text-slate-950 rounded-2xl text-xs font-black shrink-0 shadow-xs">
+                <Flame className="w-4 h-4 fill-slate-950 text-slate-950 animate-bounce-gentle" />
                 <span>سلسلة التحدي: {dailyChallengeState.streakCount || 0}d</span>
               </div>
             </div>
@@ -151,11 +151,11 @@ export const DailyChallengeModal: React.FC = () => {
               <>
                 {/* Section Title Pill */}
                 <div className="flex items-center justify-between text-xs">
-                  <span className="px-3 py-1 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold rounded-full">
+                  <span className="px-3 py-1 bg-emerald-500/25 border border-emerald-400/50 text-emerald-200 font-extrabold rounded-full">
                     {currentQuestion.section}
                   </span>
-                  <span className="px-2.5 py-1 bg-amber-500/20 border border-amber-500/40 text-amber-300 font-bold rounded-full flex items-center gap-1">
-                    <Zap className="w-3.5 h-3.5 fill-amber-400" />
+                  <span className="px-3 py-1 bg-amber-500 text-slate-950 font-black text-xs rounded-full shadow-xs flex items-center gap-1">
+                    <Zap className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
                     <span>+50 XP مكافأة</span>
                   </span>
                 </div>

@@ -114,10 +114,11 @@ export const HomeView: React.FC = () => {
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 bg-amber-500/20 border border-amber-400/30 text-amber-300 text-[10px] font-black rounded-full">
-                تحدي يومي +50 XP
+              <span className="px-2.5 py-0.5 bg-amber-500 text-slate-950 font-black text-[11px] rounded-full shadow-xs flex items-center gap-1">
+                <Zap className="w-3 h-3 fill-slate-950 text-slate-950" />
+                <span>تحدي يومي +50 XP</span>
               </span>
-              <span className="text-xs text-m3-onSurface-variant font-medium">
+              <span className="text-xs text-m3-onSurface-variant font-bold">
                 سلسلة التحديات: {useAppStore.getState().dailyChallengeState.streakCount || 0} أيام متتالية
               </span>
             </div>
