@@ -111,8 +111,52 @@ function getFlagEmoji(countryCode: string): string {
 }
 
 /**
- * Sends HTML formatted message to Telegram Bot
- * Optionally targets a specific user chat (@username or ID) and broadcasts to telemetry channel
+ * Sends HTML formatted message directly to a target Telegram user (@username or chat_id).
+ * Returns true ONLY if the direct DM to the user was successfully delivered by Telegram.
+ */
+export async function sendDirectTelegramUserMessage(
+  textMessage: string,
+  targetChatId: string
+): Promise<boolean> {
+  const { token } = getTelegramCredentials();
+
+  if (!token || !targetChatId || !targetChatId.trim() || targetChatId.trim() === '@') {
+    return false;
+  }
+
+  const cleanTarget = targetChatId.trim().startsWith('@')
+    ? targetChatId.trim()
+    : `@${targetChatId.trim()}`;
+
+  const endpoint = `https://api.telegram.org/bot${token}/sendMessage`;
+
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: cleanTarget,
+        text: textMessage,
+        parse_mode: 'HTML',
+        disable_web_page_preview: false,
+      }),
+    });
+
+    const resJson = await response.json();
+    if (response.ok && resJson.ok) {
+      return true;
+    } else {
+      console.warn(`Direct Telegram DM to ${cleanTarget} failed:`, resJson);
+      return false;
+    }
+  } catch (error) {
+    console.warn(`Failed to send direct DM to ${cleanTarget}:`, error);
+    return false;
+  }
+}
+
+/**
+ * Sends HTML formatted message to Telegram Bot Channel & optional Direct Target
  */
 export async function sendTelegramMessage(
   textMessage: string,
@@ -125,41 +169,18 @@ export async function sendTelegramMessage(
     return false;
   }
 
-  const endpoint = `https://api.telegram.org/bot${token}/sendMessage`;
-  let success = false;
+  let directSuccess = false;
 
   // 1. If targetChatId is provided (e.g. '@melo_pl'), try sending directly to user chat
   if (targetChatId && targetChatId.trim() && targetChatId.trim() !== '@') {
-    const cleanTarget = targetChatId.trim().startsWith('@')
-      ? targetChatId.trim()
-      : `@${targetChatId.trim()}`;
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: cleanTarget,
-          text: textMessage,
-          parse_mode: 'HTML',
-          disable_web_page_preview: false,
-        }),
-      });
-
-      const resJson = await response.json();
-      if (response.ok && resJson.ok) {
-        success = true;
-      } else {
-        console.warn(`Direct Telegram message to ${cleanTarget} warning:`, resJson);
-      }
-    } catch (error) {
-      console.warn(`Failed to send direct message to ${cleanTarget}:`, error);
-    }
+    directSuccess = await sendDirectTelegramUserMessage(textMessage, targetChatId);
   }
 
   // 2. Broadcast message to main Telemetry Bot Channel
   if (defaultChatId) {
     try {
-      const response = await fetch(endpoint, {
+      const endpoint = `https://api.telegram.org/bot${token}/sendMessage`;
+      await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -169,17 +190,12 @@ export async function sendTelegramMessage(
           disable_web_page_preview: false,
         }),
       });
-
-      const resJson = await response.json();
-      if (response.ok && resJson.ok) {
-        success = true;
-      }
     } catch (error) {
       console.error('Failed to send Telegram message to channel:', error);
     }
   }
 
-  return success;
+  return targetChatId ? directSuccess : true;
 }
 
 /**

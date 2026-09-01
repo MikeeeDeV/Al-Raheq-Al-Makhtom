@@ -7,14 +7,12 @@ import { ReaderView } from './views/ReaderView';
 import { QuizArenaView } from './views/QuizArenaView';
 import { MistakesBankView } from './views/MistakesBankView';
 import { AnalyticsView } from './views/AnalyticsView';
-import { SettingsView } from './views/SettingsView';
 import { ShareModal } from './components/ShareModal';
 import { AboutModal } from './components/AboutModal';
 import { InstallPwaModal } from './components/InstallPwaModal';
 import { GiftDedicationModal } from './components/GiftDedicationModal';
 import { ContactModal } from './components/ContactModal';
 import { BookCompletionModal } from './components/BookCompletionModal';
-import { AuthModal } from './components/AuthModal';
 import { SeoMeta } from './components/SeoMeta';
 import { trackNewVisitorSession, sendErrorTelemetryToTelegram } from './services/telegramTelemetry';
 import { initGoogleAnalytics } from './services/googleAnalytics';
@@ -28,7 +26,6 @@ export const App: React.FC = () => {
     isGiftModalOpen,
     isContactModalOpen,
     isCompletionModalOpen,
-    isAuthModalOpen,
   } = useAppStore();
 
   // Sync URL changes, track new visitor session, & register real-time error telemetry
@@ -106,12 +103,6 @@ export const App: React.FC = () => {
           description: 'تابع تقدمك في مسارات السيرة النبوية وافتح الأوسمة البرونزية والفضية والذهبية والماسية.',
           path: '/analytics',
         };
-      case 'settings':
-        return {
-          title: 'إعدادات الحساب والقارئ | الرحيق المختوم',
-          description: 'تخصيص ملف القارئ والورد اليومي وتأثيرات الصوت والمزامنة السحابية.',
-          path: '/settings',
-        };
       default:
         return {
           title: 'الرحيق المختوم | المنصة التفاعلية للسيرة النبوية',
@@ -135,8 +126,6 @@ export const App: React.FC = () => {
         return <MistakesBankView />;
       case 'analytics':
         return <AnalyticsView />;
-      case 'settings':
-        return <SettingsView />;
       default:
         return <HomeView />;
     }
@@ -176,7 +165,6 @@ export const App: React.FC = () => {
         {isGiftModalOpen && <GiftDedicationModal key="gift-modal" />}
         {isContactModalOpen && <ContactModal key="contact-modal" />}
         {isCompletionModalOpen && <BookCompletionModal key="completion-modal" />}
-        {isAuthModalOpen && <AuthModal key="auth-modal" />}
       </AnimatePresence>
     </div>
   );

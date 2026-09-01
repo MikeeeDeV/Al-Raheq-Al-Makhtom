@@ -12,9 +12,8 @@ import {
 } from '../types';
 import { sendBookCompletionToTelegram } from '../services/telegramTelemetry';
 import { syncUserProgressToSupabase } from '../services/supabaseClient';
-import { loadStoredUserProfile, saveStoredUserProfile, signOutUser } from '../services/authService';
 
-export type AppView = 'home' | 'reader' | 'quiz' | 'mistakes' | 'analytics' | 'settings';
+export type AppView = 'home' | 'reader' | 'quiz' | 'mistakes' | 'analytics';
 
 interface AppState {
   // Questions Data
@@ -22,13 +21,8 @@ interface AppState {
   isLoadingQuestions: boolean;
   fetchQuestions: () => Promise<void>;
 
-  // User Profile & Authentication
+  // User Profile
   userProfile: UserProfile;
-  isAuthModalOpen: boolean;
-  setUserProfile: (profile: UserProfile) => void;
-  setAuthModalOpen: (open: boolean) => void;
-  updateUserProfile: (updates: Partial<UserProfile>) => void;
-  logoutUser: () => Promise<void>;
 
   // Navigation
   currentView: AppView;
@@ -486,21 +480,13 @@ export const useAppStore = create<AppState>()(
         }
       },
 
-      // User Profile & Authentication State
-      userProfile: loadStoredUserProfile(),
-      isAuthModalOpen: false,
-      setUserProfile: (profile) => {
-        saveStoredUserProfile(profile);
-        set({ userProfile: profile });
-      },
-      setAuthModalOpen: (open) => set({ isAuthModalOpen: open }),
-      updateUserProfile: (updates) => {
-        const updated = saveStoredUserProfile(updates);
-        set({ userProfile: updated });
-      },
-      logoutUser: async () => {
-        const reset = await signOutUser();
-        set({ userProfile: reset });
+      // User Profile State
+      userProfile: {
+        id: 'reader_guest',
+        name: 'القارئ الكريم',
+        dailyGoalPages: 10,
+        enableFlipSound: true,
+        createdAt: new Date().toISOString(),
       },
 
       currentView: getInitialViewFromUrl(),

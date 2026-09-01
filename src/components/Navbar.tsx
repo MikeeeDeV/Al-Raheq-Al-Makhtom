@@ -10,9 +10,6 @@ import {
   Info,
   Home,
   MessageSquare,
-  User,
-  Settings,
-  Sparkles,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -24,8 +21,6 @@ export const Navbar: React.FC = () => {
     mistakesBank,
     setShareModalOpen,
     setAboutModalOpen,
-    setAuthModalOpen,
-    userProfile,
   } = useAppStore();
 
   const mistakesCount = Object.keys(mistakesBank).length;
@@ -41,7 +36,6 @@ export const Navbar: React.FC = () => {
       badge: mistakesCount > 0 ? mistakesCount : undefined,
     },
     { id: 'analytics', label: 'الإحصائيات', icon: <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" /> },
-    { id: 'settings', label: 'الإعدادات', icon: <Settings className="w-4 h-4 sm:w-5 sm:h-5" /> },
   ];
 
   return (
@@ -60,9 +54,6 @@ export const Navbar: React.FC = () => {
             <div>
               <h1 className="font-black text-sm sm:text-lg leading-tight tracking-tight text-m3-primary dark:text-m3-primary-dark flex items-center gap-1">
                 <span>الرحيق المختوم</span>
-                <span className="hidden lg:inline-block px-1.5 py-0.5 text-[9px] bg-amber-500/20 text-amber-700 dark:text-amber-300 rounded-md font-bold">
-                  تفاعلي
-                </span>
               </h1>
               <p className="hidden sm:block text-[10px] sm:text-[11px] text-m3-onSurface-variant dark:text-m3-onSurface-darkVariant font-medium">
                 السيرة النبوية التفاعلية الموثقة
@@ -107,36 +98,6 @@ export const Navbar: React.FC = () => {
 
           {/* Top Actions & Badges */}
           <div className="flex items-center gap-1.5 sm:gap-2.5">
-            {/* Reader Profile Pill Button with Telegram Avatar */}
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => {
-                if (userProfile.isLoggedIn) {
-                  setCurrentView('settings');
-                } else {
-                  setAuthModalOpen(true);
-                }
-              }}
-              className="flex items-center gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-emerald-600/10 to-teal-600/10 hover:from-emerald-600/20 hover:to-teal-600/20 text-emerald-900 dark:text-emerald-200 rounded-full border border-emerald-500/30 text-xs font-bold shrink-0 transition cursor-pointer shadow-xs"
-              title="ملف القارئ والإعدادات"
-            >
-              {userProfile.avatarUrl ? (
-                <img
-                  src={userProfile.avatarUrl}
-                  alt={userProfile.name}
-                  className="w-5 h-5 sm:w-6 sm:h-6 rounded-full object-cover border border-emerald-500/50"
-                />
-              ) : (
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-700 text-white flex items-center justify-center text-[10px] font-black">
-                  <User className="w-3.5 h-3.5" />
-                </div>
-              )}
-              <span className="max-w-[90px] sm:max-w-[110px] truncate">
-                {userProfile.name || 'القارئ الزائر'}
-              </span>
-            </motion.button>
-
             {/* Streak Counter Pill */}
             <div
               className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-amber-500/15 dark:bg-amber-400/15 text-amber-900 dark:text-amber-300 rounded-full border border-amber-500/30 text-xs font-black shrink-0"
