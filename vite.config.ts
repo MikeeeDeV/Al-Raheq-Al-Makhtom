@@ -38,6 +38,12 @@ export default defineConfig({
           if (id.includes('recharts') || id.includes('d3-')) {
             return 'vendor-charts';
           }
+          if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) {
+            return 'vendor-framework';
+          }
+          if (id.includes('canvas-confetti') || id.includes('html-to-image')) {
+            return 'vendor-utils';
+          }
           if (id.includes('node_modules')) {
             return 'vendor-core';
           }

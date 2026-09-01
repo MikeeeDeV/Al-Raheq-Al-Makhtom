@@ -12,7 +12,7 @@ declare global {
 const GA_MEASUREMENT_ID = (import.meta.env.VITE_GA_MEASUREMENT_ID || 'G-ALRAHEEQ456').trim();
 
 /**
- * Initializes Google Analytics 4 dynamically
+ * Initializes Google Analytics 4 dynamically (Deferred for peak performance / 95+ score)
  */
 export function initGoogleAnalytics() {
   if (typeof window === 'undefined' || !GA_MEASUREMENT_ID) return;
@@ -20,24 +20,35 @@ export function initGoogleAnalytics() {
   // Avoid injecting script twice
   if (document.getElementById('ga-gtag-script')) return;
 
-  const script = document.createElement('script');
-  script.id = 'ga-gtag-script';
-  script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
-  document.head.appendChild(script);
+  const loadScript = () => {
+    if (document.getElementById('ga-gtag-script')) return;
 
-  window.dataLayer = window.dataLayer || [];
-  function gtag(...args: any[]) {
-    window.dataLayer.push(args);
+    const script = document.createElement('script');
+    script.id = 'ga-gtag-script';
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
+    document.head.appendChild(script);
+
+    window.dataLayer = window.dataLayer || [];
+    function gtag(...args: any[]) {
+      window.dataLayer.push(args);
+    }
+    window.gtag = gtag;
+
+    gtag('js', new Date());
+    gtag('config', GA_MEASUREMENT_ID, {
+      page_path: window.location.pathname,
+      anonymize_ip: true,
+      send_page_view: true,
+    });
+  };
+
+  // Defer injection until browser is idle or post-load to free initial critical render path
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(() => loadScript(), { timeout: 3500 });
+  } else {
+    setTimeout(loadScript, 2500);
   }
-  window.gtag = gtag;
-
-  gtag('js', new Date());
-  gtag('config', GA_MEASUREMENT_ID, {
-    page_path: window.location.pathname,
-    anonymize_ip: true,
-    send_page_view: true,
-  });
 }
 
 /**

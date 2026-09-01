@@ -142,9 +142,8 @@
 }
 
 @keyframes gradientMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0%, 100% { opacity: 0.92; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.015); }
 }
 
 .animate-pulse-glow {
@@ -172,8 +171,8 @@
 }
 
 .animate-gradient {
-  background-size: 200% 200%;
-  animation: gradientMove 6s ease infinite;
+  will-change: opacity, transform;
+  animation: gradientMove 6s ease-in-out infinite;
 }
 
 /* Mobile Landscape Mode Optimizations */

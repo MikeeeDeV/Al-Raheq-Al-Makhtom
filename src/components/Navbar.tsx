@@ -65,9 +65,9 @@ export const Navbar: React.FC = () => {
             </div>
 
             <div>
-              <h1 className="font-black text-xs sm:text-lg leading-tight tracking-tight text-slate-900 dark:text-white">
+              <span className="font-black text-xs sm:text-lg leading-tight tracking-tight text-slate-900 dark:text-white block">
                 الرحيق المختوم
-              </h1>
+              </span>
               <p className="hidden sm:block text-[10px] text-emerald-600 dark:text-emerald-400 font-bold leading-none mt-0.5">
                 السيرة النبوية العطرة كاملة
               </p>
