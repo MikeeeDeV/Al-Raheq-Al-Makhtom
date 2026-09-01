@@ -39,7 +39,7 @@ export const GiftDedicationModal: React.FC = () => {
   const presetMessages: PresetMessage[] = [
     {
       label: 'محبة وود',
-      text: 'أهديك رابط هذه المنصة المباركة لقراءة وتدارس سيرة نبينا الكريم ﷺ ✨',
+      text: 'أهديك رابط هذه المنصة المباركة لقراءة وتدارس سيرة نبينا الكريم ﷺ  ',
     },
     {
       label: 'تهادوا تحابوا',
@@ -393,9 +393,8 @@ export const GiftDedicationModal: React.FC = () => {
                   <button
                     key={t.id}
                     onClick={() => setSelectedTheme(t.id as CardTheme)}
-                    className={`px-2 py-2 rounded-xl text-xs font-bold transition border flex items-center justify-center cursor-pointer ${t.class} ${
-                      selectedTheme === t.id ? 'ring-2 ring-emerald-500 shadow-md scale-105' : 'opacity-70 hover:opacity-100'
-                    }`}
+                    className={`px-2 py-2 rounded-xl text-xs font-bold transition border flex items-center justify-center cursor-pointer ${t.class} ${selectedTheme === t.id ? 'ring-2 ring-emerald-500 shadow-md scale-105' : 'opacity-70 hover:opacity-100'
+                      }`}
                   >
                     <span>{t.name}</span>
                   </button>
@@ -471,11 +470,10 @@ export const GiftDedicationModal: React.FC = () => {
                       setSelectedMsgIndex(idx);
                       setCustomMsg('');
                     }}
-                    className={`w-full p-2.5 rounded-xl text-right text-xs transition border cursor-pointer ${
-                      selectedMsgIndex === idx && !customMsg
+                    className={`w-full p-2.5 rounded-xl text-right text-xs transition border cursor-pointer ${selectedMsgIndex === idx && !customMsg
                         ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-600 text-emerald-900 dark:text-emerald-200 font-bold shadow-xs'
                         : 'bg-m3-surface-container dark:bg-m3-surface-darkContainer border-m3-outline-variant/20 text-m3-onSurface-variant hover:border-emerald-500/40'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-2">
                       <span className="px-2 py-0.5 bg-emerald-600/10 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold rounded-md">

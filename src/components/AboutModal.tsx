@@ -50,7 +50,7 @@ export const AboutModal: React.FC = () => {
               📚 1,200 سؤال وجواب
             </span>
             <span className="px-3 py-1 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 rounded-full text-xs font-semibold">
-              ✨ تصميم Material You 3
+              تصميم Material You 3
             </span>
           </div>
         </div>

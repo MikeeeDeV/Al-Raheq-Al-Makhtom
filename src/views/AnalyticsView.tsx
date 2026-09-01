@@ -139,7 +139,7 @@ export const AnalyticsView: React.FC = () => {
         return {
           cardBg: 'bg-gradient-to-br from-emerald-500/20 via-cyan-500/20 to-indigo-500/20 border-emerald-400 shadow-m3-3 ring-2 ring-emerald-400/30',
           chipBg: 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-black shadow-md',
-          label: 'ماسي 💎✨',
+          label: 'ماسي 💎 ',
           icon: <Diamond className="w-5 h-5 text-emerald-500 animate-pulse" />,
         };
       default:
@@ -157,7 +157,7 @@ export const AnalyticsView: React.FC = () => {
           لوحة الإحصائيات والأوسمة المتاحة
         </h1>
         <p className="text-xs sm:text-sm text-m3-onSurface-variant mt-1">
-          نظام الأوسمة (برونزي 🥉 ← فضي 🥈 ← ذهبي 🥇 ← ماسي 💎✨) لكافة مسارات التعلم </p>
+          نظام الأوسمة (برونزي 🥉 ← فضي 🥈 ← ذهبي 🥇 ← ماسي 💎 ) لكافة مسارات التعلم </p>
       </div>
 
       {/* Top 4 Elevated Metric Cards */}
@@ -271,7 +271,7 @@ export const AnalyticsView: React.FC = () => {
               <span>معرض الأوسمة والطبقات المفتوحة</span>
             </h2>
             <p className="text-xs text-m3-onSurface-variant mt-1">
-              تتدرج كل شارة عبر 4 مستويات: برونزي 🥉 ثم فضي 🥈 ثم ذهبي 🥇 ثم ماسي 💎✨
+              تتدرج كل شارة عبر 4 مستويات: برونزي 🥉 ثم فضي 🥈 ثم ذهبي 🥇 ثم ماسي 💎
             </p>
           </div>
 
@@ -295,8 +295,8 @@ export const AnalyticsView: React.FC = () => {
               <button
                 onClick={() => setSelectedTierFilter('all')}
                 className={`px-3 py-1 rounded-full text-xs font-bold transition ${selectedTierFilter === 'all'
-                    ? 'bg-m3-primary text-white'
-                    : 'text-m3-onSurface-variant hover:text-m3-onSurface'
+                  ? 'bg-m3-primary text-white'
+                  : 'text-m3-onSurface-variant hover:text-m3-onSurface'
                   }`}
               >
                 الكل
@@ -304,8 +304,8 @@ export const AnalyticsView: React.FC = () => {
               <button
                 onClick={() => setSelectedTierFilter('bronze')}
                 className={`px-2.5 py-1 rounded-full text-xs font-bold transition ${selectedTierFilter === 'bronze'
-                    ? 'bg-amber-800 text-white'
-                    : 'text-m3-onSurface-variant hover:text-m3-onSurface'
+                  ? 'bg-amber-800 text-white'
+                  : 'text-m3-onSurface-variant hover:text-m3-onSurface'
                   }`}
               >
                 برونزي 🥉
@@ -313,8 +313,8 @@ export const AnalyticsView: React.FC = () => {
               <button
                 onClick={() => setSelectedTierFilter('silver')}
                 className={`px-2.5 py-1 rounded-full text-xs font-bold transition ${selectedTierFilter === 'silver'
-                    ? 'bg-slate-600 text-white'
-                    : 'text-m3-onSurface-variant hover:text-m3-onSurface'
+                  ? 'bg-slate-600 text-white'
+                  : 'text-m3-onSurface-variant hover:text-m3-onSurface'
                   }`}
               >
                 فضي 🥈
@@ -322,8 +322,8 @@ export const AnalyticsView: React.FC = () => {
               <button
                 onClick={() => setSelectedTierFilter('gold')}
                 className={`px-2.5 py-1 rounded-full text-xs font-bold transition ${selectedTierFilter === 'gold'
-                    ? 'bg-amber-500 text-white'
-                    : 'text-m3-onSurface-variant hover:text-m3-onSurface'
+                  ? 'bg-amber-500 text-white'
+                  : 'text-m3-onSurface-variant hover:text-m3-onSurface'
                   }`}
               >
                 ذهبي 🥇
@@ -331,11 +331,11 @@ export const AnalyticsView: React.FC = () => {
               <button
                 onClick={() => setSelectedTierFilter('diamond')}
                 className={`px-2.5 py-1 rounded-full text-xs font-bold transition ${selectedTierFilter === 'diamond'
-                    ? 'bg-emerald-600 text-white'
-                    : 'text-m3-onSurface-variant hover:text-m3-onSurface'
+                  ? 'bg-emerald-600 text-white'
+                  : 'text-m3-onSurface-variant hover:text-m3-onSurface'
                   }`}
               >
-                ماسي 💎✨
+                ماسي 💎
               </button>
             </div>
           </div>
