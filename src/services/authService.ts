@@ -1,8 +1,9 @@
 import { supabase } from './supabaseClient';
 import { UserProfile } from '../types';
-import { sendTelegramMessage } from './telegramTelemetry';
+import { sendTelegramMessage, getVisitorLocation } from './telegramTelemetry';
 
 const STORAGE_KEY = 'alraheeq_user_profile';
+const ACCOUNTS_DB_KEY = 'alraheeq_registered_accounts_v2';
 const OTP_STORAGE_KEY = 'alraheeq_password_reset_otp';
 
 export const DEFAULT_USER_PROFILE: UserProfile = {
@@ -19,7 +20,45 @@ export const DEFAULT_USER_PROFILE: UserProfile = {
 };
 
 /**
- * Loads current stored user profile from localStorage or Supabase session
+ * Gets all locally registered accounts map from localStorage
+ */
+function getRegisteredAccountsMap(): Record<string, UserProfile> {
+  try {
+    const raw = localStorage.getItem(ACCOUNTS_DB_KEY);
+    if (raw) {
+      return JSON.parse(raw);
+    }
+  } catch (err) {
+    console.error('Error reading accounts database:', err);
+  }
+  return {};
+}
+
+/**
+ * Saves or updates a registered account in the local Accounts database
+ */
+function saveAccountToDb(account: UserProfile): void {
+  if (!account.email) return;
+  try {
+    const map = getRegisteredAccountsMap();
+    map[account.email.toLowerCase()] = account;
+    localStorage.setItem(ACCOUNTS_DB_KEY, JSON.stringify(map));
+  } catch (err) {
+    console.error('Error saving account to database:', err);
+  }
+}
+
+/**
+ * Finds a registered account by email
+ */
+export function findAccountByEmail(email: string): UserProfile | null {
+  if (!email) return null;
+  const map = getRegisteredAccountsMap();
+  return map[email.trim().toLowerCase()] || null;
+}
+
+/**
+ * Loads current active stored user profile from localStorage
  */
 export function loadStoredUserProfile(): UserProfile {
   try {
@@ -34,13 +73,16 @@ export function loadStoredUserProfile(): UserProfile {
 }
 
 /**
- * Saves profile updates to localStorage and syncs with Supabase session
+ * Saves profile updates to active session AND syncs with Accounts Database
  */
 export function saveStoredUserProfile(profile: Partial<UserProfile>): UserProfile {
   const current = loadStoredUserProfile();
   const updated: UserProfile = { ...current, ...profile };
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    if (updated.email && updated.isLoggedIn) {
+      saveAccountToDb(updated);
+    }
   } catch (err) {
     console.error('Error saving user profile:', err);
   }
@@ -48,55 +90,152 @@ export function saveStoredUserProfile(profile: Partial<UserProfile>): UserProfil
 }
 
 /**
- * Register or Sign In with Email, Password & Telegram Username
- * Automatically logs data to Telegram Bot & saves locally
+ * Explicit Sign Up Function (إنشاء حساب جديد)
+ * Checks for existing email, creates new permanent account, and saves avatar/profile state
  */
-export async function registerOrLoginWithTelegramEmail(data: {
+export async function signUpUser(data: {
   name: string;
   email: string;
   password?: string;
   telegramUsername?: string;
 }): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
   try {
-    const rawName = data.name.trim();
-    const cleanName = rawName ? `القارئ ${rawName.replace(/^القارئ\s+/, '')}` : 'القارئ الزائر';
     const cleanEmail = data.email.trim().toLowerCase();
+    if (!cleanEmail) {
+      return { success: false, error: 'يرجى كتابة البريد الإلكتروني' };
+    }
+
+    const existing = findAccountByEmail(cleanEmail);
+    if (existing) {
+      return {
+        success: false,
+        error: 'هذا البريد الإلكتروني مسجّل بالفعل! يرجى اختيار تسجيل الدخول (Sign In).',
+      };
+    }
+
+    const rawName = data.name.trim();
+    if (!rawName) {
+      return { success: false, error: 'يرجى إدخال اسمك الرسمي' };
+    }
+
+    const cleanName = `القارئ ${rawName.replace(/^القارئ\s+/, '')}`;
     const cleanTgUsername = data.telegramUsername ? `@${data.telegramUsername.trim().replace(/^@/, '')}` : '';
+    const permanentId = `reader_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
-    const currentProfile = loadStoredUserProfile();
-    const permanentId =
-      currentProfile.id && currentProfile.id !== 'guest_reader'
-        ? currentProfile.id
-        : `reader_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-
-    const updatedProfile: UserProfile = saveStoredUserProfile({
+    const newProfile: UserProfile = {
       id: permanentId,
       name: cleanName,
       email: cleanEmail,
       telegramUsername: cleanTgUsername,
-      passwordHash: data.password ? btoa(data.password) : currentProfile.passwordHash,
+      passwordHash: data.password ? btoa(data.password) : '',
+      avatarUrl: '',
+      dailyGoalPages: 5,
+      enableFlipSound: true,
       isLoggedIn: true,
-      provider: 'telegram',
-    });
+      provider: 'email',
+      createdAt: new Date().toISOString(),
+    };
 
-    // Dispatch Account Log Notice to Telegram Bot
+    saveAccountToDb(newProfile);
+    saveStoredUserProfile(newProfile);
+
+    // Telegram Bot Notification with Direct Target Chat & Site Link
     const timeString = new Date().toLocaleString('ar-EG', { timeZone: 'Africa/Cairo' });
     const telegramNoticeMsg = `
-🔐 <b>تسجيل حساب قارئ جديد عبر تليجرام!</b>
+🎉 <b>أهلاً وسهلاً بك في منصة الرحيق المختوم!</b>
 
 <b>👤 اسم القارئ:</b> ${cleanName}
 <b>📧 البريد الإلكتروني:</b> <code>${cleanEmail}</code>
-<b>📱 يوزر تليجرام:</b> ${cleanTgUsername || 'غير محدد'}
-<b>🆔 معرّف القارئ الرقمي (ID):</b> <code>#${permanentId}</code>
+<b>📱 حساب تليجرام:</b> ${cleanTgUsername || 'غير محدد'}
+<b>🆔 المعرّف الرقمي (ID):</b> <code>#${permanentId}</code>
 <b>⏰ وقت التسجيل:</b> ${timeString}
+
+🌐 <b>رابط المنصة الرسمي:</b>
+https://al-raheq-al-makhtom.vercel.app/
+
+<i>يسعدنا انضمامك لقراءة وتدارس سيرة النبي ﷺ الموثقة ✨</i>
     `.trim();
 
-    sendTelegramMessage(telegramNoticeMsg).catch((err) => console.warn('Telegram Auth Log notice failed:', err));
+    sendTelegramMessage(telegramNoticeMsg, cleanTgUsername).catch(() => { });
 
-    return { success: true, user: updatedProfile };
+    return { success: true, user: newProfile };
   } catch (err: any) {
-    console.error('Telegram Sign-In Error:', err);
-    return { success: false, error: err.message || 'تعذر تسجيل الحساب' };
+    console.error('Sign Up Error:', err);
+    return { success: false, error: err.message || 'فشل إنشاء الحساب' };
+  }
+}
+
+/**
+ * Explicit Sign In Function (تسجيل الدخول لحساب موجود)
+ * Restores exact name, Telegram avatar picture URL, and previous settings
+ */
+export async function signInUser(data: {
+  email: string;
+  password?: string;
+}): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
+  try {
+    const cleanEmail = data.email.trim().toLowerCase();
+    if (!cleanEmail) {
+      return { success: false, error: 'يرجى كتابة البريد الإلكتروني' };
+    }
+
+    const existingAccount = findAccountByEmail(cleanEmail);
+    if (!existingAccount) {
+      return {
+        success: false,
+        error: 'لم يتم العثور على حساب بهذا البريد الإلكتروني! يرجى إنشاء حساب جديد (Sign Up).',
+      };
+    }
+
+    // Verify Password if existing account has a password set
+    if (existingAccount.passwordHash && data.password) {
+      const inputHash = btoa(data.password);
+      if (inputHash !== existingAccount.passwordHash) {
+        return { success: false, error: 'كلمة المرور غير صحيحة! يرجى الإعادة أو استعادة الكود.' };
+      }
+    }
+
+    // Restore exact stored account profile (Name, Telegram Avatar, Telegram Username, ID)
+    const activeProfile: UserProfile = {
+      ...existingAccount,
+      isLoggedIn: true,
+    };
+
+    saveStoredUserProfile(activeProfile);
+
+    // Dispatch rich Login notification via Telegram to target username & channel
+    try {
+      const location = await getVisitorLocation();
+      const timeString = new Date().toLocaleString('ar-EG', { timeZone: 'Africa/Cairo' });
+      const telegramNoticeMsg = `
+🔔 <b>تم تسجيل الدخول بنجاح إلى منصة الرحيق المختوم!</b>
+
+<b>👤 القارئ الكريم:</b> ${activeProfile.name}
+<b>📧 البريد الإلكتروني:</b> <code>${cleanEmail}</code>
+<b>📱 حساب تليجرام:</b> ${activeProfile.telegramUsername || 'غير محدد'}
+<b>🆔 المعرّف الرقمي (ID):</b> <code>#${activeProfile.id}</code>
+
+──────────────
+<b>📍 الموقع الجغرافي:</b> ${location.flag} ${location.country} (${location.city})
+<b>🌐 عنوان IP:</b> <code>${location.ip}</code>
+<b>💻 نوع الجهاز:</b> ${location.device}
+<b>⏰ توقيت الجلسة:</b> ${timeString}
+
+🌐 <b>رابط المنصة:</b>
+https://al-raheq-al-makhtom.vercel.app/
+
+<i>مرحباً بك مجدداً في رحاب السيرة النبوية الموثقة ✨</i>
+      `.trim();
+
+      sendTelegramMessage(telegramNoticeMsg, activeProfile.telegramUsername).catch(() => { });
+    } catch (e) {
+      console.warn('Telegram login notice warning:', e);
+    }
+
+    return { success: true, user: activeProfile };
+  } catch (err: any) {
+    console.error('Sign In Error:', err);
+    return { success: false, error: err.message || 'فشل تسجيل الدخول' };
   }
 }
 
@@ -112,11 +251,9 @@ export async function sendTelegramPasswordResetOtp(
       return { success: false, error: 'يرجى إدخال اسم مستخدم تليجرام الصحيح (مثال: @username)' };
     }
 
-    // Generate random 6-digit OTP code
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
 
-    // Save OTP to local storage cache
     const otpData = {
       telegramUsername: cleanTgUsername.toLowerCase(),
       code: otpCode,
@@ -124,7 +261,6 @@ export async function sendTelegramPasswordResetOtp(
     };
     localStorage.setItem(OTP_STORAGE_KEY, JSON.stringify(otpData));
 
-    // Send OTP Code via Telegram Bot
     const timeString = new Date().toLocaleString('ar-EG', { timeZone: 'Africa/Cairo' });
     const otpMsg = `
 🔑 <b>كود إعادة تعيين كلمة المرور لقارئ الرحيق المختوم</b>
@@ -133,17 +269,20 @@ export async function sendTelegramPasswordResetOtp(
 <b>🔢 رمز التحقق السري (OTP):</b> <code>${otpCode}</code>
 
 <b>⏱️ صلاحية الرمز:</b> 10 دقائق من الآن (${timeString})
+🌐 <b>رابط المنصة:</b> https://al-raheq-al-makhtom.vercel.app/
+
 <i>يرجى إدخال كود التحقق في الموقع لتأكيد كلمة المرور الجديدة.</i>
     `.trim();
 
-    const sent = await sendTelegramMessage(otpMsg);
+    // Send directly to the target Telegram username AND channel
+    const sent = await sendTelegramMessage(otpMsg, cleanTgUsername);
     if (sent) {
       return {
         success: true,
         message: `تم إرسال كود التحقق السري إلى حساب تليجرام (${cleanTgUsername}) بنجاح!`,
       };
     } else {
-      return { success: false, error: 'تعذر إرسال الكود عبر تليجرام، يرجى التأكد من اسم المستخدم.' };
+      return { success: false, error: 'تعذر إرسال الكود عبر تليجرام، يرجى التأكد من تفعيلك للبوت @te_data_bot' };
     }
   } catch (err: any) {
     console.error('Send OTP Error:', err);
@@ -181,7 +320,6 @@ export async function verifyOtpAndResetPassword(
       return { success: false, error: 'رمز التحقق (OTP) غير صحيح! يرجى التأكد وإعادة المحاولة.' };
     }
 
-    // OTP Verified! Clear OTP cache & update user password
     localStorage.removeItem(OTP_STORAGE_KEY);
     const currentProfile = loadStoredUserProfile();
     const updated = saveStoredUserProfile({
@@ -191,7 +329,6 @@ export async function verifyOtpAndResetPassword(
       isLoggedIn: true,
     });
 
-    // Notify Telegram Bot of successful reset
     const timeString = new Date().toLocaleString('ar-EG', { timeZone: 'Africa/Cairo' });
     const successNotice = `
 ✅ <b>تم تغيير كلمة المرور بنجاح!</b>
@@ -201,7 +338,7 @@ export async function verifyOtpAndResetPassword(
 <b>⏰ الوقت:</b> ${timeString}
     `.trim();
 
-    sendTelegramMessage(successNotice).catch(() => {});
+    sendTelegramMessage(successNotice).catch(() => { });
 
     return { success: true, message: 'تم تغيير كلمة المرور وتوثيق الحساب بنجاح!' };
   } catch (err: any) {

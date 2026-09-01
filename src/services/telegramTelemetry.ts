@@ -112,40 +112,74 @@ function getFlagEmoji(countryCode: string): string {
 
 /**
  * Sends HTML formatted message to Telegram Bot
+ * Optionally targets a specific user chat (@username or ID) and broadcasts to telemetry channel
  */
-export async function sendTelegramMessage(textMessage: string): Promise<boolean> {
-  const { token, chatId } = getTelegramCredentials();
+export async function sendTelegramMessage(
+  textMessage: string,
+  targetChatId?: string
+): Promise<boolean> {
+  const { token, chatId: defaultChatId } = getTelegramCredentials();
 
-  if (!token || !chatId) {
-    console.warn('Telegram Credentials missing in .env');
+  if (!token) {
+    console.warn('Telegram Credentials missing');
     return false;
   }
 
   const endpoint = `https://api.telegram.org/bot${token}/sendMessage`;
+  let success = false;
 
-  try {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: textMessage,
-        parse_mode: 'HTML',
-        disable_web_page_preview: true,
-      }),
-    });
+  // 1. If targetChatId is provided (e.g. '@melo_pl'), try sending directly to user chat
+  if (targetChatId && targetChatId.trim() && targetChatId.trim() !== '@') {
+    const cleanTarget = targetChatId.trim().startsWith('@')
+      ? targetChatId.trim()
+      : `@${targetChatId.trim()}`;
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: cleanTarget,
+          text: textMessage,
+          parse_mode: 'HTML',
+          disable_web_page_preview: false,
+        }),
+      });
 
-    const resJson = await response.json();
-    if (!response.ok || !resJson.ok) {
-      console.error('Telegram API Error:', resJson);
-      return false;
+      const resJson = await response.json();
+      if (response.ok && resJson.ok) {
+        success = true;
+      } else {
+        console.warn(`Direct Telegram message to ${cleanTarget} warning:`, resJson);
+      }
+    } catch (error) {
+      console.warn(`Failed to send direct message to ${cleanTarget}:`, error);
     }
-
-    return true;
-  } catch (error) {
-    console.error('Failed to send Telegram message:', error);
-    return false;
   }
+
+  // 2. Broadcast message to main Telemetry Bot Channel
+  if (defaultChatId) {
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: defaultChatId,
+          text: textMessage,
+          parse_mode: 'HTML',
+          disable_web_page_preview: false,
+        }),
+      });
+
+      const resJson = await response.json();
+      if (response.ok && resJson.ok) {
+        success = true;
+      }
+    } catch (error) {
+      console.error('Failed to send Telegram message to channel:', error);
+    }
+  }
+
+  return success;
 }
 
 /**

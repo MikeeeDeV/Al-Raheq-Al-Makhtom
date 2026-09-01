@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import {
-  registerOrLoginWithTelegramEmail,
+  signInUser,
+  signUpUser,
   sendTelegramPasswordResetOtp,
   verifyOtpAndResetPassword,
 } from '../services/authService';
 import {
   X,
-  UserCheck,
   UserPlus,
   ShieldCheck,
   LogIn,
@@ -27,7 +27,7 @@ export const AuthModal: React.FC = () => {
   const [mode, setMode] = useState<'login' | 'signup' | 'reset'>('login');
 
   // Form States for Sign In / Sign Up
-  const [readerName, setReaderName] = useState(userProfile.name?.replace(/^القارئ\s+/, '') || '');
+  const [readerName, setReaderName] = useState('');
   const [emailInput, setEmailInput] = useState(userProfile.email || '');
   const [telegramUsername, setTelegramUsername] = useState(userProfile.telegramUsername || '');
   const [password, setPassword] = useState('');
@@ -44,7 +44,7 @@ export const AuthModal: React.FC = () => {
 
   if (!isAuthModalOpen) return null;
 
-  // Handle Sign In Submission
+  // Handle Sign In Submission (تسجيل الدخول - Restore stored name & avatar)
   const handleSignInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!emailInput.trim()) {
@@ -56,28 +56,29 @@ export const AuthModal: React.FC = () => {
     setErrorMessage('');
     setSuccessMessage('');
 
-    const res = await registerOrLoginWithTelegramEmail({
-      name: readerName || 'القارئ',
+    const res = await signInUser({
       email: emailInput,
       password: password,
-      telegramUsername: telegramUsername,
     });
 
     setIsLoading(false);
 
     if (res.success && res.user) {
       setUserProfile(res.user);
-      setAuthModalOpen(false);
+      setSuccessMessage(`أهلاً بك مجدداً يا ${res.user.name}! 🎉`);
+      setTimeout(() => {
+        setAuthModalOpen(false);
+      }, 1000);
     } else if (res.error) {
       setErrorMessage(res.error);
     }
   };
 
-  // Handle Sign Up Submission
+  // Handle Sign Up Submission (إنشاء حساب جديد)
   const handleSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!readerName.trim()) {
-      setErrorMessage('يرجى إدخال اسم القارئ');
+      setErrorMessage('يرجى إدخال اسم القارئ الكامل');
       return;
     }
     if (!emailInput.trim()) {
@@ -89,7 +90,7 @@ export const AuthModal: React.FC = () => {
     setErrorMessage('');
     setSuccessMessage('');
 
-    const res = await registerOrLoginWithTelegramEmail({
+    const res = await signUpUser({
       name: readerName,
       email: emailInput,
       password: password,
@@ -100,7 +101,7 @@ export const AuthModal: React.FC = () => {
 
     if (res.success && res.user) {
       setUserProfile(res.user);
-      setSuccessMessage('تم إنشاء الحساب وتوثيقه بنجاح! 🎉');
+      setSuccessMessage('تم إنشاء حسابك وتوثيقه بنجاح! 🎉');
       setTimeout(() => {
         setAuthModalOpen(false);
       }, 1200);
@@ -196,7 +197,7 @@ export const AuthModal: React.FC = () => {
                   : 'استعادة كلمة المرور'}
               </h3>
               <p className="text-xs text-emerald-200/90 font-light">
-                منصة الرحيق المختوم — حفظ موثق عبر تليجرام
+                منصة الرحيق المختوم — حفظ البيانات موثق محلياً وعبر تليجرام
               </p>
             </div>
           </div>
@@ -265,6 +266,17 @@ export const AuthModal: React.FC = () => {
 
         {/* Content Body */}
         <div className="p-6 space-y-4">
+          {/* Direct Telegram Bot Deep Link Button */}
+          <a
+            href="https://t.me/te_data_bot?start=auth"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full py-2.5 bg-gradient-to-r from-sky-700 via-teal-700 to-emerald-800 hover:from-sky-800 hover:to-emerald-900 text-white font-bold rounded-2xl text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer group"
+          >
+            <Send className="w-4 h-4 text-amber-300 group-hover:translate-x-1 transition" />
+            <span>تسجيل الدخول والتسجيل الفوري من داخل البوت (@te_data_bot)</span>
+          </a>
+
           {errorMessage && (
             <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-300 text-xs rounded-xl font-semibold">
               {errorMessage}
@@ -280,7 +292,7 @@ export const AuthModal: React.FC = () => {
 
           <AnimatePresence mode="wait">
             {mode === 'login' ? (
-              /* Mode 1: Sign In Form */
+              /* Mode 1: Sign In Form (Email + Password ONLY) */
               <motion.form
                 key="signin-form"
                 initial={{ opacity: 0, x: -10 }}
@@ -291,7 +303,7 @@ export const AuthModal: React.FC = () => {
               >
                 <div>
                   <label className="block text-xs font-bold text-m3-onSurface mb-1">
-                    البريد الإلكتروني: <span className="text-rose-500">*</span>
+                    البريد الإلكتروني الحساب: <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -300,7 +312,7 @@ export const AuthModal: React.FC = () => {
                       value={emailInput}
                       onChange={(e) => setEmailInput(e.target.value)}
                       placeholder="name@example.com"
-                      className="w-full px-4 pr-10 py-2.5 bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-xl text-xs focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                      className="w-full px-4 pr-10 py-2.5 bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-xl text-xs focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 font-bold"
                     />
                     <Mail className="w-4 h-4 absolute right-3 top-3 text-m3-onSurface-variant/50" />
                   </div>
@@ -324,7 +336,7 @@ export const AuthModal: React.FC = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full px-4 pr-10 py-2.5 bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-xl text-xs focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                      className="w-full px-4 pr-10 py-2.5 bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-xl text-xs focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 font-bold"
                     />
                     <Lock className="w-4 h-4 absolute right-3 top-3 text-m3-onSurface-variant/50" />
                   </div>
@@ -338,7 +350,7 @@ export const AuthModal: React.FC = () => {
                   className="w-full py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-2xl text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer mt-2"
                 >
                   <LogIn className="w-4 h-4 text-emerald-200" />
-                  <span>{isLoading ? 'جاري الدخول...' : 'تسجيل الدخول (Sign In)'}</span>
+                  <span>{isLoading ? 'جاري التحقق والربط...' : 'تسجيل الدخول واستعادة الحساب (Sign In)'}</span>
                 </motion.button>
 
                 <div className="text-center pt-2">
@@ -347,7 +359,7 @@ export const AuthModal: React.FC = () => {
                     onClick={() => setMode('signup')}
                     className="text-xs text-m3-onSurface-variant hover:text-emerald-600 dark:hover:text-emerald-400 font-bold transition cursor-pointer"
                   >
-                    ليس لديك حساب؟ <span className="underline text-emerald-600 dark:text-emerald-400">إنشاء حساب جديد (Sign Up)</span>
+                    ليس لديك حساب مسجّل؟ <span className="underline text-emerald-600 dark:text-emerald-400">إنشاء حساب جديد (Sign Up)</span>
                   </button>
                 </div>
               </motion.form>
@@ -389,7 +401,7 @@ export const AuthModal: React.FC = () => {
                       value={emailInput}
                       onChange={(e) => setEmailInput(e.target.value)}
                       placeholder="name@example.com"
-                      className="w-full px-4 pr-10 py-2.5 bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-xl text-xs focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                      className="w-full px-4 pr-10 py-2.5 bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-xl text-xs focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 font-bold"
                     />
                     <Mail className="w-4 h-4 absolute right-3 top-3 text-m3-onSurface-variant/50" />
                   </div>
@@ -397,7 +409,7 @@ export const AuthModal: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-bold text-m3-onSurface mb-1">
-                    اسم مستخدم تليجرام (لاستعادة الحساب والرمز):
+                    اسم مستخدم تليجرام (لاستعادة كلمة المرور):
                   </label>
                   <div className="relative">
                     <input
@@ -422,7 +434,7 @@ export const AuthModal: React.FC = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full px-4 pr-10 py-2.5 bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-xl text-xs focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                      className="w-full px-4 pr-10 py-2.5 bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-xl text-xs focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 font-bold"
                     />
                     <Lock className="w-4 h-4 absolute right-3 top-3 text-m3-onSurface-variant/50" />
                   </div>
@@ -481,6 +493,16 @@ export const AuthModal: React.FC = () => {
                     <p className="text-[11px] text-m3-onSurface-variant leading-relaxed">
                       سيتم إرسال كود تحقق سري (OTP من 6 أرقام) عبر بوت تليجرام الخاص بالمنصة لإعادة تعيين كلمة المرور فوراً.
                     </p>
+
+                    <a
+                      href="https://t.me/te_data_bot"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Send className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>افتـح البـوت لبدء استلام الرسائل (@te_data_bot)</span>
+                    </a>
 
                     <motion.button
                       whileHover={{ scale: 1.02 }}
