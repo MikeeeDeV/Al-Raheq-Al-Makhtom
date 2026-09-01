@@ -53,7 +53,7 @@ export const Footer: React.FC = () => {
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6">
 
-        {/* 📱 MOBILE FOOTER: Ultra Simple & Clean Layout with Mayada Dedication Button */}
+        {/* 📱 MOBILE FOOTER: Ultra Simple & Clean Layout with Dedication Button */}
         <div className="md:hidden space-y-4 text-center py-2">
           <div className="flex items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
             <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
@@ -81,14 +81,14 @@ export const Footer: React.FC = () => {
           </div>
 
           <p className="text-[11px] text-slate-400">
-            منصة تفاعلية لقراءة ودراسة السيرة النبوية المطهرة — إهداء خاص لـ ميادة © {new Date().getFullYear()}
+            منصة تفاعلية لقراءة ودراسة السيرة النبوية المطهرة © {new Date().getFullYear()}
           </p>
         </div>
 
 
         {/* 💻 DESKTOP FOOTER: Rich Detailed Layout & Widgets */}
         <div className="hidden md:block space-y-8">
-          {/* Feature Bar 1: Gift Dedication & Mayada Dedication Dual Banner */}
+          {/* Feature Bar 1: Gift Dedication & Dedicated Banner */}
           <div className="p-5 bg-gradient-to-r from-rose-950/90 via-slate-900/90 to-emerald-950/90 border border-rose-500/30 rounded-3xl flex items-center justify-between gap-4 shadow-md">
             <div className="flex items-center gap-3.5">
               <div className="w-12 h-12 bg-rose-900/80 rounded-2xl flex items-center justify-center text-white shrink-0 border border-rose-400/30 shadow-xs animate-bounce-gentle">
@@ -96,11 +96,11 @@ export const Footer: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <span>إهداء خَاص لـ مُلهمَة الدَّرب (ميَادَة) 💖</span>
+                  <span>إهداء خَاص لـ مُلهمَة الدَّرب وحبيبة العمر 💖</span>
                   <Flower2 className="w-4 h-4 text-rose-400 animate-spin-slow" />
                 </h3>
                 <p className="text-xs text-slate-300 mt-0.5 max-w-xl font-light">
-                  عمل مخلص شريف في سيرة النبي ﷺ، مهداة كلماته العاطرة إلى من كانت السند والداعم والملهمة الأولى (ميادة).
+                  عمل مخلص شريف في سيرة النبي ﷺ، مهداة كلماته العاطرة إهداءً خاصاً بالحب والوفاء.
                 </p>
               </div>
             </div>
@@ -230,7 +230,7 @@ export const Footer: React.FC = () => {
           <div className="pt-6 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
             <p>© {new Date().getFullYear()} المنصة التفاعلية للرحيق المختوم — عمل لوجه الله تعالى وصلاح المسلمين.</p>
             <div className="flex items-center gap-1.5 font-semibold text-slate-300">
-              <span>صُنع إهداءً لـ ميادة</span>
+              <span>صُنع بحب وإهداء خاص</span>
               <Heart className="w-3.5 h-3.5 text-rose-500 fill-current animate-pulse" />
               <span>وخدمةً للسيرة النبوية العطرة</span>
             </div>
