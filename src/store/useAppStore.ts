@@ -57,9 +57,11 @@ interface AppState {
   isShareModalOpen: boolean;
   isAboutModalOpen: boolean;
   isGiftModalOpen: boolean;
+  isMayadaModalOpen: boolean;
   setShareModalOpen: (open: boolean) => void;
   setAboutModalOpen: (open: boolean) => void;
   setGiftModalOpen: (open: boolean) => void;
+  setMayadaModalOpen: (open: boolean) => void;
 
   // Gamification & Badges
   achievements: UserAchievement[];
@@ -575,9 +577,11 @@ export const useAppStore = create<AppState>()(
       isShareModalOpen: false,
       isAboutModalOpen: false,
       isGiftModalOpen: false,
+      isMayadaModalOpen: false,
       setShareModalOpen: (open) => set({ isShareModalOpen: open }),
       setAboutModalOpen: (open) => set({ isAboutModalOpen: open }),
       setGiftModalOpen: (open) => set({ isGiftModalOpen: open }),
+      setMayadaModalOpen: (open) => set({ isMayadaModalOpen: open }),
 
       // Achievements
       achievements: INITIAL_ACHIEVEMENTS,

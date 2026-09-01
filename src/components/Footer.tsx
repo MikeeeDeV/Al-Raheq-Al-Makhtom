@@ -11,6 +11,7 @@ import {
   Flame,
   Award,
   Book,
+  Flower2,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -27,6 +28,7 @@ export const Footer: React.FC = () => {
   const {
     setAboutModalOpen,
     setGiftModalOpen,
+    setMayadaModalOpen,
     currentPage,
     streak,
     answeredQuestions,
@@ -43,15 +45,15 @@ export const Footer: React.FC = () => {
   return (
     <footer className="w-full relative overflow-hidden bg-slate-950 text-slate-200 mt-20 pb-20 md:pb-8 pt-10 font-arabic border-t border-emerald-500/20 shadow-2xl">
       {/* Top Animated Shimmer Border Line */}
-      <div className="absolute top-0 right-0 left-0 h-1 bg-gradient-to-r from-emerald-500 via-amber-400 to-teal-500 animate-gradient" />
+      <div className="absolute top-0 right-0 left-0 h-1 bg-gradient-to-r from-rose-500 via-amber-400 to-emerald-500 animate-gradient" />
 
       {/* Live Ambient Glowing Background Orbs */}
       <div className="absolute -top-24 -left-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow" />
-      <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow" style={{ animationDelay: '2s' }} />
+      <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-rose-500/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow" style={{ animationDelay: '2s' }} />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6">
 
-        {/* 📱 MOBILE FOOTER: Ultra Simple & Clean Layout */}
+        {/* 📱 MOBILE FOOTER: Ultra Simple & Clean Layout with Mayada Dedication Button */}
         <div className="md:hidden space-y-4 text-center py-2">
           <div className="flex items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
             <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
@@ -59,49 +61,71 @@ export const Footer: React.FC = () => {
               <span>الرحيق المختوم</span>
             </div>
 
-            <button
-              onClick={() => setGiftModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1 bg-emerald-800 hover:bg-emerald-700 text-white font-bold text-xs rounded-full shadow-xs transition"
-            >
-              <Gift className="w-3.5 h-3.5 text-amber-300" />
-              <span>إهداء الكارت</span>
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setMayadaModalOpen(true)}
+                className="flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-rose-700 to-pink-700 hover:from-rose-600 hover:to-pink-600 text-white font-bold text-xs rounded-full shadow-xs transition cursor-pointer border border-rose-400/30"
+              >
+                <Heart className="w-3.5 h-3.5 fill-rose-300 text-rose-200 animate-pulse" />
+                <span>إهداء إلى ملهمتي 🌹</span>
+              </button>
+
+              <button
+                onClick={() => setGiftModalOpen(true)}
+                className="flex items-center gap-1 px-2.5 py-1 bg-emerald-800 hover:bg-emerald-700 text-white font-bold text-xs rounded-full shadow-xs transition cursor-pointer"
+              >
+                <Gift className="w-3.5 h-3.5 text-amber-300" />
+                <span>إهداء العامة</span>
+              </button>
+            </div>
           </div>
 
           <p className="text-[11px] text-slate-400">
-            منصة تفاعلية لقراءة ودراسة السيرة النبوية المطهرة © {new Date().getFullYear()}
+            منصة تفاعلية لقراءة ودراسة السيرة النبوية المطهرة — إهداء خاص لـ ميادة © {new Date().getFullYear()}
           </p>
         </div>
 
 
         {/* 💻 DESKTOP FOOTER: Rich Detailed Layout & Widgets */}
         <div className="hidden md:block space-y-8">
-          {/* Feature Bar 1: Gift Dedication Banner */}
-          <div className="p-5 bg-gradient-to-r from-emerald-950/90 via-slate-900/90 to-teal-950/90 border border-emerald-500/30 rounded-3xl flex items-center justify-between gap-4 shadow-md">
+          {/* Feature Bar 1: Gift Dedication & Mayada Dedication Dual Banner */}
+          <div className="p-5 bg-gradient-to-r from-rose-950/90 via-slate-900/90 to-emerald-950/90 border border-rose-500/30 rounded-3xl flex items-center justify-between gap-4 shadow-md">
             <div className="flex items-center gap-3.5">
-              <div className="w-11 h-11 bg-emerald-800/80 rounded-2xl flex items-center justify-center text-white shrink-0 border border-emerald-400/30 shadow-xs animate-bounce-gentle">
-                <Gift className="w-5 h-5 text-amber-300" />
+              <div className="w-12 h-12 bg-rose-900/80 rounded-2xl flex items-center justify-center text-white shrink-0 border border-rose-400/30 shadow-xs animate-bounce-gentle">
+                <Heart className="w-6 h-6 text-rose-300 fill-rose-400" />
               </div>
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <span>إهداء المنصة لأحبائك في الله 📜</span>
-                  <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
+                  <span>إهداء خَاص لـ مُلهمَة الدَّرب (ميَادَة) 💖</span>
+                  <Flower2 className="w-4 h-4 text-rose-400 animate-spin-slow" />
                 </h3>
                 <p className="text-xs text-slate-300 mt-0.5 max-w-xl font-light">
-                  أرسل كارت إهداء بسيط يحتوي على اسمك واسم المُهدى إليه ورسالة عاطرة مع رابط منصة السيرة النبوية.
+                  عمل مخلص شريف في سيرة النبي ﷺ، مهداة كلماته العاطرة إلى من كانت السند والداعم والملهمة الأولى (ميادة).
                 </p>
               </div>
             </div>
 
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setGiftModalOpen(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-2xl shadow-md transition cursor-pointer shrink-0 border border-emerald-400/30"
-            >
-              <Gift className="w-4 h-4 text-amber-300" />
-              <span>إنشاء كارت إهداء</span>
-            </motion.button>
+            <div className="flex items-center gap-2 shrink-0">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setMayadaModalOpen(true)}
+                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-bold text-xs rounded-2xl shadow-lg transition cursor-pointer border border-rose-300/40"
+              >
+                <Heart className="w-4 h-4 fill-rose-300 text-rose-200 animate-pulse" />
+                <span>إهداء إلى ملهمتي 🌹</span>
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setGiftModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-2xl border border-slate-700 transition cursor-pointer"
+              >
+                <Gift className="w-4 h-4 text-amber-300" />
+                <span>كارت العامة</span>
+              </motion.button>
+            </div>
           </div>
 
           {/* Feature Bar 2: Rotating Prophetic Hadith Wisdom */}
@@ -182,11 +206,11 @@ export const Footer: React.FC = () => {
                 </button>
 
                 <button
-                  onClick={() => setGiftModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-rose-500/10 text-rose-300 border border-rose-500/30 rounded-full text-xs font-bold hover:bg-rose-500/20 transition cursor-pointer"
+                  onClick={() => setMayadaModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-rose-500/20 text-rose-200 border border-rose-400/40 rounded-full text-xs font-bold hover:bg-rose-500/30 transition cursor-pointer"
                 >
-                  <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-400" />
-                  <span>إهداء المنصة 💖</span>
+                  <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-400 animate-pulse" />
+                  <span>إهداء إلى ملهمتي 🌹</span>
                 </button>
               </div>
 
@@ -206,9 +230,9 @@ export const Footer: React.FC = () => {
           <div className="pt-6 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
             <p>© {new Date().getFullYear()} المنصة التفاعلية للرحيق المختوم — عمل لوجه الله تعالى وصلاح المسلمين.</p>
             <div className="flex items-center gap-1.5 font-semibold text-slate-300">
-              <span>صُنع اهداء لميادة</span>
+              <span>صُنع إهداءً لـ ميادة</span>
               <Heart className="w-3.5 h-3.5 text-rose-500 fill-current animate-pulse" />
-              <span>و خدمةً للسيرة النبوية العطرة</span>
+              <span>وخدمةً للسيرة النبوية العطرة</span>
             </div>
           </div>
         </div>
@@ -219,4 +243,3 @@ export const Footer: React.FC = () => {
 };
 
 export default Footer;
-

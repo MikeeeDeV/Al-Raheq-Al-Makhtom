@@ -11,6 +11,7 @@ import { ShareModal } from './components/ShareModal';
 import { AboutModal } from './components/AboutModal';
 import { InstallPwaModal } from './components/InstallPwaModal';
 import { GiftDedicationModal } from './components/GiftDedicationModal';
+import { MayadaDedicationModal } from './components/MayadaDedicationModal';
 import { SeoMeta } from './components/SeoMeta';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -127,6 +128,7 @@ export const App: React.FC = () => {
       <AboutModal />
       <InstallPwaModal />
       <GiftDedicationModal />
+      <MayadaDedicationModal />
     </div>
   );
 };
