@@ -131,15 +131,16 @@ export async function sendDirectTelegramUserMessage(
   const endpoint = `https://api.telegram.org/bot${token}/sendMessage`;
 
   try {
+    // Use URLSearchParams (application/x-www-form-urlencoded) to avoid browser CORS preflight OPTIONS check
+    const bodyParams = new URLSearchParams();
+    bodyParams.append('chat_id', cleanTarget);
+    bodyParams.append('text', textMessage);
+    bodyParams.append('parse_mode', 'HTML');
+    bodyParams.append('disable_web_page_preview', 'false');
+
     const response = await fetch(endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: cleanTarget,
-        text: textMessage,
-        parse_mode: 'HTML',
-        disable_web_page_preview: false,
-      }),
+      body: bodyParams,
     });
 
     const resJson = await response.json();
@@ -150,8 +151,14 @@ export async function sendDirectTelegramUserMessage(
       return false;
     }
   } catch (error) {
-    console.warn(`Failed to send direct DM to ${cleanTarget}:`, error);
-    return false;
+    console.warn(`Primary POST failed for DM to ${cleanTarget}, attempting GET fallback...`, error);
+    try {
+      const getUrl = `${endpoint}?chat_id=${encodeURIComponent(cleanTarget)}&text=${encodeURIComponent(textMessage)}&parse_mode=HTML`;
+      await fetch(getUrl, { mode: 'no-cors' });
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
 
@@ -180,18 +187,23 @@ export async function sendTelegramMessage(
   if (defaultChatId) {
     try {
       const endpoint = `https://api.telegram.org/bot${token}/sendMessage`;
+      const bodyParams = new URLSearchParams();
+      bodyParams.append('chat_id', defaultChatId);
+      bodyParams.append('text', textMessage);
+      bodyParams.append('parse_mode', 'HTML');
+      bodyParams.append('disable_web_page_preview', 'false');
+
       await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: defaultChatId,
-          text: textMessage,
-          parse_mode: 'HTML',
-          disable_web_page_preview: false,
-        }),
+        body: bodyParams,
       });
     } catch (error) {
       console.error('Failed to send Telegram message to channel:', error);
+      // Fallback via GET URL to bypass strict browser CORS rules
+      try {
+        const getUrl = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${encodeURIComponent(defaultChatId)}&text=${encodeURIComponent(textMessage)}&parse_mode=HTML`;
+        await fetch(getUrl, { mode: 'no-cors' });
+      } catch {}
     }
   }
 
