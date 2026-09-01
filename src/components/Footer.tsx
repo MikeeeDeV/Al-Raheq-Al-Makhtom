@@ -13,7 +13,6 @@ import {
   Book,
   Flower2,
   MessageSquare,
-  Users,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -93,15 +92,7 @@ export const Footer: React.FC = () => {
             {PROPHETIC_WISDOMS[quoteIndex]}
           </div>
 
-          <div className="pt-4 border-t border-slate-800/80 flex flex-col items-center gap-2 text-xs text-slate-400">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-900 text-slate-300 rounded-full font-bold border border-slate-800">
-                <Users className="w-3.5 h-3.5 text-emerald-400" />
-                <span>إجمالي الزيارات: {(visitorCount || 1845).toLocaleString('ar-EG')} زائر</span>
-              </span>
-            </div>
             <p>© {new Date().getFullYear()} الرحيق المختوم — عمل لوجه الله تعالى</p>
-          </div>
         </div>
 
         {/* Desktop Full Footer */}
@@ -235,10 +226,6 @@ export const Footer: React.FC = () => {
           <div className="pt-6 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
             <div className="flex items-center gap-4">
               <p>© {new Date().getFullYear()} المنصة التفاعلية للرحيق المختوم — عمل لوجه الله تعالى وصلاح المسلمين.</p>
-              <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 bg-slate-900 text-slate-200 rounded-full text-xs font-bold border border-slate-700/80 shadow-inner">
-                <Users className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-                <span>إجمالي الزيارات: {(visitorCount || 1845).toLocaleString('ar-EG')} زائر</span>
-              </span>
             </div>
             <div className="flex items-center gap-1.5 font-semibold text-slate-300">
               <span>صُنع بحب وإهداء خاص</span>
