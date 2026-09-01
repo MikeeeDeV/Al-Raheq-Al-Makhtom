@@ -95,7 +95,14 @@ export const AnalyticsView: React.FC = () => {
     return matchesTier && matchesTrack;
   });
 
-  const getTierBadgeStyle = (tier: BadgeTier, unlocked: boolean) => {
+  const DEFAULT_BADGE_STYLE = {
+    cardBg: 'bg-gradient-to-br from-slate-400/20 via-slate-300/10 to-slate-500/20 border-slate-400/60 shadow-m3-1',
+    chipBg: 'bg-slate-600 text-white font-bold shadow-xs',
+    label: 'وسام 🏅',
+    icon: <Award className="w-5 h-5 text-slate-500 dark:text-slate-300" />,
+  };
+
+  const getTierBadgeStyle = (tier?: string, unlocked?: boolean) => {
     if (!unlocked) {
       return {
         cardBg: 'bg-m3-surface-dim/40 dark:bg-m3-surface-darkContainer/40 border-m3-outline-variant/20 opacity-70 grayscale',
@@ -114,6 +121,7 @@ export const AnalyticsView: React.FC = () => {
           icon: <Medal className="w-5 h-5 text-amber-700 dark:text-amber-500" />,
         };
       case 'silver':
+      case 'platinum':
         return {
           cardBg: 'bg-gradient-to-br from-slate-400/20 via-slate-300/10 to-slate-500/20 border-slate-400/60 shadow-m3-1',
           chipBg: 'bg-slate-600 text-white font-bold shadow-xs',
@@ -134,6 +142,8 @@ export const AnalyticsView: React.FC = () => {
           label: 'ماسي 💎✨',
           icon: <Diamond className="w-5 h-5 text-emerald-500 animate-pulse" />,
         };
+      default:
+        return DEFAULT_BADGE_STYLE;
     }
   };
 
@@ -340,9 +350,10 @@ export const AnalyticsView: React.FC = () => {
         {/* Badges Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {filteredAchievements.map((ach) => {
-            const style = getTierBadgeStyle(ach.tier, ach.unlocked);
+            const style = getTierBadgeStyle(ach.tier, ach.unlocked) || DEFAULT_BADGE_STYLE;
             const currentVal = ach.currentValue || 0;
-            const progressPercent = Math.min(100, Math.round((currentVal / ach.targetValue) * 100));
+            const targetVal = ach.targetValue || 1;
+            const progressPercent = Math.min(100, Math.round((currentVal / targetVal) * 100));
 
             return (
               <motion.div

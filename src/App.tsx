@@ -10,6 +10,7 @@ import { AnalyticsView } from './views/AnalyticsView';
 import { ShareModal } from './components/ShareModal';
 import { AboutModal } from './components/AboutModal';
 import { InstallPwaModal } from './components/InstallPwaModal';
+import { GiftDedicationModal } from './components/GiftDedicationModal';
 
 export const App: React.FC = () => {
   const { currentView } = useAppStore();
@@ -48,6 +49,7 @@ export const App: React.FC = () => {
       <ShareModal />
       <AboutModal />
       <InstallPwaModal />
+      <GiftDedicationModal />
     </div>
   );
 };
