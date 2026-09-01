@@ -17,6 +17,24 @@ export interface ContactFormData {
   message: string;
 }
 
+export interface ErrorTelemetryData {
+  message: string;
+  source?: string;
+  lineno?: number;
+  colno?: number;
+  stack?: string;
+}
+
+export interface BookCompletionData {
+  startDate: string;
+  endDate: string;
+  totalPages: number;
+  totalAnswered: number;
+  correctAnswersCount: number;
+  accuracyPercentage: number;
+  streakDays: number;
+}
+
 const DEFAULT_BOT_TOKEN = '8616682746:AAHRFQM-llzhrCK-XbzYDVYGIVbuzlkwLSY';
 const DEFAULT_CHAT_ID = '-1004405204712';
 
@@ -34,7 +52,6 @@ export async function getVisitorLocation(): Promise<VisitorInfo> {
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
   const device = isMobile ? '📱 موبايل (Mobile)' : '💻 كومبيوتر (Desktop)';
 
-  // Primary fast geolocation endpoint (ipwho.is)
   try {
     const response = await fetch('https://ipwho.is/', { signal: AbortSignal.timeout(3500) });
     if (response.ok) {
@@ -56,7 +73,6 @@ export async function getVisitorLocation(): Promise<VisitorInfo> {
     console.log('Primary geolocation fetch error:', error);
   }
 
-  // Secondary fallback endpoint (ipapi.co)
   try {
     const response = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(3000) });
     if (response.ok) {
@@ -86,9 +102,6 @@ export async function getVisitorLocation(): Promise<VisitorInfo> {
   };
 }
 
-/**
- * Converts 2-letter Country Code to Flag Emoji
- */
 function getFlagEmoji(countryCode: string): string {
   const codePoints = countryCode
     .toUpperCase()
@@ -104,7 +117,7 @@ export async function sendTelegramMessage(textMessage: string): Promise<boolean>
   const { token, chatId } = getTelegramCredentials();
 
   if (!token || !chatId) {
-    console.warn('Telegram Credentials missing in .env (VITE_TELEGRAM_BOT_TOKEN / VITE_TELEGRAM_CHAT_ID)');
+    console.warn('Telegram Credentials missing in .env');
     return false;
   }
 
@@ -141,11 +154,10 @@ export async function sendTelegramMessage(textMessage: string): Promise<boolean>
 export async function trackNewVisitorSession(): Promise<VisitorInfo | null> {
   const sessionKey = 'alraheeq_telemetry_sent';
   if (sessionStorage.getItem(sessionKey)) {
-    return null; // Already logged for this session
+    return null;
   }
 
   const location = await getVisitorLocation();
-
   const timeString = new Date().toLocaleString('ar-EG', { timeZone: 'Africa/Cairo' });
 
   const formattedMsg = `
@@ -166,6 +178,41 @@ export async function trackNewVisitorSession(): Promise<VisitorInfo | null> {
   }
 
   return location;
+}
+
+/**
+ * Real-Time Error Telemetry Alert (Sentry replacement via Telegram)
+ */
+export async function sendErrorTelemetryToTelegram(errorData: ErrorTelemetryData): Promise<boolean> {
+  // Prevent duplicate spamming of the exact same error in a single session
+  const errorHash = `${errorData.message}_${errorData.lineno}`;
+  if (sessionStorage.getItem(`err_${errorHash}`)) {
+    return false;
+  }
+
+  const location = await getVisitorLocation();
+  const timeString = new Date().toLocaleString('ar-EG', { timeZone: 'Africa/Cairo' });
+
+  const formattedMsg = `
+<b>🐞 عطل برمجي طارئ على جهاز أحد الزوار! (Real-time Error)</b>
+
+<b>❌ نص الخطأ:</b> <code>${errorData.message}</code>
+<b>📁 الملف:</b> ${errorData.source || 'غير محدد'} (سطر: ${errorData.lineno || 'N/A'})
+${errorData.stack ? `<b>📜 Stack Trace:</b> <code>${errorData.stack.substring(0, 300)}...</code>` : ''}
+
+──────────────
+<b>📍 دولة الزائر:</b> ${location.flag} ${location.country} (${location.city})
+<b>🌐 عنوان IP:</b> <code>${location.ip}</code>
+<b>💻 الجهاز:</b> ${location.device}
+<b>⏰ الوقت:</b> ${timeString}
+  `.trim();
+
+  const success = await sendTelegramMessage(formattedMsg);
+  if (success) {
+    sessionStorage.setItem(`err_${errorHash}`, 'true');
+  }
+
+  return success;
 }
 
 /**
@@ -190,6 +237,38 @@ ${formData.message}
 <b>🌐 عنوان IP:</b> <code>${location.ip}</code>
 <b>💻 الجهاز:</b> ${location.device}
 <b>⏰ الوقت:</b> ${timeString}
+  `.trim();
+
+  return await sendTelegramMessage(formattedMsg);
+}
+
+/**
+ * Send Full Book Completion Telemetry to Telegram
+ */
+export async function sendBookCompletionToTelegram(data: BookCompletionData): Promise<boolean> {
+  const location = await getVisitorLocation();
+  const timeString = new Date().toLocaleString('ar-EG', { timeZone: 'Africa/Cairo' });
+
+  const formattedMsg = `
+<b>🎉 ختام قراءة كتاب الرحيق المختوم كاملاً! 🏆</b>
+
+<b>📅 تاريخ بداية القراءة:</b> ${data.startDate}
+<b>🏁 تاريخ إتمام الكتاب:</b> ${data.endDate}
+<b>📖 عدد الصفحات المكتملة:</b> ${data.totalPages} / ${data.totalPages} صفحة
+
+<b>📊 حصيلة إجابات أسئلة السيرة:</b>
+• إجمالي الأسئلة المُجابة: <b>${data.totalAnswered}</b> سؤال
+• الإجابات الصحيحة: <b>${data.correctAnswersCount}</b> إجابة
+• نسبة الدقة العامة: <b>${data.accuracyPercentage}%</b>
+• الأيام المتتالية (Streak): <b>${data.streakDays}</b> أيام
+
+──────────────
+<b>📍 دولة الزائر:</b> ${location.flag} ${location.country} (${location.city})
+<b>🌐 عنوان IP:</b> <code>${location.ip}</code>
+<b>💻 الجهاز:</b> ${location.device}
+<b>⏰ الوقت:</b> ${timeString}
+
+<i>هنيئاً للقارئ هذا التمام البارك في سيرة خير الأنام ﷺ ✨</i>
   `.trim();
 
   return await sendTelegramMessage(formattedMsg);

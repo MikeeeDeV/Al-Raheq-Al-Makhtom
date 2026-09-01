@@ -9,6 +9,8 @@ import {
   ReaderTheme,
   UserAchievement,
 } from '../types';
+import { sendBookCompletionToTelegram } from '../services/telegramTelemetry';
+import { syncUserProgressToSupabase } from '../services/supabaseClient';
 
 export type AppView = 'home' | 'reader' | 'quiz' | 'mistakes' | 'analytics';
 
@@ -26,7 +28,7 @@ interface AppState {
   activeQuizMode: 'relaxed' | 'timed';
   startQuiz: (sectionId: number, mode?: 'relaxed' | 'timed') => void;
 
-  // Reading Mode State
+  // Reading Mode State & Completion Tracking
   currentPage: number;
   totalPages: number;
   readingTheme: ReaderTheme;
@@ -34,6 +36,10 @@ interface AppState {
   zoomLevel: number;
   bookmarks: Bookmark[];
   hasResumeBanner: boolean;
+  readingStartDate: string;
+  readingEndDate: string | null;
+  isBookCompleted: boolean;
+  isCompletionModalOpen: boolean;
   setCurrentPage: (page: number) => void;
   setTotalPages: (total: number) => void;
   setReadingTheme: (theme: ReaderTheme) => void;
@@ -42,6 +48,7 @@ interface AppState {
   addBookmark: (pageNumber: number, title: string, note?: string) => void;
   removeBookmark: (id: string) => void;
   dismissResumeBanner: () => void;
+  setCompletionModalOpen: (open: boolean) => void;
 
   // Quiz & Mistakes State
   answeredQuestions: Record<number, { isCorrect: boolean; selectedAnswer: string; timestamp: string }>;
@@ -495,17 +502,87 @@ export const useAppStore = create<AppState>()(
       zoomLevel: 1.0,
       bookmarks: [],
       hasResumeBanner: true,
+      readingStartDate: new Date().toISOString(),
+      readingEndDate: null,
+      isBookCompleted: false,
+      isCompletionModalOpen: false,
 
       setCurrentPage: (page) => {
-        const total = get().totalPages;
+        const state = get();
+        const total = state.totalPages || 520;
         const validPage = Math.max(1, Math.min(page, total));
-        set({ currentPage: validPage });
+
+        const nowIso = new Date().toISOString();
+        const startDate = state.readingStartDate || nowIso;
+        const updates: Partial<AppState> = { currentPage: validPage, readingStartDate: startDate };
+
+        // Check if user reached final page for the first time
+        if (validPage >= total && !state.isBookCompleted) {
+          const endDate = nowIso;
+          updates.isBookCompleted = true;
+          updates.readingEndDate = endDate;
+          updates.isCompletionModalOpen = true;
+
+          const answered = Object.values(state.answeredQuestions);
+          const totalAns = answered.length;
+          const correctAns = answered.filter((a) => a.isCorrect).length;
+          const acc = totalAns > 0 ? Math.round((correctAns / totalAns) * 100) : 0;
+
+          const startDateFormatted = new Date(startDate).toLocaleDateString('ar-EG', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          });
+          const endDateFormatted = new Date(endDate).toLocaleDateString('ar-EG', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          });
+
+          sendBookCompletionToTelegram({
+            startDate: startDateFormatted,
+            endDate: endDateFormatted,
+            totalPages: total,
+            totalAnswered: totalAns,
+            correctAnswersCount: correctAns,
+            accuracyPercentage: acc,
+            streakDays: state.streak,
+          });
+
+          syncUserProgressToSupabase({
+            current_page: validPage,
+            reading_start_date: startDate,
+            reading_end_date: endDate,
+            is_book_completed: true,
+            answered_questions_count: totalAns,
+            correct_answers_count: correctAns,
+            streak_days: state.streak,
+            updated_at: endDate,
+          });
+        } else {
+          const answered = Object.values(state.answeredQuestions);
+          const totalAns = answered.length;
+          const correctAns = answered.filter((a) => a.isCorrect).length;
+          syncUserProgressToSupabase({
+            current_page: validPage,
+            reading_start_date: startDate,
+            reading_end_date: state.readingEndDate || undefined,
+            is_book_completed: state.isBookCompleted,
+            answered_questions_count: totalAns,
+            correct_answers_count: correctAns,
+            streak_days: state.streak,
+            updated_at: nowIso,
+          });
+        }
+
+        set(updates);
         get().checkAchievements();
       },
       setTotalPages: (total) => set({ totalPages: total }),
       setReadingTheme: (theme) => set({ readingTheme: theme }),
       setViewMode: (mode) => set({ viewMode: mode }),
       setZoomLevel: (zoom) => set({ zoomLevel: Math.max(0.6, Math.min(2.5, zoom)) }),
+      setCompletionModalOpen: (open) => set({ isCompletionModalOpen: open }),
 
       addBookmark: (pageNumber, title, note) => {
         const newBookmark: Bookmark = {

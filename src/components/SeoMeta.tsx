@@ -16,6 +16,51 @@ export const SeoMeta: React.FC<SeoMetaProps> = ({
   const fullUrl = `${baseUrl}${path}`;
   const ogImageUrl = `${baseUrl}/og-image.png`;
 
+  // JSON-LD Structured Data Schema for Google Search Console & Rich Snippets
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebSite',
+        '@id': `${baseUrl}/#website`,
+        url: baseUrl,
+        name: 'الرحيق المختوم',
+        description: description,
+        inLanguage: 'ar',
+      },
+      {
+        '@type': 'Book',
+        '@id': `${baseUrl}/#book`,
+        name: 'الرحيق المختوم',
+        author: {
+          '@type': 'Person',
+          name: 'صفي الرحمن المباركفوري',
+        },
+        about: 'بحث في السيرة النبوية الشريفة على صاحبها أفضل الصلاة والسلام',
+        inLanguage: 'ar',
+        numberOfPages: 543,
+        educationalUse: 'دراسة واختبارات السيرة النبوية المطهرة',
+        publisher: {
+          '@type': 'Organization',
+          name: 'الرحيق المختوم - المنصة التفاعلية',
+          url: baseUrl,
+        },
+      },
+      {
+        '@type': 'EducationalApplication',
+        '@id': `${baseUrl}/#app`,
+        name: 'منصة الرحيق المختوم التفاعلية',
+        applicationCategory: 'EducationalApplication',
+        operatingSystem: 'All',
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'USD',
+        },
+      },
+    ],
+  };
+
   return (
     <Helmet>
       {/* Primary HTML Meta Tags */}
@@ -34,6 +79,11 @@ export const SeoMeta: React.FC<SeoMetaProps> = ({
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={ogImageUrl} />
+
+      {/* Google Search Console JSON-LD Rich Snippets */}
+      <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
     </Helmet>
   );
 };
+
+export default SeoMeta;

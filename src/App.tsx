@@ -12,8 +12,9 @@ import { AboutModal } from './components/AboutModal';
 import { InstallPwaModal } from './components/InstallPwaModal';
 import { GiftDedicationModal } from './components/GiftDedicationModal';
 import { ContactModal } from './components/ContactModal';
+import { BookCompletionModal } from './components/BookCompletionModal';
 import { SeoMeta } from './components/SeoMeta';
-import { trackNewVisitorSession } from './services/telegramTelemetry';
+import { trackNewVisitorSession, sendErrorTelemetryToTelegram } from './services/telegramTelemetry';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const App: React.FC = () => {
@@ -23,9 +24,10 @@ export const App: React.FC = () => {
     isAboutModalOpen,
     isGiftModalOpen,
     isContactModalOpen,
+    isCompletionModalOpen,
   } = useAppStore();
 
-  // Sync URL changes & track new visitor session on Telegram
+  // Sync URL changes, track new visitor session, & register real-time error telemetry
   useEffect(() => {
     trackNewVisitorSession();
 
@@ -37,12 +39,35 @@ export const App: React.FC = () => {
     window.addEventListener('popstate', handleUrlChange);
     window.addEventListener('hashchange', handleUrlChange);
 
-    // Run initial URL check on mount
+    // Global Error Handlers (Sentry replacement dispatching alerts directly to Telegram)
+    const handleGlobalError = (event: ErrorEvent) => {
+      sendErrorTelemetryToTelegram({
+        message: event.message || 'خطأ برمجي غير محدد',
+        source: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+        stack: event.error?.stack,
+      });
+    };
+
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      sendErrorTelemetryToTelegram({
+        message: `Unhandled Promise Rejection: ${event.reason}`,
+        stack: event.reason?.stack,
+      });
+    };
+
+    window.addEventListener('error', handleGlobalError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    // Initial URL check
     handleUrlChange();
 
     return () => {
       window.removeEventListener('popstate', handleUrlChange);
       window.removeEventListener('hashchange', handleUrlChange);
+      window.removeEventListener('error', handleGlobalError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
     };
   }, []);
 
@@ -108,7 +133,7 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-m3-surface text-m3-onSurface dark:bg-m3-surface-dark dark:text-m3-onSurface-dark transition-colors duration-300 font-arabic selection:bg-m3-primary-container selection:text-m3-primary-onContainer">
-      {/* Dynamic Dynamic SEO Meta Management */}
+      {/* Dynamic SEO Meta & JSON-LD Structured Data */}
       <SeoMeta title={seo.title} description={seo.description} path={seo.path} />
 
       {/* Top Sticky Header */}
@@ -139,6 +164,7 @@ export const App: React.FC = () => {
         <InstallPwaModal key="pwa-modal" />
         {isGiftModalOpen && <GiftDedicationModal key="gift-modal" />}
         {isContactModalOpen && <ContactModal key="contact-modal" />}
+        {isCompletionModalOpen && <BookCompletionModal key="completion-modal" />}
       </AnimatePresence>
     </div>
   );
