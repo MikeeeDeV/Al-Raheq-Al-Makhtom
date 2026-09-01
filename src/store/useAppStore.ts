@@ -144,10 +144,16 @@ export const useAppStore = create<AppState>()(
                 const defaultOptions = q.type === 'true_false' ? ["صواب", "خطأ"] : ["الخيار الأول", "الخيار الثاني", "الخيار الثالث", "الخيار الرابع"];
                 const finalOptions = hasValidOptions ? (q.options as string[]) : defaultOptions;
 
+                // Strip any numbers or 'سؤال توثيقي رقم' or 'عبارة رقم' from question title
+                let cleanQuestion = q.question.replace(/(سؤال توثيقي|سؤال سيرة نبوية|عبارة)\s*(رقم)?\s*\d*\s*(حول|في)?/g, '').trim();
+                if (!cleanQuestion || cleanQuestion.length < 5) {
+                  cleanQuestion = `مبحث توثيقي في معالم السيرة النبوية المباركة — ${q.section}`;
+                }
+
                 if (q.question.includes('سؤال سيرة نبوية رقم') || (hasValidOptions && q.options.some((o) => o.includes('الخيار')))) {
                   return {
                     ...q,
-                    question: `سؤال توثيقي في السيرة النبوية الشريفة — ${q.section}`,
+                    question: `دراسة وتوثيق في معالم السيرة النبوية العطرة`,
                     options: finalOptions,
                     correct_answer: q.type === 'true_false' ? (q.correct_answer || "صواب") : finalOptions[0],
                     explanation: "مبحث توثيقي مفصل من واقع أحداث السيرة النبوية العطرة في كتاب الرحيق المختوم."
@@ -156,6 +162,7 @@ export const useAppStore = create<AppState>()(
 
                 return {
                   ...q,
+                  question: cleanQuestion,
                   options: finalOptions,
                   correct_answer: q.correct_answer || (q.type === 'true_false' ? "صواب" : finalOptions[0]),
                 };
