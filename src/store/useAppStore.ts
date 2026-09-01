@@ -144,10 +144,10 @@ export const useAppStore = create<AppState>()(
                 const defaultOptions = q.type === 'true_false' ? ["صواب", "خطأ"] : ["الخيار الأول", "الخيار الثاني", "الخيار الثالث", "الخيار الرابع"];
                 const finalOptions = hasValidOptions ? (q.options as string[]) : defaultOptions;
 
-                // Strip any numbers or 'سؤال توثيقي رقم' or 'عبارة رقم' from question title
-                let cleanQuestion = q.question.replace(/(سؤال توثيقي|سؤال سيرة نبوية|عبارة)\s*(رقم)?\s*\d*\s*(حول|في)?/g, '').trim();
+                // Strip any numbers or 'سيرة نبوية رقم' or 'سؤال توثيقي رقم' or 'عبارة رقم' from question title
+                let cleanQuestion = q.question.replace(/(عبارة|سيرة نبوية|سؤال سيرة نبوية|سؤال توثيقي)\s*(رقم)?\s*\d*\s*(تتعلق بـ|تتعلق بأحداث|في|حول)?/g, '').trim();
                 if (!cleanQuestion || cleanQuestion.length < 5) {
-                  cleanQuestion = `مبحث توثيقي في معالم السيرة النبوية المباركة — ${q.section}`;
+                  cleanQuestion = `دراسة وتوثيق في أحداث السيرة النبوية العطرة — ${q.section}`;
                 }
 
                 if (q.question.includes('سؤال سيرة نبوية رقم') || (hasValidOptions && q.options.some((o) => o.includes('الخيار')))) {
