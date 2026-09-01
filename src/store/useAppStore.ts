@@ -63,69 +63,304 @@ interface AppState {
   checkAchievements: () => void;
 }
 
-const INITIAL_ACHIEVEMENTS: UserAchievement[] = [
+export const INITIAL_ACHIEVEMENTS: UserAchievement[] = [
+  // Track 1: Reader (مسار القراءة)
   {
-    id: 'first_page',
-    title: 'وسام البداية البرونزي 🥉',
-    description: 'بدأت رحلة القراءة وتصفح أولى صفحات كتاب الرحيق المختوم',
+    id: 'reader_b',
+    trackId: 'reader',
+    trackTitle: 'مسار إبحار القراءة',
+    title: 'القارئ الواعد 🥉',
+    description: 'إتمام قراءة 10 صفحات مباركة من الكتاب',
     icon: 'menu_book',
     tier: 'bronze',
+    level: 1,
+    targetValue: 10,
     unlocked: false,
   },
   {
-    id: 'quiz_first',
-    title: 'وسام الاستكشاف البرونزي 🥉',
-    description: 'أتممت أول جلسة اختبار في السيرة النبوية بنجاح',
+    id: 'reader_s',
+    trackId: 'reader',
+    trackTitle: 'مسار إبحار القراءة',
+    title: 'القارئ السالك 🥈',
+    description: 'إتمام قراءة 50 صفحة مباركة من الكتاب',
+    icon: 'auto_stories',
+    tier: 'silver',
+    level: 2,
+    targetValue: 50,
+    unlocked: false,
+  },
+  {
+    id: 'reader_g',
+    trackId: 'reader',
+    trackTitle: 'مسار إبحار القراءة',
+    title: 'القارئ المبحر 🥇',
+    description: 'إتمام قراءة 150 صفحة مباركة من الكتاب',
+    icon: 'menu_book',
+    tier: 'gold',
+    level: 3,
+    targetValue: 150,
+    unlocked: false,
+  },
+  {
+    id: 'reader_d',
+    trackId: 'reader',
+    trackTitle: 'مسار إبحار القراءة',
+    title: 'خاتم الرحيق 💎✨',
+    description: 'إتمام قراءة 300+ صفحة مباركة من كتاب الرحيق المختوم',
+    icon: 'menu_book',
+    tier: 'diamond',
+    level: 4,
+    targetValue: 300,
+    unlocked: false,
+  },
+
+  // Track 2: Questions Solved (مسار إتقان الأسئلة)
+  {
+    id: 'questions_b',
+    trackId: 'questions',
+    trackTitle: 'مسار الإجابات الصحيحة',
+    title: 'الباحث المبتدئ 🥉',
+    description: 'إجابة 25 سؤالاً إجابة صحيحة موثقة',
     icon: 'quiz',
     tier: 'bronze',
+    level: 1,
+    targetValue: 25,
     unlocked: false,
   },
   {
-    id: 'reader_50',
-    title: 'وسام التبحر الذهبي 🥇',
-    description: 'أتممت قراءة 50 صفحة مباركة من كتاب الرحيق المختوم',
-    icon: 'auto_stories',
-    tier: 'gold',
+    id: 'questions_s',
+    trackId: 'questions',
+    trackTitle: 'مسار الإجابات الصحيحة',
+    title: 'الباحث المتقن 🥈',
+    description: 'إجابة 75 سؤالاً إجابة صحيحة موثقة',
+    icon: 'quiz',
+    tier: 'silver',
+    level: 2,
+    targetValue: 75,
     unlocked: false,
   },
   {
-    id: 'streak_3',
-    title: 'وسام المواظبة الذهبي 🥇',
-    description: 'حافظت على سلسلة تعلم يومية متصلة لمدة 3 أيام',
-    icon: 'local_fire_department',
-    tier: 'gold',
-    unlocked: false,
-  },
-  {
-    id: 'reader_100',
-    title: 'وسام الحفظ البلاتيني 🥈💎',
-    description: 'أتممت قراءة 100 صفحة في السيرة النبوية العطرة',
-    icon: 'menu_book',
-    tier: 'platinum',
-    unlocked: false,
-  },
-  {
-    id: 'quiz_100',
-    title: 'وسام الإتقان البلاتيني 🥈💎',
-    description: 'أجبت على أكثر من 100 سؤال إجابة صحيحة موثقة',
+    id: 'questions_g',
+    trackId: 'questions',
+    trackTitle: 'مسار الإجابات الصحيحة',
+    title: 'حافظ السيرة 🥇',
+    description: 'إجابة 150 سؤالاً إجابة صحيحة موثقة',
     icon: 'workspace_premium',
-    tier: 'platinum',
+    tier: 'gold',
+    level: 3,
+    targetValue: 150,
     unlocked: false,
   },
   {
-    id: 'mistakes_cleared',
-    title: 'وسام المراجعة البلاتيني 🥈💎',
-    description: 'صححت 10 أسئلة من بنك المراجعة الذكي وتجاوزت الأخطاء',
-    icon: 'task_alt',
-    tier: 'platinum',
-    unlocked: false,
-  },
-  {
-    id: 'master_all',
-    title: 'وسام علامة الرحيق الماسي 💎✨',
-    description: 'أتممت 300+ إجابة صحيحة وحققت درجة الإتقان الفائقة',
+    id: 'questions_d',
+    trackId: 'questions',
+    trackTitle: 'مسار الإجابات الصحيحة',
+    title: 'علامة السيرة النبوية 💎✨',
+    description: 'إجابة 300+ سؤالاً إجابة صحيحة وموثقة',
     icon: 'military_tech',
     tier: 'diamond',
+    level: 4,
+    targetValue: 300,
+    unlocked: false,
+  },
+
+  // Track 3: Streak (مسار سلسلة المواظبة)
+  {
+    id: 'streak_b',
+    trackId: 'streak',
+    trackTitle: 'مسار الاستمراية والمواظبة',
+    title: 'المواظب الواعد 🥉',
+    description: 'مواظبة على التعلم لمدة 2 يومين متتاليين',
+    icon: 'local_fire_department',
+    tier: 'bronze',
+    level: 1,
+    targetValue: 2,
+    unlocked: false,
+  },
+  {
+    id: 'streak_s',
+    trackId: 'streak',
+    trackTitle: 'مسار الاستمراية والمواظبة',
+    title: 'المثابر 🥈',
+    description: 'مواظبة على التعلم لمدة 5 أيام متتالية',
+    icon: 'local_fire_department',
+    tier: 'silver',
+    level: 2,
+    targetValue: 5,
+    unlocked: false,
+  },
+  {
+    id: 'streak_g',
+    trackId: 'streak',
+    trackTitle: 'مسار الاستمراية والمواظبة',
+    title: 'المواظب الملتزم 🥇',
+    description: 'مواظبة على التعلم لمدة 10 أيام متتالية',
+    icon: 'local_fire_department',
+    tier: 'gold',
+    level: 3,
+    targetValue: 10,
+    unlocked: false,
+  },
+  {
+    id: 'streak_d',
+    trackId: 'streak',
+    trackTitle: 'مسار الاستمراية والمواظبة',
+    title: 'الراسخ في المواظبة 💎✨',
+    description: 'مواظبة على التعلم لمدة 21 يوماً متواصلة',
+    icon: 'local_fire_department',
+    tier: 'diamond',
+    level: 4,
+    targetValue: 21,
+    unlocked: false,
+  },
+
+  // Track 4: Mistakes Clearance (مسار تصحيح الأخطاء)
+  {
+    id: 'mistakes_b',
+    trackId: 'mistakes',
+    trackTitle: 'مسار تصحيح الأخطاء',
+    title: 'المراجع المبتدئ 🥉',
+    description: 'تصحيح 3 أسئلة من بنك الأخطاء',
+    icon: 'task_alt',
+    tier: 'bronze',
+    level: 1,
+    targetValue: 3,
+    unlocked: false,
+  },
+  {
+    id: 'mistakes_s',
+    trackId: 'mistakes',
+    trackTitle: 'مسار تصحيح الأخطاء',
+    title: 'المصوب المتقن 🥈',
+    description: 'تصحيح 10 أسئلة من بنك الأخطاء',
+    icon: 'task_alt',
+    tier: 'silver',
+    level: 2,
+    targetValue: 10,
+    unlocked: false,
+  },
+  {
+    id: 'mistakes_g',
+    trackId: 'mistakes',
+    trackTitle: 'مسار تصحيح الأخطاء',
+    title: 'المتقن الحريص 🥇',
+    description: 'تصحيح 25 سؤالاً من بنك الأخطاء',
+    icon: 'task_alt',
+    tier: 'gold',
+    level: 3,
+    targetValue: 25,
+    unlocked: false,
+  },
+  {
+    id: 'mistakes_d',
+    trackId: 'mistakes',
+    trackTitle: 'مسار تصحيح الأخطاء',
+    title: 'قاهر الأخطاء 💎✨',
+    description: 'تصحيح 50+ سؤالاً وتطهير بنك الأخطاء بالكامل',
+    icon: 'task_alt',
+    tier: 'diamond',
+    level: 4,
+    targetValue: 50,
+    unlocked: false,
+  },
+
+  // Track 5: Quiz Sessions (مسار جلسات الاختبار)
+  {
+    id: 'sessions_b',
+    trackId: 'sessions',
+    trackTitle: 'مسار جلسات الاختبار',
+    title: 'المستكشف 🥉',
+    description: 'إتمام أول جلسة اختبار بنجاح',
+    icon: 'award',
+    tier: 'bronze',
+    level: 1,
+    targetValue: 1,
+    unlocked: false,
+  },
+  {
+    id: 'sessions_s',
+    trackId: 'sessions',
+    trackTitle: 'مسار جلسات الاختبار',
+    title: 'المتختبر المتمرس 🥈',
+    description: 'إتمام 5 جلسات اختبار كاملة',
+    icon: 'award',
+    tier: 'silver',
+    level: 2,
+    targetValue: 5,
+    unlocked: false,
+  },
+  {
+    id: 'sessions_g',
+    trackId: 'sessions',
+    trackTitle: 'مسار جلسات الاختبار',
+    title: 'فارس ساحة الاختبارات 🥇',
+    description: 'إتمام 15 جلسة اختبار كاملة',
+    icon: 'award',
+    tier: 'gold',
+    level: 3,
+    targetValue: 15,
+    unlocked: false,
+  },
+  {
+    id: 'sessions_d',
+    trackId: 'sessions',
+    trackTitle: 'مسار جلسات الاختبار',
+    title: 'أسطورة الاختبارات 💎✨',
+    description: 'إتمام 30+ جلسة اختبار كاملة',
+    icon: 'award',
+    tier: 'diamond',
+    level: 4,
+    targetValue: 30,
+    unlocked: false,
+  },
+
+  // Track 6: Accuracy (مسار الدقة والإتقان)
+  {
+    id: 'accuracy_b',
+    trackId: 'accuracy',
+    trackTitle: 'مسار دقة التحصيل',
+    title: 'الدقيق 🥉',
+    description: 'تحقيق درجة دقة 60% في جلسة اختبار',
+    icon: 'sparkles',
+    tier: 'bronze',
+    level: 1,
+    targetValue: 60,
+    unlocked: false,
+  },
+  {
+    id: 'accuracy_s',
+    trackId: 'accuracy',
+    trackTitle: 'مسار دقة التحصيل',
+    title: 'المتفوق 🥈',
+    description: 'تحقيق درجة دقة 75% في جلسة اختبار',
+    icon: 'sparkles',
+    tier: 'silver',
+    level: 2,
+    targetValue: 75,
+    unlocked: false,
+  },
+  {
+    id: 'accuracy_g',
+    trackId: 'accuracy',
+    trackTitle: 'مسار دقة التحصيل',
+    title: 'المتقن الفائق 🥇',
+    description: 'تحقيق درجة دقة 90% في جلسة اختبار',
+    icon: 'sparkles',
+    tier: 'gold',
+    level: 3,
+    targetValue: 90,
+    unlocked: false,
+  },
+  {
+    id: 'accuracy_d',
+    trackId: 'accuracy',
+    trackTitle: 'مسار دقة التحصيل',
+    title: 'صاحب الدرجة الكاملة 💎✨',
+    description: 'تحقيق نسبة 100% كاملة في جلسة اختبار',
+    icon: 'sparkles',
+    tier: 'diamond',
+    level: 4,
+    targetValue: 100,
     unlocked: false,
   },
 ];
@@ -315,52 +550,59 @@ export const useAppStore = create<AppState>()(
       // Achievements
       achievements: INITIAL_ACHIEVEMENTS,
       checkAchievements: () => {
-        const { currentPage, quizHistory, answeredQuestions, streak, achievements } = get();
+        const { currentPage, quizHistory, answeredQuestions, streak, mistakesBank, achievements } = get();
 
         const correctCount = Object.values(answeredQuestions).filter((a) => a.isCorrect).length;
+        const totalSolved = Object.keys(answeredQuestions).length;
+        const mistakesCorrected = Math.max(0, totalSolved - Object.keys(mistakesBank).length);
+        const totalSessions = quizHistory.length;
+        const maxAccuracy = quizHistory.length > 0
+          ? Math.max(...quizHistory.map((q) => q.scorePercentage))
+          : 0;
 
-        const updated = achievements.map((ach) => {
-          // Guarantee tier is defined even for legacy localStorage data
-          const initialAch = INITIAL_ACHIEVEMENTS.find((i) => i.id === ach.id);
-          const safeTier = ach.tier || initialAch?.tier || 'bronze';
-          const safeTitle = initialAch?.title || ach.title;
+        // Ensure all 24 achievements exist even if loaded from older localStorage state
+        const currentAchMap = new Map(achievements.map((a) => [a.id, a]));
 
-          if (ach.unlocked) {
-            return { ...ach, tier: safeTier, title: safeTitle };
-          }
+        const updated = INITIAL_ACHIEVEMENTS.map((initialAch) => {
+          const existing = currentAchMap.get(initialAch.id);
+          const isUnlocked = existing?.unlocked || false;
+          const unlockedAt = existing?.unlockedAt || undefined;
 
-          let unlock = false;
-
-          switch (ach.id) {
-            case 'first_page':
-              unlock = currentPage >= 1;
+          let currentValue = 0;
+          switch (initialAch.trackId) {
+            case 'reader':
+              currentValue = currentPage;
               break;
-            case 'reader_50':
-              unlock = currentPage >= 50;
+            case 'questions':
+              currentValue = correctCount;
               break;
-            case 'reader_100':
-              unlock = currentPage >= 100;
+            case 'streak':
+              currentValue = streak;
               break;
-            case 'quiz_first':
-              unlock = quizHistory.length >= 1;
+            case 'mistakes':
+              currentValue = mistakesCorrected;
               break;
-            case 'streak_3':
-              unlock = streak >= 3;
+            case 'sessions':
+              currentValue = totalSessions;
               break;
-            case 'quiz_100':
-              unlock = correctCount >= 100;
-              break;
-            case 'master_all':
-              unlock = correctCount >= 300;
+            case 'accuracy':
+              currentValue = maxAccuracy;
               break;
             default:
+              currentValue = 0;
               break;
           }
 
-          if (unlock) {
-            return { ...ach, tier: safeTier, title: safeTitle, unlocked: true, unlockedAt: new Date().toLocaleDateString('ar-EG') };
-          }
-          return { ...ach, tier: safeTier, title: safeTitle };
+          const shouldUnlock = isUnlocked || currentValue >= initialAch.targetValue;
+
+          return {
+            ...initialAch,
+            currentValue,
+            unlocked: shouldUnlock,
+            unlockedAt: shouldUnlock
+              ? unlockedAt || new Date().toLocaleDateString('ar-EG')
+              : undefined,
+          };
         });
 
         set({ achievements: updated });
