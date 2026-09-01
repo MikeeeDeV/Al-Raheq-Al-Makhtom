@@ -44,7 +44,7 @@ export const AboutModal: React.FC = () => {
           </p>
           <div className="flex flex-wrap gap-2 pt-1">
             <span className="px-3 py-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 rounded-full text-xs font-semibold">
-              🏆 المركز الأول عالمياً
+              اسأل الله ان يكون عملى هذا مقبولا
             </span>
             <span className="px-3 py-1 bg-amber-500/10 text-amber-700 dark:text-amber-300 rounded-full text-xs font-semibold">
               📚 1,200 سؤال وجواب

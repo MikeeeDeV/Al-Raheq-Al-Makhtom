@@ -1,5 +1,5 @@
-import React from 'react';
-import { useAppStore } from './store/useAppStore';
+import React, { useEffect } from 'react';
+import { useAppStore, getInitialViewFromUrl } from './store/useAppStore';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { HomeView } from './views/HomeView';
@@ -12,9 +12,29 @@ import { AboutModal } from './components/AboutModal';
 import { InstallPwaModal } from './components/InstallPwaModal';
 import { GiftDedicationModal } from './components/GiftDedicationModal';
 import { SeoMeta } from './components/SeoMeta';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const App: React.FC = () => {
   const { currentView } = useAppStore();
+
+  // Sync URL changes (Browser Back / Forward / Refresh) with Zustand view state
+  useEffect(() => {
+    const handleUrlChange = () => {
+      const view = getInitialViewFromUrl();
+      useAppStore.getState().setCurrentViewWithoutUrlUpdate(view);
+    };
+
+    window.addEventListener('popstate', handleUrlChange);
+    window.addEventListener('hashchange', handleUrlChange);
+
+    // Run initial URL check on mount
+    handleUrlChange();
+
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange);
+      window.removeEventListener('hashchange', handleUrlChange);
+    };
+  }, []);
 
   const getSeoDetails = () => {
     switch (currentView) {
@@ -84,9 +104,19 @@ export const App: React.FC = () => {
       {/* Top Sticky Header */}
       <Navbar />
 
-      {/* Main Container */}
+      {/* Main Animated View Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-6">
-        {renderView()}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentView}
+            initial={{ opacity: 0, y: 14, scale: 0.985 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -14, scale: 0.985 }}
+            transition={{ duration: 0.24, ease: [0.25, 1, 0.5, 1] }}
+          >
+            {renderView()}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Bottom Footer */}

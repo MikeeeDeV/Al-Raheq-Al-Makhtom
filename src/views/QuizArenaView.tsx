@@ -322,24 +322,29 @@ export const QuizArenaView: React.FC = () => {
               let textColor = 'text-m3-onSurface';
               let badgeIcon = null;
 
+              let animClass = '';
               if (hasAnswered) {
                 if (isCorrectOption) {
                   cardBg = 'bg-emerald-500/15 border-emerald-600 text-emerald-900 dark:text-emerald-200 font-bold';
-                  badgeIcon = <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />;
+                  badgeIcon = <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 animate-bounce-gentle" />;
+                  animClass = 'animate-pulse-glow';
                 } else if (isSelected) {
                   cardBg = 'bg-red-500/15 border-red-600 text-red-900 dark:text-red-200 font-bold';
                   badgeIcon = <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />;
+                  animClass = 'animate-shake';
                 } else {
                   cardBg = 'opacity-40 bg-m3-surface border-transparent';
                 }
               }
 
               return (
-                <button
+                <motion.button
                   key={idx}
+                  whileHover={!hasAnswered ? { scale: 1.015, x: -4 } : {}}
+                  whileTap={!hasAnswered ? { scale: 0.985 } : {}}
                   disabled={hasAnswered}
                   onClick={() => handleOptionClick(option)}
-                  className={`w-full p-4 rounded-2xl border text-right transition-all flex items-center justify-between gap-4 ${cardBg} ${textColor} active:scale-[0.99] cursor-pointer`}
+                  className={`w-full p-4 rounded-2xl border text-right transition-all flex items-center justify-between gap-4 ${cardBg} ${textColor} ${animClass} cursor-pointer`}
                 >
                   <div className="flex items-center gap-3">
                     <span className="w-7 h-7 rounded-full bg-m3-surface-container dark:bg-m3-surface-darkContainer text-m3-onSurface font-bold text-xs flex items-center justify-center border border-m3-outline-variant/30">
@@ -348,7 +353,7 @@ export const QuizArenaView: React.FC = () => {
                     <span className="text-sm md:text-base font-medium">{option}</span>
                   </div>
                   {badgeIcon}
-                </button>
+                </motion.button>
               );
             })}
           </div>

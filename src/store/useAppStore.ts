@@ -20,6 +20,7 @@ interface AppState {
   // Navigation
   currentView: AppView;
   setCurrentView: (view: AppView) => void;
+  setCurrentViewWithoutUrlUpdate: (view: AppView) => void;
   activeQuizSection: number | null;
   activeQuizMode: 'relaxed' | 'timed';
   startQuiz: (sectionId: number, mode?: 'relaxed' | 'timed') => void;
@@ -367,6 +368,28 @@ export const INITIAL_ACHIEVEMENTS: UserAchievement[] = [
   },
 ];
 
+export const getInitialViewFromUrl = (): AppView => {
+  if (typeof window === 'undefined') return 'home';
+  const path = window.location.pathname.replace(/^\//, '').toLowerCase();
+  const hash = window.location.hash.replace(/^#/, '').toLowerCase();
+  const validViews: AppView[] = ['reader', 'quiz', 'mistakes', 'analytics', 'home'];
+  if (validViews.includes(path as AppView)) return path as AppView;
+  if (validViews.includes(hash as AppView)) return hash as AppView;
+  return 'home';
+};
+
+export const updateUrlForView = (view: AppView) => {
+  if (typeof window === 'undefined') return;
+  const targetPath = view === 'home' ? '/' : `/${view}`;
+  if (window.location.pathname !== targetPath) {
+    try {
+      window.history.pushState({ view }, '', targetPath);
+    } catch {
+      window.location.hash = view === 'home' ? '' : `#${view}`;
+    }
+  }
+};
+
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
@@ -422,12 +445,17 @@ export const useAppStore = create<AppState>()(
         }
       },
 
-      currentView: 'home',
-      setCurrentView: (view) => set({ currentView: view }),
+      currentView: getInitialViewFromUrl(),
+      setCurrentView: (view) => {
+        updateUrlForView(view);
+        set({ currentView: view });
+      },
+      setCurrentViewWithoutUrlUpdate: (view) => set({ currentView: view }),
 
       activeQuizSection: null,
       activeQuizMode: 'relaxed',
       startQuiz: (sectionId, mode = 'relaxed') => {
+        updateUrlForView('quiz');
         set({
           activeQuizSection: sectionId,
           activeQuizMode: mode,

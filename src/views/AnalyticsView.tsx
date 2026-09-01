@@ -157,8 +157,7 @@ export const AnalyticsView: React.FC = () => {
           لوحة الإحصائيات والأوسمة المتاحة
         </h1>
         <p className="text-xs sm:text-sm text-m3-onSurface-variant mt-1">
-          نظام الأوسمة المتقدم (برونزي 🥉 ← فضي 🥈 ← ذهبي 🥇 ← ماسي 💎✨) لكافة مسارات التعلم
-        </p>
+          نظام الأوسمة (برونزي 🥉 ← فضي 🥈 ← ذهبي 🥇 ← ماسي 💎✨) لكافة مسارات التعلم </p>
       </div>
 
       {/* Top 4 Elevated Metric Cards */}
@@ -295,51 +294,46 @@ export const AnalyticsView: React.FC = () => {
             <div className="flex items-center gap-1 p-1 bg-m3-surface-container dark:bg-m3-surface-darkContainer rounded-full border border-m3-outline-variant/20">
               <button
                 onClick={() => setSelectedTierFilter('all')}
-                className={`px-3 py-1 rounded-full text-xs font-bold transition ${
-                  selectedTierFilter === 'all'
+                className={`px-3 py-1 rounded-full text-xs font-bold transition ${selectedTierFilter === 'all'
                     ? 'bg-m3-primary text-white'
                     : 'text-m3-onSurface-variant hover:text-m3-onSurface'
-                }`}
+                  }`}
               >
                 الكل
               </button>
               <button
                 onClick={() => setSelectedTierFilter('bronze')}
-                className={`px-2.5 py-1 rounded-full text-xs font-bold transition ${
-                  selectedTierFilter === 'bronze'
+                className={`px-2.5 py-1 rounded-full text-xs font-bold transition ${selectedTierFilter === 'bronze'
                     ? 'bg-amber-800 text-white'
                     : 'text-m3-onSurface-variant hover:text-m3-onSurface'
-                }`}
+                  }`}
               >
                 برونزي 🥉
               </button>
               <button
                 onClick={() => setSelectedTierFilter('silver')}
-                className={`px-2.5 py-1 rounded-full text-xs font-bold transition ${
-                  selectedTierFilter === 'silver'
+                className={`px-2.5 py-1 rounded-full text-xs font-bold transition ${selectedTierFilter === 'silver'
                     ? 'bg-slate-600 text-white'
                     : 'text-m3-onSurface-variant hover:text-m3-onSurface'
-                }`}
+                  }`}
               >
                 فضي 🥈
               </button>
               <button
                 onClick={() => setSelectedTierFilter('gold')}
-                className={`px-2.5 py-1 rounded-full text-xs font-bold transition ${
-                  selectedTierFilter === 'gold'
+                className={`px-2.5 py-1 rounded-full text-xs font-bold transition ${selectedTierFilter === 'gold'
                     ? 'bg-amber-500 text-white'
                     : 'text-m3-onSurface-variant hover:text-m3-onSurface'
-                }`}
+                  }`}
               >
                 ذهبي 🥇
               </button>
               <button
                 onClick={() => setSelectedTierFilter('diamond')}
-                className={`px-2.5 py-1 rounded-full text-xs font-bold transition ${
-                  selectedTierFilter === 'diamond'
+                className={`px-2.5 py-1 rounded-full text-xs font-bold transition ${selectedTierFilter === 'diamond'
                     ? 'bg-emerald-600 text-white'
                     : 'text-m3-onSurface-variant hover:text-m3-onSurface'
-                }`}
+                  }`}
               >
                 ماسي 💎✨
               </button>
@@ -363,12 +357,12 @@ export const AnalyticsView: React.FC = () => {
             return (
               <motion.div
                 key={ach.id}
-                whileHover={{ y: -3 }}
-                className={`p-5 rounded-3xl border text-right transition-all flex flex-col justify-between space-y-4 relative overflow-hidden ${cardBg}`}
+                whileHover={{ y: -6, scale: 1.025 }}
+                className={`p-5 rounded-3xl border text-right transition-all flex flex-col justify-between space-y-4 relative overflow-hidden shadow-xs hover:shadow-m3-2 ${cardBg}`}
               >
                 {/* Track Badge Header */}
                 <div className="flex items-center justify-between">
-                  <div className="p-2.5 bg-m3-surface/60 dark:bg-m3-surface-dark/60 rounded-2xl border border-m3-outline-variant/20 shadow-xs">
+                  <div className="p-2.5 bg-m3-surface/60 dark:bg-m3-surface-dark/60 rounded-2xl border border-m3-outline-variant/20 shadow-xs animate-float">
                     {icon}
                   </div>
                   <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${chipBg}`}>
@@ -404,9 +398,11 @@ export const AnalyticsView: React.FC = () => {
                       <span>{currentVal} / {ach.targetValue} ({progressPercent}%)</span>
                     </div>
                     <div className="w-full bg-m3-outline-variant/30 h-2 rounded-full overflow-hidden">
-                      <div
-                        className="bg-m3-primary h-full rounded-full transition-all duration-500"
-                        style={{ width: `${progressPercent}%` }}
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progressPercent}%` }}
+                        transition={{ duration: 0.8, ease: 'easeOut' }}
+                        className="bg-m3-primary h-full rounded-full"
                       />
                     </div>
                   </div>
