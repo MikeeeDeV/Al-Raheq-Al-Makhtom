@@ -1,7 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://xyzcompany.supabase.co';
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummykey';
+const SUPABASE_URL =
+  import.meta.env.VITE_SUPABASE_URL ||
+  import.meta.env.NEXT_PUBLIC_SUPABASE_URL ||
+  'https://xyzcompany.supabase.co';
+
+const SUPABASE_ANON_KEY =
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  import.meta.env.SUPABASE_ANON_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummykey';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -29,7 +37,7 @@ export interface DbTestResult {
  */
 export async function syncUserProgressToSupabase(record: UserProgressRecord) {
   try {
-    if (!import.meta.env.VITE_SUPABASE_URL) return;
+    if (!SUPABASE_URL || SUPABASE_URL.includes('xyzcompany')) return;
 
     let userId = localStorage.getItem('alraheeq_supabase_uid');
     if (!userId) {
@@ -64,7 +72,7 @@ export async function testSupabaseDatabaseConnection(): Promise<DbTestResult> {
   const startTime = performance.now();
 
   try {
-    const isConfigured = !!import.meta.env.VITE_SUPABASE_URL;
+    const isConfigured = !!SUPABASE_URL && !SUPABASE_URL.includes('xyzcompany');
 
     // Test a ping / query operation on Supabase
     const { data, error } = await supabase.from('alraheeq_progress').select('count', { count: 'exact', head: true });

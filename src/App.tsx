@@ -7,6 +7,7 @@ import { SeoMeta } from './components/SeoMeta';
 import { trackNewVisitorSession, sendErrorTelemetryToTelegram } from './services/telegramTelemetry';
 import { initGoogleAnalytics } from './services/googleAnalytics';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Analytics } from '@vercel/analytics/react';
 
 // Lazy-loaded Views for Instant Initial Paint & Code Splitting (Lighthouse 90+ Score)
 const ReaderView = lazy(() => import('./views/ReaderView'));
@@ -202,6 +203,9 @@ export const App: React.FC = () => {
           <BadgeUnlockModal key="badge-modal" />
         </AnimatePresence>
       </Suspense>
+
+      {/* Vercel Web Analytics */}
+      <Analytics />
     </div>
   );
 };
