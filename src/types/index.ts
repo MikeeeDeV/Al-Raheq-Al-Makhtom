@@ -66,11 +66,14 @@ export interface QuizHistoryEntry {
 
 export type ReaderTheme = 'paper' | 'sepia' | 'night';
 
+export type BadgeTier = 'bronze' | 'gold' | 'platinum' | 'diamond';
+
 export interface UserAchievement {
   id: string;
   title: string;
   description: string;
   icon: string;
+  tier: BadgeTier;
   unlocked: boolean;
   unlockedAt?: string;
 }

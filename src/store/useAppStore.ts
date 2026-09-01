@@ -66,58 +66,66 @@ interface AppState {
 const INITIAL_ACHIEVEMENTS: UserAchievement[] = [
   {
     id: 'first_page',
-    title: 'خطوة البداية',
-    description: 'بدأت قراءة أولى صفحات كتاب الرحيق المختوم',
+    title: 'وسام البداية البرونزي 🥉',
+    description: 'بدأت رحلة القراءة وتصفح أولى صفحات كتاب الرحيق المختوم',
     icon: 'menu_book',
-    unlocked: false,
-  },
-  {
-    id: 'reader_50',
-    title: 'قارئ مبحر',
-    description: 'قرأت أكثر من 50 صفحة في السيرة النبوية',
-    icon: 'auto_stories',
-    unlocked: false,
-  },
-  {
-    id: 'reader_100',
-    title: 'خبير الصفحات',
-    description: 'قرأت 100 صفحة من كتاب الرحيق المختوم',
-    icon: 'menu_book',
+    tier: 'bronze',
     unlocked: false,
   },
   {
     id: 'quiz_first',
-    title: 'باحث السيرة',
-    description: 'أتممت أول اختبار في السيرة النبوية',
+    title: 'وسام الاستكشاف البرونزي 🥉',
+    description: 'أتممت أول جلسة اختبار في السيرة النبوية بنجاح',
     icon: 'quiz',
+    tier: 'bronze',
+    unlocked: false,
+  },
+  {
+    id: 'reader_50',
+    title: 'وسام التبحر الذهبي 🥇',
+    description: 'أتممت قراءة 50 صفحة مباركة من كتاب الرحيق المختوم',
+    icon: 'auto_stories',
+    tier: 'gold',
     unlocked: false,
   },
   {
     id: 'streak_3',
-    title: 'المواظب',
-    description: 'حافظت على سلسلة تعلم لمدة 3 أيام متتالية',
+    title: 'وسام المواظبة الذهبي 🥇',
+    description: 'حافظت على سلسلة تعلم يومية متصلة لمدة 3 أيام',
     icon: 'local_fire_department',
+    tier: 'gold',
+    unlocked: false,
+  },
+  {
+    id: 'reader_100',
+    title: 'وسام الحفظ البلاتيني 🥈💎',
+    description: 'أتممت قراءة 100 صفحة في السيرة النبوية العطرة',
+    icon: 'menu_book',
+    tier: 'platinum',
     unlocked: false,
   },
   {
     id: 'quiz_100',
-    title: 'حافظ السيرة',
-    description: 'أجبت على أكثر من 100 سؤال إجابة صحيحة',
+    title: 'وسام الإتقان البلاتيني 🥈💎',
+    description: 'أجبت على أكثر من 100 سؤال إجابة صحيحة موثقة',
     icon: 'workspace_premium',
+    tier: 'platinum',
     unlocked: false,
   },
   {
     id: 'mistakes_cleared',
-    title: 'المتقن',
-    description: 'صححت 10 أسئلة من بنك المراجعة الذكي',
+    title: 'وسام المراجعة البلاتيني 🥈💎',
+    description: 'صححت 10 أسئلة من بنك المراجعة الذكي وتجاوزت الأخطاء',
     icon: 'task_alt',
+    tier: 'platinum',
     unlocked: false,
   },
   {
     id: 'master_all',
-    title: 'علامة الرحيق',
-    description: 'حققت نسبة إتقان تتجاوز 80% في كافة الأجزاء',
+    title: 'وسام علامة الرحيق الماسي 💎✨',
+    description: 'أتممت 300+ إجابة صحيحة وحققت درجة الإتقان الفائقة',
     icon: 'military_tech',
+    tier: 'diamond',
     unlocked: false,
   },
 ];
@@ -335,7 +343,7 @@ export const useAppStore = create<AppState>()(
               unlock = correctCount >= 100;
               break;
             case 'master_all':
-              unlock = correctCount >= 500;
+              unlock = correctCount >= 300;
               break;
             default:
               break;

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { SECTIONS_INFO } from '../data/sectionsInfo';
+import { BadgeTier } from '../types';
 import {
   Flame,
   BookOpen,
@@ -10,7 +11,10 @@ import {
   BarChart3,
   PieChart as PieChartIcon,
   ShieldCheck,
-  Zap,
+  Sparkles,
+  Medal,
+  Crown,
+  Diamond,
 } from 'lucide-react';
 import {
   RadarChart,
@@ -33,8 +37,9 @@ export const AnalyticsView: React.FC = () => {
     totalPages,
     answeredQuestions,
     achievements,
-    quizHistory,
   } = useAppStore();
+
+  const [selectedTierFilter, setSelectedTierFilter] = useState<'all' | BadgeTier>('all');
 
   const totalSolved = Object.keys(answeredQuestions).length;
   const correctCount = Object.values(answeredQuestions).filter((a) => a.isCorrect).length;
@@ -43,7 +48,6 @@ export const AnalyticsView: React.FC = () => {
 
   // Radar Data per Section
   const radarData = SECTIONS_INFO.map((sec) => {
-    // calculate solved questions for this section
     const sectionSolved = Object.entries(answeredQuestions).filter(([qId]) => {
       const idNum = parseInt(qId, 10);
       const minId = (sec.id - 1) * 300 + 1;
@@ -67,15 +71,61 @@ export const AnalyticsView: React.FC = () => {
     { name: 'إجابات خاطئة', value: wrongCount || 0, color: '#BA1A1A' },
   ];
 
+  const filteredAchievements = selectedTierFilter === 'all'
+    ? achievements
+    : achievements.filter((a) => a.tier === selectedTierFilter);
+
+  const getTierBadgeStyle = (tier: BadgeTier, unlocked: boolean) => {
+    if (!unlocked) {
+      return {
+        cardBg: 'bg-m3-surface-dim/40 dark:bg-m3-surface-darkContainer/40 border-m3-outline-variant/20 opacity-50 grayscale',
+        chipBg: 'bg-gray-500/20 text-gray-700 dark:text-gray-300',
+        label: 'مغلق',
+        icon: <ShieldCheck className="w-5 h-5 text-gray-400" />,
+      };
+    }
+
+    switch (tier) {
+      case 'bronze':
+        return {
+          cardBg: 'bg-amber-900/10 dark:bg-amber-900/20 border-amber-700/50 shadow-m3-1',
+          chipBg: 'bg-amber-800 text-amber-100 font-bold',
+          label: 'وسام برونزي 🥉',
+          icon: <Medal className="w-5 h-5 text-amber-700 dark:text-amber-500" />,
+        };
+      case 'gold':
+        return {
+          cardBg: 'bg-gradient-to-br from-amber-500/20 via-yellow-500/10 to-amber-600/20 border-amber-400 shadow-m3-2',
+          chipBg: 'bg-amber-500 text-white font-bold shadow-sm',
+          label: 'وسام ذهبي 🥇',
+          icon: <Award className="w-5 h-5 text-amber-500" />,
+        };
+      case 'platinum':
+        return {
+          cardBg: 'bg-gradient-to-br from-slate-300/20 via-cyan-400/10 to-slate-400/20 border-cyan-400 shadow-m3-2',
+          chipBg: 'bg-cyan-600 text-white font-bold shadow-sm',
+          label: 'وسام بلاتيني 🥈💎',
+          icon: <Crown className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />,
+        };
+      case 'diamond':
+        return {
+          cardBg: 'bg-gradient-to-br from-emerald-500/20 via-cyan-500/20 to-indigo-500/20 border-emerald-400 shadow-m3-3 ring-2 ring-emerald-400/30',
+          chipBg: 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-black shadow-md',
+          label: 'وسام ماسي 💎✨',
+          icon: <Diamond className="w-5 h-5 text-emerald-500 animate-pulse" />,
+        };
+    }
+  };
+
   return (
     <div className="space-y-8 pb-12">
       {/* Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-black text-m3-onSurface tracking-tight">
-          لوحة الإحصائيات والإنجازات
+          لوحة الإحصائيات والأوسمة
         </h1>
         <p className="text-xs sm:text-sm text-m3-onSurface-variant mt-1">
-          رصد دقيق لمستوى التحصيل العلمي والتقدم في دراسة السيرة النبوية النيرة
+          رصد دقيق لمستوى التحصيل العلمي والأوسمة المفتوحة في دراسة السيرة النبوية النيرة
         </p>
       </div>
 
@@ -181,43 +231,106 @@ export const AnalyticsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Gamified Milestone Badges Gallery */}
+      {/* Tiered Gamified Milestone Badges Gallery */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2 text-m3-onSurface font-black text-xl">
-          <Award className="w-6 h-6 text-amber-500" />
-          <span>شارات الوسام المفتوحة</span>
-        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-m3-onSurface font-black text-xl">
+            <Award className="w-6 h-6 text-amber-500" />
+            <span>شارات الوسام المفتوحة (برونزية - ذهبية - بلاتينية - ماسية)</span>
+          </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {achievements.map((ach) => (
-            <motion.div
-              key={ach.id}
-              whileHover={{ y: -3 }}
-              className={`p-4 rounded-2xl border text-right transition-all flex flex-col justify-between space-y-3 ${
-                ach.unlocked
-                  ? 'bg-m3-primary-container/40 dark:bg-m3-primary-containerDark/40 border-m3-primary/40 text-m3-onSurface'
-                  : 'bg-m3-surface-dim/40 dark:bg-m3-surface-darkContainer/40 border-m3-outline-variant/20 opacity-50 grayscale'
+          {/* Tier Filter Pills */}
+          <div className="flex flex-wrap items-center gap-1.5 p-1 bg-m3-surface-container dark:bg-m3-surface-darkContainer rounded-full border border-m3-outline-variant/20 self-start">
+            <button
+              onClick={() => setSelectedTierFilter('all')}
+              className={`px-3 py-1 rounded-full text-xs font-bold transition ${
+                selectedTierFilter === 'all'
+                  ? 'bg-m3-primary text-white'
+                  : 'text-m3-onSurface-variant hover:text-m3-onSurface'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <span className="p-2 bg-m3-primary/10 rounded-xl text-m3-primary">
-                  <ShieldCheck className="w-5 h-5" />
-                </span>
-                {ach.unlocked && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-600 text-white rounded-full">
-                    مفتوح
-                  </span>
-                )}
-              </div>
+              الكل
+            </button>
+            <button
+              onClick={() => setSelectedTierFilter('bronze')}
+              className={`px-3 py-1 rounded-full text-xs font-bold transition ${
+                selectedTierFilter === 'bronze'
+                  ? 'bg-amber-800 text-white'
+                  : 'text-m3-onSurface-variant hover:text-m3-onSurface'
+              }`}
+            >
+              برونزي 🥉
+            </button>
+            <button
+              onClick={() => setSelectedTierFilter('gold')}
+              className={`px-3 py-1 rounded-full text-xs font-bold transition ${
+                selectedTierFilter === 'gold'
+                  ? 'bg-amber-500 text-white'
+                  : 'text-m3-onSurface-variant hover:text-m3-onSurface'
+              }`}
+            >
+              ذهبي 🥇
+            </button>
+            <button
+              onClick={() => setSelectedTierFilter('platinum')}
+              className={`px-3 py-1 rounded-full text-xs font-bold transition ${
+                selectedTierFilter === 'platinum'
+                  ? 'bg-cyan-600 text-white'
+                  : 'text-m3-onSurface-variant hover:text-m3-onSurface'
+              }`}
+            >
+              بلاتيني 🥈💎
+            </button>
+            <button
+              onClick={() => setSelectedTierFilter('diamond')}
+              className={`px-3 py-1 rounded-full text-xs font-bold transition ${
+                selectedTierFilter === 'diamond'
+                  ? 'bg-emerald-600 text-white'
+                  : 'text-m3-onSurface-variant hover:text-m3-onSurface'
+              }`}
+            >
+              ماسي 💎✨
+            </button>
+          </div>
+        </div>
 
-              <div>
-                <h4 className="font-bold text-sm text-m3-onSurface">{ach.title}</h4>
-                <p className="text-xs text-m3-onSurface-variant mt-1 leading-normal">
-                  {ach.description}
-                </p>
-              </div>
-            </motion.div>
-          ))}
+        {/* Badges Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {filteredAchievements.map((ach) => {
+            const style = getTierBadgeStyle(ach.tier, ach.unlocked);
+            return (
+              <motion.div
+                key={ach.id}
+                whileHover={{ y: -3 }}
+                className={`p-5 rounded-3xl border text-right transition-all flex flex-col justify-between space-y-4 ${style.cardBg}`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="p-2.5 bg-m3-surface/60 dark:bg-m3-surface-dark/60 rounded-2xl border border-m3-outline-variant/20 shadow-xs">
+                    {style.icon}
+                  </div>
+                  <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${style.chipBg}`}>
+                    {style.label}
+                  </span>
+                </div>
+
+                <div className="space-y-1">
+                  <h4 className="font-extrabold text-sm text-m3-onSurface flex items-center gap-1">
+                    <span>{ach.title}</span>
+                  </h4>
+                  <p className="text-xs text-m3-onSurface-variant leading-relaxed">
+                    {ach.description}
+                  </p>
+                </div>
+
+                {ach.unlocked && ach.unlockedAt && (
+                  <div className="pt-2 border-t border-m3-outline-variant/10 text-[11px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>تم الفتح في: {ach.unlockedAt}</span>
+                  </div>
+                )}
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </div>
