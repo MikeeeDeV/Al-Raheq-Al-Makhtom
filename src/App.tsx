@@ -9,6 +9,7 @@ import { MistakesBankView } from './views/MistakesBankView';
 import { AnalyticsView } from './views/AnalyticsView';
 import { ShareModal } from './components/ShareModal';
 import { AboutModal } from './components/AboutModal';
+import { InstallPwaModal } from './components/InstallPwaModal';
 
 export const App: React.FC = () => {
   const { currentView } = useAppStore();
@@ -46,6 +47,7 @@ export const App: React.FC = () => {
       {/* Dynamic Modals */}
       <ShareModal />
       <AboutModal />
+      <InstallPwaModal />
     </div>
   );
 };

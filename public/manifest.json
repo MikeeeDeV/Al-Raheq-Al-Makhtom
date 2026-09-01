@@ -1,0 +1,24 @@
+{
+  "short_name": "الرحيق المختوم",
+  "name": "الرحيق المختوم - منصة السيرة النبوية التفاعلية",
+  "icons": [
+    {
+      "src": "/pwa-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/pwa-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0D6E4F",
+  "theme_color": "#0D6E4F",
+  "display": "standalone",
+  "orientation": "portrait",
+  "dir": "rtl",
+  "lang": "ar",
+  "description": "منظومة تفاعلية متكاملة لقراءة ودراسة السيرة النبوية المباركة من كتاب الرحيق المختوم"
+}
