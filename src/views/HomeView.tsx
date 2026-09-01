@@ -103,49 +103,95 @@ export const HomeView: React.FC = () => {
       </motion.section>
 
       {/* 🌟 Daily Challenge Interactive Hero Banner Widget */}
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="p-4 sm:p-6 bg-gradient-to-r from-amber-500/15 via-emerald-500/10 to-teal-500/15 rounded-3xl border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 shadow-m3-1 relative overflow-hidden"
-      >
-        <div className="flex items-center gap-3 text-right">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0 border border-amber-400/40 shadow-xs">
-            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 animate-pulse" />
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-2.5 py-0.5 bg-amber-500 text-slate-950 font-black text-[10px] sm:text-[11px] rounded-full shadow-xs flex items-center gap-1">
-                <Zap className="w-3 h-3 fill-slate-950 text-slate-950" />
-                <span>تحدي يومي +50 XP</span>
-              </span>
-              <span className="text-[11px] sm:text-xs text-m3-onSurface-variant font-bold">
-                سلسلة التحديات: {useAppStore.getState().dailyChallengeState.streakCount || 0}d
-              </span>
-            </div>
-            <h3 className="text-sm sm:text-base font-black text-m3-onSurface">
-              سؤال اليوم التوثيقي في السيرة النبوية
-            </h3>
-            <p className="text-[11px] sm:text-xs text-m3-onSurface-variant leading-relaxed font-medium">
-              جاوب على سؤال اليوم المتجدد لترقية أوسمتك وزيادة نقاط المعرفة بالسيرة النبوية.
-            </p>
-          </div>
-        </div>
+      {(() => {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const dailyState = useAppStore.getState().dailyChallengeState;
+        const isDailyAnswered = dailyState.date === todayStr && dailyState.answered;
 
-        <motion.button
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => useAppStore.getState().setDailyChallengeModalOpen(true)}
-          className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs rounded-2xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer shrink-0"
-        >
-          <Zap className="w-3.5 h-3.5 fill-slate-950" />
-          <span>
-            {useAppStore.getState().dailyChallengeState.date === new Date().toISOString().split('T')[0] &&
-            useAppStore.getState().dailyChallengeState.answered
-              ? 'عرض نتيجة سؤال اليوم'
-              : 'دخول تحدي اليوم الان'}
-          </span>
-        </motion.button>
-      </motion.div>
+        if (isDailyAnswered) {
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 sm:p-6 bg-gradient-to-r from-emerald-950/90 via-teal-900/80 to-emerald-900/90 rounded-3xl border border-emerald-500/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 shadow-m3-2 relative overflow-hidden text-white"
+            >
+              <div className="flex items-center gap-3 text-right">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0 border border-emerald-400/40 shadow-xs">
+                  <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="px-2.5 py-0.5 bg-emerald-500 text-slate-950 font-black text-[10px] sm:text-[11px] rounded-full shadow-xs flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-slate-950" />
+                      <span>تم إتمام سؤال اليوم (+50 XP)</span>
+                    </span>
+                    <span className="text-[11px] sm:text-xs text-emerald-200/90 font-bold">
+                      سلسلة التحدي: {dailyState.streakCount || 1}d 🔥
+                    </span>
+                  </div>
+                  <h3 className="text-sm sm:text-base font-black text-white">
+                    أحسنت! أتممت سؤال اليوم بنجاح 🎉
+                  </h3>
+                  <p className="text-[11px] sm:text-xs text-emerald-100/80 leading-relaxed font-medium">
+                    تم تسجيل إجابتك وإضافة +50 نقطة خبرة لملفك. يمكنك مراجعة الإجابة أو الانتظار لسؤال غد!
+                  </p>
+                </div>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => useAppStore.getState().setDailyChallengeModalOpen(true)}
+                className="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-2xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer shrink-0 border border-emerald-400/30"
+              >
+                <CheckCircle2 className="w-4 h-4 text-emerald-200" />
+                <span>مراجعة إجابة اليوم</span>
+              </motion.button>
+            </motion.div>
+          );
+        }
+
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 sm:p-6 bg-gradient-to-r from-amber-500/15 via-emerald-500/10 to-teal-500/15 rounded-3xl border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 shadow-m3-1 relative overflow-hidden"
+          >
+            <div className="flex items-center gap-3 text-right">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0 border border-amber-400/40 shadow-xs">
+                <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 animate-pulse" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2.5 py-0.5 bg-amber-500 text-slate-950 font-black text-[10px] sm:text-[11px] rounded-full shadow-xs flex items-center gap-1">
+                    <Zap className="w-3 h-3 fill-slate-950 text-slate-950" />
+                    <span>تحدي يومي +50 XP</span>
+                  </span>
+                  <span className="text-[11px] sm:text-xs text-m3-onSurface-variant font-bold">
+                    سلسلة التحديات: {dailyState.streakCount || 0}d
+                  </span>
+                </div>
+                <h3 className="text-sm sm:text-base font-black text-m3-onSurface">
+                  سؤال اليوم التوثيقي في السيرة النبوية
+                </h3>
+                <p className="text-[11px] sm:text-xs text-m3-onSurface-variant leading-relaxed font-medium">
+                  جاوب على سؤال اليوم المتجدد لترقية أوسمتك وزيادة نقاط المعرفة بالسيرة النبوية.
+                </p>
+              </div>
+            </div>
+
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => useAppStore.getState().setDailyChallengeModalOpen(true)}
+              className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs rounded-2xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer shrink-0"
+            >
+              <Zap className="w-3.5 h-3.5 fill-slate-950" />
+              <span>دخول تحدي اليوم الآن</span>
+            </motion.button>
+          </motion.div>
+        );
+      })()}
 
       {/* Metric Cards (Staggered Animation - Optimized for Mobile) */}
       <motion.section
