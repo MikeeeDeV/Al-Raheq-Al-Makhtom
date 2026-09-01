@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Readex Pro', 'Cairo', system-ui, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: theme('colors.m3.surface.DEFAULT');
+    color: theme('colors.m3.onSurface.DEFAULT');
+    overflow-x: hidden;
+  }
+}
+
+/* Material Design 3 Elevation Surfaces */
+.m3-surface-1 {
+  background-color: #F0F4F1;
+}
+.dark .m3-surface-1 {
+  background-color: #141816;
+}
+
+.m3-surface-2 {
+  background-color: #E8EFEA;
+}
+.dark .m3-surface-2 {
+  background-color: #1C211E;
+}
+
+.m3-surface-3 {
+  background-color: #E2EAE4;
+}
+.dark .m3-surface-3 {
+  background-color: #262C29;
+}
+
+/* PDF Canvas Theme Filters */
+.theme-paper canvas {
+  filter: none;
+  background-color: #FFFFFF;
+}
+
+.theme-sepia canvas {
+  filter: sepia(0.35) contrast(1.05) brightness(0.95);
+  background-color: #FBF0D9;
+}
+
+.theme-night canvas {
+  filter: invert(0.9) hue-rotate(180deg) contrast(1.2) brightness(0.85);
+  background-color: #121212;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C1C8C3;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #707974;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #404944;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #89938D;
+}
+
+/* M3 State Layer Micro-interactions */
+.m3-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.m3-ripple::after {
+  content: "";
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, #000 10%, transparent 10.01%);
+  background-repeat: no-repeat;
+  background-position: 50%;
+  transform: scale(10, 10);
+  opacity: 0;
+  transition: transform .5s, opacity 1s;
+}
+
+.m3-ripple:active::after {
+  transform: scale(0, 0);
+  opacity: .2;
+  transition: 0s;
+}
+
+/* Animation utilities */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.02); }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3s infinite ease-in-out;
+}
