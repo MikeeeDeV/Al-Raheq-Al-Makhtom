@@ -191,13 +191,13 @@ export const Footer: React.FC = () => {
               </div>
 
               <a
-                href="https://github.com/mohamed-ayman"
+                href="https://github.com/MikeeeDeV/Al-Raheq-Al-Makhtom"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-xs text-emerald-400 hover:underline font-bold mt-1"
               >
                 <Github className="w-4 h-4" />
-                <span>تطوير وإخراج: محمد أيمن (Mohamed Ayman)</span>
+                <span>تطوير وإخراج: محمد أيمن (MikeeeDeV)</span>
               </a>
             </div>
           </div>
@@ -206,9 +206,9 @@ export const Footer: React.FC = () => {
           <div className="pt-6 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
             <p>© {new Date().getFullYear()} المنصة التفاعلية للرحيق المختوم — عمل لوجه الله تعالى وصلاح المسلمين.</p>
             <div className="flex items-center gap-1.5 font-semibold text-slate-300">
-              <span>صُنع بحب</span>
+              <span>صُنع اهداء لميادة</span>
               <Heart className="w-3.5 h-3.5 text-rose-500 fill-current animate-pulse" />
-              <span>خدمةً للسيرة النبوية العطرة</span>
+              <span>و خدمةً للسيرة النبوية العطرة</span>
             </div>
           </div>
         </div>
@@ -219,3 +219,4 @@ export const Footer: React.FC = () => {
 };
 
 export default Footer;
+
