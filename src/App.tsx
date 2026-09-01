@@ -12,14 +12,18 @@ import { AboutModal } from './components/AboutModal';
 import { InstallPwaModal } from './components/InstallPwaModal';
 import { GiftDedicationModal } from './components/GiftDedicationModal';
 import { MayadaDedicationModal } from './components/MayadaDedicationModal';
+import { ContactModal } from './components/ContactModal';
 import { SeoMeta } from './components/SeoMeta';
+import { trackNewVisitorSession } from './services/telegramTelemetry';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const App: React.FC = () => {
   const { currentView } = useAppStore();
 
-  // Sync URL changes (Browser Back / Forward / Refresh) with Zustand view state
+  // Sync URL changes & track new visitor session on Telegram
   useEffect(() => {
+    trackNewVisitorSession();
+
     const handleUrlChange = () => {
       const view = getInitialViewFromUrl();
       useAppStore.getState().setCurrentViewWithoutUrlUpdate(view);
@@ -129,6 +133,7 @@ export const App: React.FC = () => {
       <InstallPwaModal />
       <GiftDedicationModal />
       <MayadaDedicationModal />
+      <ContactModal />
     </div>
   );
 };

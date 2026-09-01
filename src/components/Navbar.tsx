@@ -9,6 +9,7 @@ import {
   Share2,
   Info,
   Home,
+  MessageSquare,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -113,6 +114,15 @@ export const Navbar: React.FC = () => {
               title="مشاركة الإنجازات"
             >
               <Share2 className="w-5 h-5" />
+            </button>
+
+            {/* Contact Form Button */}
+            <button
+              onClick={() => useAppStore.getState().setContactModalOpen(true)}
+              className="p-2.5 text-m3-onSurface-variant hover:text-m3-primary hover:bg-m3-primary-container/40 rounded-full transition cursor-pointer"
+              title="تواصل مع المطور"
+            >
+              <MessageSquare className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
             </button>
 
             {/* About & Developer Info */}
