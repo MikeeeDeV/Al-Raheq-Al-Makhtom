@@ -9,12 +9,12 @@ import {
   XCircle,
   Calendar,
   Zap,
-  HelpCircle,
   X,
   Award,
   Share2,
-  ArrowRight,
-  RotateCcw,
+  Send,
+  Check,
+  Copy,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -31,6 +31,7 @@ export const DailyChallengeModal: React.FC = () => {
 
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const todayStr = new Date().toISOString().split('T')[0];
   const todayFormatted = new Date().toLocaleDateString('ar-EG', {
@@ -78,24 +79,39 @@ export const DailyChallengeModal: React.FC = () => {
     recordDailyChallengeAnswer(selectedOption);
   };
 
-  const handleShare = async () => {
-    const text = `🌟 لقد أتممت سؤال اليوم في سيرة النبي الكريم ﷺ على منصة الرحيق المختوم!
-سلسلة المواظبة اليومية: ${dailyChallengeState.streakCount || 1} أيام 🔥
-جرب تحدي اليوم بنفسك: ${window.location.origin}`;
+  const shareText =
+    `🌟 أتممت تحدي اليوم في سيرة النبي الكريم ﷺ على منصة الرحيق المختوم!\n` +
+    `🔥 مواظبة: ${dailyChallengeState.streakCount || 1} أيام متتالية\n` +
+    `📖 شارك وتحدّ معلوماتك بالسيرة النبوية:\n${window.location.origin}`;
 
+  const handleCopyText = async () => {
+    const success = await copyToClipboard(shareText);
+    if (success) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleWhatsAppShare = () => {
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+    window.open(url, '_blank');
+  };
+
+  const handleTelegramShare = () => {
+    const url = `https://t.me/share/url?url=${encodeURIComponent(window.location.origin)}&text=${encodeURIComponent(shareText)}`;
+    window.open(url, '_blank');
+  };
+
+  const handleNativeShare = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({ title: 'تحدي اليوم - الرحيق المختوم', text });
+        await navigator.share({ title: 'تحدي اليوم - الرحيق المختوم', text: shareText, url: window.location.origin });
         return;
       } catch {
-        // Fallback below
+        // Fallback
       }
     }
-
-    const copied = await copyToClipboard(text);
-    if (copied) {
-      alert('تم نسخ نتيجة التحدي اليومي بنجاح!');
-    }
+    handleCopyText();
   };
 
   return (
@@ -262,18 +278,46 @@ export const DailyChallengeModal: React.FC = () => {
                 <span>اعتماد الإجابة وكسب المكافأة</span>
               </button>
             ) : (
-              <div className="flex items-center justify-between w-full gap-2">
-                <button
-                  onClick={handleShare}
-                  className="px-4 py-2.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 font-bold text-xs rounded-xl flex items-center gap-2 transition cursor-pointer"
-                >
-                  <Share2 className="w-4 h-4" />
-                  <span>مشاركة النتيجة</span>
-                </button>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between w-full gap-2.5">
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={handleWhatsAppShare}
+                    className="flex-1 sm:flex-none px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>واتساب</span>
+                  </button>
+
+                  <button
+                    onClick={handleTelegramShare}
+                    className="flex-1 sm:flex-none px-3.5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    <span>تلغرام</span>
+                  </button>
+
+                  <button
+                    onClick={handleCopyText}
+                    className="p-2.5 bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs rounded-xl transition cursor-pointer"
+                    title="نسخ نص النتيجة"
+                  >
+                    {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  </button>
+
+                  {typeof navigator !== 'undefined' && 'share' in navigator && (
+                    <button
+                      onClick={handleNativeShare}
+                      className="p-2.5 bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl transition cursor-pointer"
+                      title="مشاركة عبر الهاتف"
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
 
                 <button
                   onClick={() => setDailyChallengeModalOpen(false)}
-                  className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition cursor-pointer"
+                  className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition cursor-pointer text-center"
                 >
                   إغلاق
                 </button>

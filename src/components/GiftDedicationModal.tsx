@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
+import { copyToClipboard, copyImageBlobToClipboard } from '../utils/clipboard';
 
 type CardTheme = 'emerald' | 'royal' | 'warm' | 'dark_gold' | 'rose' | 'cyan';
 
@@ -169,7 +170,6 @@ export const GiftDedicationModal: React.FC = () => {
 
     // Frame Geometry Styles according to theme
     if (selectedTheme === 'cyan') {
-      // Chamfered Polygon Corners
       ctx.strokeStyle = cfg.outerBorder;
       ctx.lineWidth = 6;
       ctx.beginPath();
@@ -184,7 +184,6 @@ export const GiftDedicationModal: React.FC = () => {
       ctx.closePath();
       ctx.stroke();
     } else if (selectedTheme === 'rose') {
-      // Rounded Pill Outer Frame
       ctx.strokeStyle = cfg.outerBorder;
       ctx.lineWidth = 6;
       if (ctx.roundRect) {
@@ -195,7 +194,6 @@ export const GiftDedicationModal: React.FC = () => {
         ctx.strokeRect(28, 28, width - 56, height - 56);
       }
     } else {
-      // Classic Double Rect Frame
       ctx.strokeStyle = cfg.outerBorder;
       ctx.lineWidth = 8;
       ctx.strokeRect(28, 28, width - 56, height - 56);
@@ -204,7 +202,6 @@ export const GiftDedicationModal: React.FC = () => {
       ctx.lineWidth = 2;
       ctx.strokeRect(40, 40, width - 80, height - 80);
 
-      // Corner Stars
       const drawCornerStar = (x: number, y: number) => {
         ctx.fillStyle = cfg.ornament;
         ctx.beginPath();
@@ -217,7 +214,7 @@ export const GiftDedicationModal: React.FC = () => {
       drawCornerStar(width - 40, height - 40);
     }
 
-    // Header Calligraphy & Title (Exact Requested Clean Text)
+    // Header Calligraphy & Title
     ctx.fillStyle = cfg.titleColor;
     ctx.font = 'bold 24px Readex Pro, Cairo, sans-serif';
     ctx.textAlign = 'center';
@@ -276,7 +273,7 @@ export const GiftDedicationModal: React.FC = () => {
     }
     ctx.fillText(line, width / 2, y);
 
-    // Footer Platform Branding Watermark & Link (Clean)
+    // Footer Platform Branding Watermark & Link
     ctx.fillStyle = cfg.footerLink;
     ctx.font = 'bold 22px Readex Pro, Cairo, sans-serif';
     ctx.fillText(`🔗 ${appLink}`, width / 2, 558);
@@ -324,6 +321,21 @@ export const GiftDedicationModal: React.FC = () => {
     }, 100);
   };
 
+  const getCardFile = async (): Promise<{ file: File; blob: Blob } | null> => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+    try {
+      const dataUrl = canvas.toDataURL('image/png');
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const file = new File([blob], 'كارت_إهداء_الرحيق_المختوم.png', { type: 'image/png' });
+      return { file, blob };
+    } catch (err) {
+      console.warn('Failed to convert canvas to file:', err);
+    }
+    return null;
+  };
+
   const fullShareText =
     `📜 *إهداء كارت السيرة النبوية* 📜\n\n` +
     `👤 *من:* ${senderName}\n` +
@@ -331,23 +343,23 @@ export const GiftDedicationModal: React.FC = () => {
     `💬 *الرسالة:*\n${activeMessage}\n\n` +
     `📖 *رابط المنصة:*\n${appLink}`;
 
-  const handleCopyText = () => {
-    navigator.clipboard.writeText(fullShareText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopyText = async () => {
+    const success = await copyToClipboard(fullShareText);
+    if (success) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   const handleWhatsAppShare = async () => {
-    const canvas = canvasRef.current;
-    if (navigator.share && canvas) {
+    const cardData = await getCardFile();
+
+    // 1. Try Mobile Native Web Share API with attached photo
+    if (navigator.share && cardData) {
       try {
-        const dataUrl = canvas.toDataURL('image/png');
-        const res = await fetch(dataUrl);
-        const blob = await res.blob();
-        const file = new File([blob], 'كارت_إهداء_الرحيق_المختوم.png', { type: 'image/png' });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        if (navigator.canShare && navigator.canShare({ files: [cardData.file] })) {
           await navigator.share({
-            files: [file],
+            files: [cardData.file],
             title: 'إهداء كارت السيرة النبوية',
             text: fullShareText,
           });
@@ -357,37 +369,72 @@ export const GiftDedicationModal: React.FC = () => {
         // Fallback
       }
     }
-    const url = `https://wa.me/?text=${encodeURIComponent(fullShareText)}`;
+
+    // 2. Fallback for Web Browsers: Download Image + Copy text + Copy Image to Clipboard
+    handleDownloadImage();
+    if (cardData) {
+      copyImageBlobToClipboard(cardData.blob);
+    }
+
+    alert('📸 تم تنزيل صورة الكارت في التنزيلات بجهازك تلقائياً!\n\nيمكنك الآن إرفاق الصورة من المعرض أثناء المحادثة.');
+
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(fullShareText)}`;
+    window.open(url, '_blank');
+  };
+
+  const handleTelegramShare = async () => {
+    const cardData = await getCardFile();
+
+    if (navigator.share && cardData) {
+      try {
+        if (navigator.canShare && navigator.canShare({ files: [cardData.file] })) {
+          await navigator.share({
+            files: [cardData.file],
+            title: 'إهداء كارت السيرة النبوية',
+            text: fullShareText,
+          });
+          return;
+        }
+      } catch {
+        // Fallback
+      }
+    }
+
+    handleDownloadImage();
+    if (cardData) {
+      copyImageBlobToClipboard(cardData.blob);
+    }
+
+    alert('📸 تم تنزيل صورة الكارت بجهازك تلقائياً!\n\nيمكنك إرفاق الصورة من الاستوديو لمحادثة التلغرام.');
+
+    const url = `https://t.me/share/url?url=${encodeURIComponent(appLink)}&text=${encodeURIComponent(fullShareText)}`;
     window.open(url, '_blank');
   };
 
   const handleNativeShare = async () => {
-    const canvas = canvasRef.current;
+    const cardData = await getCardFile();
     if (navigator.share) {
       try {
-        if (canvas) {
-          const dataUrl = canvas.toDataURL('image/png');
-          const res = await fetch(dataUrl);
-          const blob = await res.blob();
-          const file = new File([blob], 'كارت_إهداء_الرحيق_المختوم.png', { type: 'image/png' });
-          if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({
-              files: [file],
-              title: 'إهداء كارت السيرة النبوية',
-              text: fullShareText,
-            });
-            return;
-          }
+        if (cardData && navigator.canShare && navigator.canShare({ files: [cardData.file] })) {
+          await navigator.share({
+            files: [cardData.file],
+            title: 'إهداء كارت السيرة النبوية',
+            text: fullShareText,
+          });
+          return;
         }
+
         await navigator.share({
           title: 'إهداء كارت السيرة النبوية',
           text: fullShareText,
           url: appLink,
         });
       } catch {
+        handleDownloadImage();
         handleCopyText();
       }
     } else {
+      handleDownloadImage();
       handleCopyText();
     }
   };
@@ -414,7 +461,7 @@ export const GiftDedicationModal: React.FC = () => {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.94, y: 16 }}
           transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-          className="bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant/30 w-full max-w-xl rounded-3xl shadow-2xl relative overflow-hidden flex flex-col max-h-[92vh] z-10 my-auto"
+          className="bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant/30 w-full max-w-xl rounded-3xl shadow-2xl relative overflow-hidden flex flex-col max-h-[92vh] z-10 my-auto text-m3-onSurface dark:text-m3-onSurface-dark"
         >
           {/* Header */}
           <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-emerald-950 text-white p-4 sm:p-5 flex items-center justify-between shadow-xs shrink-0">
@@ -572,37 +619,47 @@ export const GiftDedicationModal: React.FC = () => {
           </div>
 
           {/* Action Bar */}
-          <div className="p-4 bg-m3-surface-container dark:bg-m3-surface-darkContainer border-t border-m3-outline-variant/20 flex flex-wrap items-center justify-between gap-2 shrink-0">
+          <div className="p-4 bg-m3-surface-container dark:bg-m3-surface-darkContainer border-t border-m3-outline-variant/20 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shrink-0">
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={handleDownloadImage}
               disabled={isDownloading}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-700 to-teal-800 hover:from-emerald-800 hover:to-teal-900 text-white font-bold rounded-2xl text-xs shadow-md transition cursor-pointer"
+              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-700 to-teal-800 hover:from-emerald-800 hover:to-teal-900 text-white font-bold rounded-2xl text-xs shadow-md transition cursor-pointer"
             >
               <Download className="w-4 h-4 text-amber-300" />
-              <span>{isDownloading ? 'جاري التحميل...' : 'تحميل الكارت (صورة PNG)'}</span>
+              <span>{isDownloading ? 'جاري التحميل...' : 'حفظ الكارت كصورة PNG'}</span>
             </motion.button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 justify-end">
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                onClick={handleCopyText}
-                className="flex items-center gap-1.5 px-3.5 py-2.5 border border-m3-outline-variant/40 rounded-2xl text-xs font-bold text-m3-onSurface hover:bg-m3-surface-variant transition cursor-pointer"
+                onClick={handleWhatsAppShare}
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl text-xs shadow-xs transition cursor-pointer"
               >
-                {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                <span>{copied ? 'تم النسخ!' : 'نسخ النص'}</span>
+                <Send className="w-4 h-4 text-emerald-100" />
+                <span>واتساب</span>
               </motion.button>
 
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                onClick={handleWhatsAppShare}
-                className="flex items-center gap-1.5 px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-2xl text-xs shadow-sm transition cursor-pointer"
+                onClick={handleTelegramShare}
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-2xl text-xs shadow-xs transition cursor-pointer"
               >
-                <Send className="w-4 h-4 text-emerald-200" />
-                <span>واتساب</span>
+                <Share2 className="w-4 h-4 text-sky-100" />
+                <span>تلغرام</span>
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={handleCopyText}
+                className="p-2.5 border border-m3-outline-variant/40 rounded-2xl text-xs font-bold text-m3-onSurface hover:bg-m3-surface-variant transition cursor-pointer"
+                title="نسخ نص الإهداء"
+              >
+                {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
               </motion.button>
 
               {typeof navigator !== 'undefined' && 'share' in navigator && (
@@ -610,8 +667,8 @@ export const GiftDedicationModal: React.FC = () => {
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={handleNativeShare}
-                  className="flex items-center gap-1.5 px-3.5 py-2.5 bg-m3-primary text-white font-bold rounded-2xl text-xs shadow-sm transition cursor-pointer"
-                  title="مشاركة عبر تطبيقات الهاتف"
+                  className="p-2.5 bg-m3-primary text-white font-bold rounded-2xl text-xs shadow-xs transition cursor-pointer"
+                  title="مشاركة شاملة (صورة + كلام)"
                 >
                   <Share2 className="w-4 h-4" />
                 </motion.button>

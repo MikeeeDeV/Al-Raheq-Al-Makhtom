@@ -47,3 +47,20 @@ export const copyToClipboard = async (text: string): Promise<boolean> => {
     return false;
   }
 };
+
+/**
+ * Copy image Blob directly to clipboard (for browser pasting into WhatsApp, Telegram, etc.)
+ */
+export const copyImageBlobToClipboard = async (blob: Blob): Promise<boolean> => {
+  if (typeof window === 'undefined' || !navigator || !navigator.clipboard) return false;
+  try {
+    if (typeof ClipboardItem !== 'undefined') {
+      const item = new ClipboardItem({ [blob.type || 'image/png']: blob });
+      await navigator.clipboard.write([item]);
+      return true;
+    }
+  } catch {
+    // Unsupported or permission denied
+  }
+  return false;
+};

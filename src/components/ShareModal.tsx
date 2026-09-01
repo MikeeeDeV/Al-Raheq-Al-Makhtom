@@ -79,6 +79,7 @@ ${appUrl}`;
       }
     }
 
+    handleDownloadCard();
     const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
     window.open(url, '_blank');
   };
@@ -101,6 +102,7 @@ ${appUrl}`;
       }
     }
 
+    handleDownloadCard();
     const url = `https://t.me/share/url?url=${encodeURIComponent(appUrl)}&text=${encodeURIComponent(shareText)}`;
     window.open(url, '_blank');
   };
