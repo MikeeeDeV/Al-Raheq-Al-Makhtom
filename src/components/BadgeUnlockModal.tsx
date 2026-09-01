@@ -103,7 +103,7 @@ export const BadgeUnlockModal: React.FC = () => {
               <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-spin-slow" />
               <span>إنجاز جديد فتحته الآن!</span>
             </div>
-            <h3 className="text-2xl font-black text-white tracking-tight">مبروك الحصول على الوسام</h3>
+            <h2 className="text-2xl font-black text-white tracking-tight">مبروك الحصول على الوسام</h2>
           </div>
 
           {/* Animated Badge Icon Container */}
@@ -120,7 +120,7 @@ export const BadgeUnlockModal: React.FC = () => {
           {/* Badge Details */}
           <div className="space-y-2">
             <span className="text-xs font-bold text-amber-300 block">{unlockedBadgeModal.trackTitle}</span>
-            <h4 className="text-xl font-black text-white">{unlockedBadgeModal.title}</h4>
+            <h3 className="text-xl font-black text-white">{unlockedBadgeModal.title}</h3>
             <p className="text-xs text-slate-300 leading-relaxed max-w-xs mx-auto">
               {unlockedBadgeModal.description}
             </p>

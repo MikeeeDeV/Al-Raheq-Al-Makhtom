@@ -9,7 +9,7 @@ declare global {
   }
 }
 
-const GA_MEASUREMENT_ID = (import.meta.env.VITE_GA_MEASUREMENT_ID || 'G-ALRAHEEQ456').trim();
+const GA_MEASUREMENT_ID = (import.meta.env.VITE_GA_MEASUREMENT_ID || 'G-F9RSXHRTBC').trim();
 
 /**
  * Initializes Google Analytics 4 dynamically (Deferred for peak performance / 95+ score)

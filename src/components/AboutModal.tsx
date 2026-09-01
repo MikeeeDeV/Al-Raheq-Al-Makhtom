@@ -92,10 +92,10 @@ export const AboutModal: React.FC = () => {
                 <Compass className="w-5 h-5 sm:w-6 sm:h-6 text-amber-300" />
               </div>
               <div>
-                <h3 className="font-extrabold text-base sm:text-xl text-m3-primary dark:text-m3-primary-dark flex items-center gap-1.5">
+                <h2 className="font-extrabold text-base sm:text-xl text-m3-primary dark:text-m3-primary-dark flex items-center gap-1.5">
                   <span>دليل استخدام المنصة</span>
                   <Sparkles className="w-4 h-4 text-amber-400" />
-                </h3>
+                </h2>
                 <p className="text-[11px] sm:text-xs text-m3-onSurface-variant font-medium">
                   الرحيق المختوم — المنصة التفاعلية لدارسة السيرة النبوية
                 </p>
@@ -242,9 +242,9 @@ export const AboutModal: React.FC = () => {
                       </div>
                     </div>
                     <div>
-                      <h4 className="font-extrabold text-base sm:text-lg text-m3-onSurface">
+                      <h3 className="font-extrabold text-base sm:text-lg text-m3-onSurface">
                         محمد أيمن (Mohamed Ayman)
-                      </h4>
+                      </h3>
                       <p className="text-xs text-m3-onSurface-variant leading-relaxed">
                         مطور برمجيات خبير متخصص في بناء المنصات التعليمية والتفاعلية عالية الجودة.
                       </p>
@@ -273,9 +273,9 @@ export const AboutModal: React.FC = () => {
                 transition={{ duration: 0.15 }}
                 className="space-y-3"
               >
-                <h4 className="text-xs font-bold text-m3-onSurface-variant uppercase tracking-wider">
+                <h3 className="text-xs font-bold text-m3-onSurface-variant uppercase tracking-wider">
                   البنية البرمجية والتقنيات المستخدمة
-                </h4>
+                </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs font-medium">
                   {[
                     { title: 'React 19 + TypeScript', desc: 'أحدث معمارية برمجية' },

@@ -512,7 +512,7 @@ export const AnalyticsView: React.FC = () => {
                         {sec.statusText}
                       </span>
                     </div>
-                    <h4 className="text-xs font-bold text-white line-clamp-1">{sec.fullTitle}</h4>
+                    <h3 className="text-xs font-bold text-white line-clamp-1">{sec.fullTitle}</h3>
                     <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">{sec.subtitle}</p>
                   </div>
 
@@ -780,9 +780,9 @@ export const AnalyticsView: React.FC = () => {
                   <span className="text-[10px] text-m3-primary dark:text-m3-primary-dark font-bold block">
                     {ach.trackTitle}
                   </span>
-                  <h4 className="font-extrabold text-sm text-m3-onSurface flex items-center gap-1">
+                  <h3 className="font-extrabold text-sm text-m3-onSurface flex items-center gap-1">
                     <span>{ach.title}</span>
-                  </h4>
+                  </h3>
                   <p className="text-xs text-m3-onSurface-variant leading-relaxed">
                     {ach.description}
                   </p>

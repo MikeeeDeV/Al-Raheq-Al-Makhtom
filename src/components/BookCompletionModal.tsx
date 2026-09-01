@@ -139,10 +139,10 @@ export const BookCompletionModal: React.FC = () => {
 
         {/* Detailed Quiz Statistics Grid */}
         <div className="space-y-2 text-right">
-          <h4 className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+          <h3 className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
             <BarChart3 className="w-4 h-4 text-emerald-400" />
             <span>حصيلة استيعابك وأجوبتك في الاختبارات:</span>
-          </h4>
+          </h3>
 
           <div className="grid grid-cols-3 gap-2.5">
             {/* Total Answered */}

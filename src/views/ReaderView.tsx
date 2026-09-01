@@ -120,6 +120,7 @@ export const ReaderView: React.FC = () => {
           : ''
       }`}
     >
+      <h1 className="sr-only">قارئ كتاب الرحيق المختوم التفاعلي PDF</h1>
       {/* Auto Resume Banner */}
       {!isFullscreen && !isToolbarHidden && <AutoResumeBanner />}
 
@@ -432,9 +433,9 @@ export const ReaderView: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-arabic dir-rtl">
           <div className="bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant/30 w-full max-w-md rounded-3xl p-6 shadow-m3-4 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-base sm:text-lg text-m3-onSurface">
+              <h2 className="font-bold text-base sm:text-lg text-m3-onSurface">
                 إضافة فاصل مرجعي (صفحة {currentPage})
-              </h3>
+              </h2>
               <button
                 onClick={() => setIsAddingBookmark(false)}
                 className="p-2 text-m3-onSurface-variant hover:bg-m3-surface-container rounded-full"
@@ -498,7 +499,7 @@ export const ReaderView: React.FC = () => {
               <div className="flex items-center justify-between pb-4 border-b border-m3-outline-variant/20">
                 <div className="flex items-center gap-2 text-m3-primary dark:text-m3-primary-dark font-bold text-base sm:text-lg">
                   <BookmarkIcon className="w-5 h-5" />
-                  <span>الفواصل المرجعية ({bookmarks.length})</span>
+                  <h2 className="text-base sm:text-lg">الفواصل المرجعية ({bookmarks.length})</h2>
                 </div>
                 <button
                   onClick={() => setShowBookmarksDrawer(false)}
@@ -522,8 +523,8 @@ export const ReaderView: React.FC = () => {
                       className="p-4 bg-m3-surface-container dark:bg-m3-surface-darkContainer rounded-2xl border border-m3-outline-variant/30 space-y-2 group hover:border-m3-primary/50 transition"
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <h4 className="font-bold text-xs sm:text-sm text-m3-onSurface">{bm.title}</h4>
+                        <div className="space-y-0.5">
+                          <h3 className="font-bold text-xs sm:text-sm text-m3-onSurface">{bm.title}</h3>
                           <span className="text-xs text-m3-primary dark:text-m3-primary-dark font-semibold">
                             الصفحة {bm.pageNumber}
                           </span>

@@ -165,10 +165,10 @@ ${appUrl}`;
       >
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-m3-primary dark:text-m3-primary-dark font-bold text-base sm:text-lg">
+          <h2 className="flex items-center gap-2 text-m3-primary dark:text-m3-primary-dark font-bold text-base sm:text-lg">
             <Sparkles className="w-5 h-5 text-amber-500" />
             <span>مشاركة إنجازاتك المباركة</span>
-          </div>
+          </h2>
           <button
             onClick={() => setShareModalOpen(false)}
             className="p-2 text-m3-onSurface-variant hover:bg-m3-surface-container rounded-full transition cursor-pointer"
@@ -194,7 +194,7 @@ ${appUrl}`;
           </div>
 
           <div className="space-y-1">
-            <h4 className="text-lg font-extrabold text-white">بطاقة إنجاز في السيرة النبوية</h4>
+            <h3 className="text-lg font-extrabold text-white">بطاقة إنجاز في السيرة النبوية</h3>
             <p className="text-xs text-emerald-200">المنصة التفاعلية لدارسة كتاب الرحيق المختوم</p>
           </div>
 

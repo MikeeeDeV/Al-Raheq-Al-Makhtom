@@ -449,10 +449,10 @@ export const GiftDedicationModal: React.FC = () => {
                 <BookOpen className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-extrabold text-base sm:text-lg leading-tight flex items-center gap-2">
+                <h2 className="font-extrabold text-base sm:text-lg leading-tight flex items-center gap-2">
                   <span>إهداء كارت السيرة النبوية</span>
                   <Heart className="w-4 h-4 text-rose-400 fill-rose-400 animate-pulse" />
-                </h3>
+                </h2>
                 <p className="text-xs text-emerald-200/90 font-medium">
                   اصنع كارت إهداء بسيط وجميل لأحبابك مع رابط المنصة
                 </p>
