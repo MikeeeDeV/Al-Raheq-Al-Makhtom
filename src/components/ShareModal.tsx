@@ -4,6 +4,7 @@ import { X, Share2, Check, Send, Sparkles, Trophy, Award, Flame, Download, Loade
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { toBlob, toPng } from 'html-to-image';
+import { copyToClipboard } from '../utils/clipboard';
 
 export const ShareModal: React.FC = () => {
   const { setShareModalOpen, streak, answeredQuestions, currentPage } = useAppStore();
@@ -62,7 +63,6 @@ ${appUrl}`;
 
   const handleWhatsAppShare = async () => {
     triggerConfetti();
-    // Try native share with attached card photo first if supported
     if (navigator.share && cardRef.current) {
       const cardFile = await getCardFile();
       if (cardFile && navigator.canShare && navigator.canShare({ files: [cardFile] })) {
@@ -74,7 +74,7 @@ ${appUrl}`;
           });
           return;
         } catch {
-          // Fallback to web link below
+          // Fallback below
         }
       }
     }
@@ -96,7 +96,7 @@ ${appUrl}`;
           });
           return;
         } catch {
-          // Fallback to web link below
+          // Fallback below
         }
       }
     }
@@ -125,7 +125,7 @@ ${appUrl}`;
         }
         triggerConfetti();
       } else {
-        handleCopyText();
+        await handleCopyText();
       }
     } catch (err) {
       console.log('Share canceled', err);
@@ -134,11 +134,13 @@ ${appUrl}`;
     }
   };
 
-  const handleCopyText = () => {
-    navigator.clipboard.writeText(shareText);
-    setCopied(true);
-    triggerConfetti();
-    setTimeout(() => setCopied(false), 2500);
+  const handleCopyText = async () => {
+    const success = await copyToClipboard(shareText);
+    if (success) {
+      setCopied(true);
+      triggerConfetti();
+      setTimeout(() => setCopied(false), 2500);
+    }
   };
 
   return (
@@ -159,7 +161,7 @@ ${appUrl}`;
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.93, y: 12 }}
         transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-        className="bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant/30 w-full max-w-md rounded-3xl p-5 sm:p-6 shadow-2xl relative space-y-5 overflow-hidden z-10 my-auto"
+        className="bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant/30 w-full max-w-md rounded-3xl p-5 sm:p-6 shadow-2xl relative space-y-5 overflow-hidden z-10 my-auto text-m3-onSurface dark:text-m3-onSurface-dark"
       >
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -175,7 +177,7 @@ ${appUrl}`;
           </button>
         </div>
 
-        {/* Dynamic M3 Scorecard Preview (Ref for image rendering) */}
+        {/* Dynamic M3 Scorecard Preview */}
         <div
           ref={cardRef}
           className="relative p-5 bg-gradient-to-br from-emerald-900 via-teal-900 to-emerald-950 text-white rounded-2xl shadow-m3-3 border border-emerald-500/30 overflow-hidden space-y-4"
@@ -269,4 +271,3 @@ ${appUrl}`;
 };
 
 export default ShareModal;
-

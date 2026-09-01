@@ -9,9 +9,24 @@ import {
   ReaderTheme,
   UserAchievement,
   UserProfile,
+  DailyChallengeState,
 } from '../types';
+import confetti from 'canvas-confetti';
 import { sendBookCompletionToTelegram } from '../services/telegramTelemetry';
 import { syncUserProgressToSupabase } from '../services/supabaseClient';
+
+export const getTodayQuestionId = (dateStr?: string): number => {
+  const today = dateStr || new Date().toISOString().split('T')[0];
+  let hash = 0;
+  for (let i = 0; i < today.length; i++) {
+    const char = today.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash |= 0;
+  }
+  const positiveHash = Math.abs(hash);
+  return (positiveHash % 1200) + 1;
+};
+
 
 export type AppView = 'home' | 'reader' | 'quiz' | 'mistakes' | 'analytics';
 
@@ -82,6 +97,14 @@ interface AppState {
   // Gamification & Badges
   achievements: UserAchievement[];
   checkAchievements: () => void;
+  unlockedBadgeModal: UserAchievement | null;
+  clearUnlockedBadgeModal: () => void;
+
+  // Daily Challenge State & Actions
+  dailyChallengeState: DailyChallengeState;
+  isDailyChallengeModalOpen: boolean;
+  setDailyChallengeModalOpen: (open: boolean) => void;
+  recordDailyChallengeAnswer: (selectedAnswer: string) => boolean;
 }
 
 export const INITIAL_ACHIEVEMENTS: UserAchievement[] = [
@@ -382,6 +405,56 @@ export const INITIAL_ACHIEVEMENTS: UserAchievement[] = [
     tier: 'diamond',
     level: 4,
     targetValue: 100,
+    unlocked: false,
+  },
+
+  // Track 7: Daily Challenge (مسار التحدي اليومي)
+  {
+    id: 'daily_b',
+    trackId: 'daily_challenge',
+    trackTitle: 'مسار التحدي اليومي',
+    title: 'المستجيب الأول',
+    description: 'إتمام أول تحدي يومي بنجاح (+50 XP)',
+    icon: 'star',
+    tier: 'bronze',
+    level: 1,
+    targetValue: 1,
+    unlocked: false,
+  },
+  {
+    id: 'daily_s',
+    trackId: 'daily_challenge',
+    trackTitle: 'مسار التحدي اليومي',
+    title: 'مثابر السيرة',
+    description: 'إتمام 3 تحديات يومية بنجاح',
+    icon: 'star',
+    tier: 'silver',
+    level: 2,
+    targetValue: 3,
+    unlocked: false,
+  },
+  {
+    id: 'daily_g',
+    trackId: 'daily_challenge',
+    trackTitle: 'مسار التحدي اليومي',
+    title: 'بطل التحديات اليومية',
+    description: 'إتمام 7 تحديات يومية بنجاح',
+    icon: 'star',
+    tier: 'gold',
+    level: 3,
+    targetValue: 7,
+    unlocked: false,
+  },
+  {
+    id: 'daily_d',
+    trackId: 'daily_challenge',
+    trackTitle: 'مسار التحدي اليومي',
+    title: 'أسطورة التحدي اليومي',
+    description: 'إتمام 21 تحدياً يومياً متتالية',
+    icon: 'star',
+    tier: 'diamond',
+    level: 4,
+    targetValue: 21,
     unlocked: false,
   },
 ];
@@ -723,21 +796,108 @@ export const useAppStore = create<AppState>()(
       setContactModalOpen: (open) => set({ isContactModalOpen: open }),
       incrementVisitorCount: () => set((state) => ({ visitorCount: (state.visitorCount || 1845) + 1 })),
 
-      // Achievements
+      // Achievements & Daily Challenge Modals
       achievements: INITIAL_ACHIEVEMENTS,
+      unlockedBadgeModal: null,
+      clearUnlockedBadgeModal: () => set({ unlockedBadgeModal: null }),
+
+      isDailyChallengeModalOpen: false,
+      setDailyChallengeModalOpen: (open) => set({ isDailyChallengeModalOpen: open }),
+
+      dailyChallengeState: {
+        date: new Date().toISOString().split('T')[0],
+        questionId: getTodayQuestionId(),
+        answered: false,
+        streakCount: 0,
+      },
+
+      recordDailyChallengeAnswer: (selectedAnswer) => {
+        const state = get();
+        const quizData = state.quizData;
+        const todayStr = new Date().toISOString().split('T')[0];
+        const qId = state.dailyChallengeState.questionId || getTodayQuestionId(todayStr);
+
+        let questionObj: Question | null = null;
+        if (quizData) {
+          for (const secKey of Object.keys(quizData.sections) as (keyof typeof quizData.sections)[]) {
+            const sec = quizData.sections[secKey];
+            const found = sec.mcq.find((q) => q.id === qId) || sec.true_false.find((q) => q.id === qId);
+            if (found) {
+              questionObj = found;
+              break;
+            }
+          }
+        }
+
+        const isCorrect = questionObj ? selectedAnswer === questionObj.correct_answer : false;
+
+        if (questionObj) {
+          state.recordAnswer(questionObj, selectedAnswer);
+        }
+
+        const prevStreak = state.dailyChallengeState.streakCount || 0;
+        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+        const lastCompleted = state.dailyChallengeState.lastCompletedDate;
+        let newDailyStreak = prevStreak;
+        if (isCorrect) {
+          if (lastCompleted === yesterday) {
+            newDailyStreak += 1;
+          } else if (lastCompleted !== todayStr) {
+            newDailyStreak = 1;
+          }
+        }
+
+        const updatedState: DailyChallengeState = {
+          date: todayStr,
+          questionId: qId,
+          answered: true,
+          isCorrect,
+          selectedAnswer,
+          streakCount: isCorrect ? newDailyStreak : prevStreak,
+          lastCompletedDate: isCorrect ? todayStr : lastCompleted,
+        };
+
+        set({ dailyChallengeState: updatedState });
+
+        if (isCorrect) {
+          try {
+            confetti({
+              particleCount: 100,
+              spread: 75,
+              origin: { y: 0.6 },
+            });
+          } catch {
+            // ignore
+          }
+        }
+
+        get().checkAchievements();
+        return isCorrect;
+      },
+
       checkAchievements: () => {
-        const { currentPage, quizHistory, answeredQuestions, streak, mistakesBank, achievements } = get();
+        const {
+          currentPage,
+          quizHistory,
+          answeredQuestions,
+          streak,
+          mistakesBank,
+          achievements,
+          dailyChallengeState,
+        } = get();
 
         const correctCount = Object.values(answeredQuestions).filter((a) => a.isCorrect).length;
         const totalSolved = Object.keys(answeredQuestions).length;
         const mistakesCorrected = Math.max(0, totalSolved - Object.keys(mistakesBank).length);
         const totalSessions = quizHistory.length;
-        const maxAccuracy = quizHistory.length > 0
-          ? Math.max(...quizHistory.map((q) => q.scorePercentage))
-          : 0;
+        const maxAccuracy =
+          quizHistory.length > 0 ? Math.max(...quizHistory.map((q) => q.scorePercentage)) : 0;
+        const dailyCompletedCount =
+          dailyChallengeState.streakCount ||
+          (dailyChallengeState.answered && dailyChallengeState.isCorrect ? 1 : 0);
 
-        // Ensure all 24 achievements exist even if loaded from older localStorage state
         const currentAchMap = new Map(achievements.map((a) => [a.id, a]));
+        let newlyUnlocked: UserAchievement | null = null;
 
         const updated = INITIAL_ACHIEVEMENTS.map((initialAch) => {
           const existing = currentAchMap.get(initialAch.id);
@@ -764,14 +924,18 @@ export const useAppStore = create<AppState>()(
             case 'accuracy':
               currentValue = maxAccuracy;
               break;
+            case 'daily_challenge':
+              currentValue = dailyCompletedCount;
+              break;
             default:
               currentValue = 0;
               break;
           }
 
           const shouldUnlock = isUnlocked || currentValue >= initialAch.targetValue;
+          const justUnlocked = !isUnlocked && shouldUnlock;
 
-          return {
+          const updatedAch = {
             ...initialAch,
             currentValue,
             unlocked: shouldUnlock,
@@ -779,9 +943,19 @@ export const useAppStore = create<AppState>()(
               ? unlockedAt || new Date().toLocaleDateString('ar-EG')
               : undefined,
           };
+
+          if (justUnlocked && !newlyUnlocked) {
+            newlyUnlocked = updatedAch;
+          }
+
+          return updatedAch;
         });
 
         set({ achievements: updated });
+
+        if (newlyUnlocked) {
+          set({ unlockedBadgeModal: newlyUnlocked });
+        }
       },
     }),
     {
@@ -800,6 +974,7 @@ export const useAppStore = create<AppState>()(
         streak: state.streak,
         lastActiveDate: state.lastActiveDate,
         achievements: state.achievements,
+        dailyChallengeState: state.dailyChallengeState,
       }),
     }
   )

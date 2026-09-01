@@ -102,8 +102,53 @@ export const HomeView: React.FC = () => {
         </div>
       </motion.section>
 
+      {/* 🌟 Daily Challenge Interactive Hero Banner Widget */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-5 sm:p-6 bg-gradient-to-r from-amber-500/15 via-emerald-500/10 to-teal-500/15 rounded-3xl border border-amber-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-m3-1 relative overflow-hidden"
+      >
+        <div className="flex items-center gap-4 text-right">
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0 border border-amber-400/40 shadow-xs">
+            <Sparkles className="w-6 h-6 animate-pulse" />
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 bg-amber-500/20 border border-amber-400/30 text-amber-300 text-[10px] font-black rounded-full">
+                تحدي يومي +50 XP
+              </span>
+              <span className="text-xs text-m3-onSurface-variant font-medium">
+                سلسلة التحديات: {useAppStore.getState().dailyChallengeState.streakCount || 0} أيام متتالية
+              </span>
+            </div>
+            <h3 className="text-base sm:text-lg font-black text-m3-onSurface">
+              سؤال اليوم التوثيقي في السيرة النبوية
+            </h3>
+            <p className="text-xs text-m3-onSurface-variant leading-relaxed">
+              جاوب على سؤال اليوم المتجدد لترقية أوسمتك وزيادة نقاط المعرفة بالسيرة النبوية.
+            </p>
+          </div>
+        </div>
+
+        <motion.button
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => useAppStore.getState().setDailyChallengeModalOpen(true)}
+          className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs sm:text-sm rounded-2xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer shrink-0"
+        >
+          <Zap className="w-4 h-4 fill-slate-950" />
+          <span>
+            {useAppStore.getState().dailyChallengeState.date === new Date().toISOString().split('T')[0] &&
+            useAppStore.getState().dailyChallengeState.answered
+              ? 'عرض نتيجة سؤال اليوم'
+              : 'دخول تحدي اليوم الان'}
+          </span>
+        </motion.button>
+      </motion.div>
+
       {/* Metric Cards (Staggered Animation) */}
       <motion.section
+
         variants={containerVariants}
         initial="hidden"
         animate="show"

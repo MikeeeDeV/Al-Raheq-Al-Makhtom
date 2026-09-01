@@ -90,6 +90,16 @@ export interface UserAchievement {
   unlockedAt?: string;
 }
 
+export interface DailyChallengeState {
+  date: string; // YYYY-MM-DD
+  questionId: number;
+  answered: boolean;
+  isCorrect?: boolean;
+  selectedAnswer?: string;
+  streakCount: number;
+  lastCompletedDate?: string;
+}
+
 export interface UserProfile {
   id: string;
   name: string;

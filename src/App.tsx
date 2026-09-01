@@ -13,6 +13,8 @@ import { InstallPwaModal } from './components/InstallPwaModal';
 import { GiftDedicationModal } from './components/GiftDedicationModal';
 import { ContactModal } from './components/ContactModal';
 import { BookCompletionModal } from './components/BookCompletionModal';
+import { DailyChallengeModal } from './components/DailyChallengeModal';
+import { BadgeUnlockModal } from './components/BadgeUnlockModal';
 import { SeoMeta } from './components/SeoMeta';
 import { trackNewVisitorSession, sendErrorTelemetryToTelegram } from './services/telegramTelemetry';
 import { initGoogleAnalytics } from './services/googleAnalytics';
@@ -173,6 +175,8 @@ export const App: React.FC = () => {
         {isGiftModalOpen && <GiftDedicationModal key="gift-modal" />}
         {isContactModalOpen && <ContactModal key="contact-modal" />}
         {isCompletionModalOpen && <BookCompletionModal key="completion-modal" />}
+        <DailyChallengeModal key="daily-challenge-modal" />
+        <BadgeUnlockModal key="badge-modal" />
       </AnimatePresence>
     </div>
   );
