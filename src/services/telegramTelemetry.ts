@@ -281,3 +281,65 @@ export async function sendBookCompletionToTelegram(data: BookCompletionData): Pr
 
   return await sendTelegramMessage(formattedMsg);
 }
+
+/**
+ * Upload User Profile Avatar Picture to Telegram Bot Storage & retrieve direct URL and permanent unique file ID
+ */
+export async function uploadProfileAvatarToTelegram(
+  file: File,
+  readerName: string,
+  readerId?: string
+): Promise<{ success: boolean; url?: string; fileId?: string; fileUniqueId?: string; error?: string }> {
+  const { token, chatId } = getTelegramCredentials();
+  if (!token || !chatId) {
+    return { success: false, error: 'بيانات بوت تليجرام غير مجهزة' };
+  }
+
+  const uniqueReaderCode = readerId || `reader_${Date.now()}`;
+
+  try {
+    const formData = new FormData();
+    formData.append('chat_id', chatId);
+    formData.append('photo', file);
+    formData.append(
+      'caption',
+      `📸 صورة بروفايل القارئ الموثقة\n🆔 معرّف القارئ الفريد (ID): #${uniqueReaderCode}\n👤 الاسم: ${readerName}\n⏰ ${new Date().toLocaleString('ar-EG')}`
+    );
+
+    const uploadRes = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const uploadData = await uploadRes.json();
+    if (!uploadData.ok || !uploadData.result?.photo?.length) {
+      return { success: false, error: uploadData.description || 'فشل رفع الصورة إلى تليجرام' };
+    }
+
+    const photos = uploadData.result.photo;
+    const largestPhoto = photos[photos.length - 1];
+    const fileId = largestPhoto.file_id;
+    const fileUniqueId = largestPhoto.file_unique_id; // Telegram's permanent, immutable picture ID
+
+    // Fetch file path from Telegram
+    const fileRes = await fetch(`https://api.telegram.org/bot${token}/getFile?file_id=${fileId}`);
+    const fileData = await fileRes.json();
+    if (!fileData.ok || !fileData.result?.file_path) {
+      return { success: false, error: 'تعذر الحصول على رابط الصورة المباشر من تليجرام' };
+    }
+
+    const filePath = fileData.result.file_path;
+    const directUrl = `https://api.telegram.org/file/bot${token}/${filePath}`;
+
+    return {
+      success: true,
+      url: directUrl,
+      fileId,
+      fileUniqueId,
+    };
+  } catch (err: any) {
+    console.error('Telegram Avatar Upload Error:', err);
+    return { success: false, error: err.message || 'خطأ اتصال أثناء رفع الصورة' };
+  }
+}
+

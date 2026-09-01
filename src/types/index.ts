@@ -91,14 +91,18 @@ export interface UserAchievement {
 }
 
 export interface UserProfile {
-  id: string;
+  id: string; // Permanent Unique Reader ID (e.g. reader_849201984)
   name: string;
   email?: string;
+  telegramUsername?: string; // Telegram Username (@username)
+  passwordHash?: string;
   avatarUrl?: string;
+  telegramFileId?: string;
+  telegramFileUniqueId?: string; // Permanent Immutable Telegram Photo Hash ID
   dailyGoalPages: number;
   enableFlipSound: boolean;
   isLoggedIn: boolean;
-  provider?: 'google' | 'email' | 'guest';
+  provider?: 'email' | 'telegram' | 'guest';
   createdAt: string;
 }
 

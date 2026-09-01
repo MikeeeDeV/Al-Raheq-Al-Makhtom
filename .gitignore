@@ -1,5 +1,5 @@
 # ==========================================
-# Comprehensive Git Ignore - Al-Raheq Al-Makhtom
+# Ultimate Git Ignore - Al-Raheq Al-Makhtom
 # ==========================================
 
 # 1. Dependencies & Package Managers
@@ -7,6 +7,8 @@ node_modules/
 .pnpm-store/
 .yarn/
 package-lock.json.bak
+yarn.lock.bak
+pnpm-lock.yaml.bak
 
 # 2. Production & Build Outputs
 dist/
@@ -17,6 +19,8 @@ out/
 .vercel/
 .turbo/
 *.tsbuildinfo
+stats.html
+report.html
 
 # 3. Environment & Sensitive Credentials
 .env
@@ -27,10 +31,11 @@ out/
 *.key
 *.p12
 
-# 4. Cache & Temporary Runtime Directories
+# 4. Cache, Logs & Runtime Files
 .cache/
 .vite/
 .eslintcache
+.stylelintcache
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -38,7 +43,21 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# 5. IDEs, Editors & Tooling
+# 5. Testing & Coverage
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+.cypress/
+
+# 6. Database & Local Data Dumps
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+*.db
+.supabase/
+
+# 7. IDEs, Editors & Tooling
 .vscode/
 !.vscode/extensions.json
 !.vscode/settings.json
@@ -53,7 +72,14 @@ lerna-debug.log*
 *.tmp
 *.bak
 
-# 6. Operating System Files
+# 8. Compressed Archives & Local Backups
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# 9. Operating System & Linux Files
 .DS_Store
 .DS_Store?
 ._*
@@ -62,8 +88,11 @@ ehthumbs.db
 Thumbs.db
 desktop.ini
 .directory
+*~
+*.orig
+*.rej
 
-# 7. Agent & Local Workspace Scratch Files
+# 10. Agent & Local Scratch Workspace
 .gemini/
 scratch/
 tmp/

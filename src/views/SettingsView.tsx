@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { testSupabaseDatabaseConnection, syncUserProgressToSupabase } from '../services/supabaseClient';
+import { uploadProfileAvatarToTelegram } from '../services/telegramTelemetry';
 import {
   User,
   Settings,
@@ -18,9 +19,8 @@ import {
   Moon,
   Sun,
   Coffee,
-  Sparkles,
-  BookOpen,
-  Award,
+  Camera,
+  Loader2,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -45,9 +45,41 @@ export const SettingsView: React.FC = () => {
   const [isSaved, setIsSaved] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncStatusMsg, setSyncStatusMsg] = useState('');
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [avatarError, setAvatarError] = useState('');
 
   const totalAnswered = Object.keys(answeredQuestions).length;
   const correctCount = Object.values(answeredQuestions).filter((a) => a.isCorrect).length;
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      setAvatarError('حجم الصورة كبير جداً (الأقصى 10 ميجابايت)');
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    setAvatarError('');
+
+    const res = await uploadProfileAvatarToTelegram(
+      file,
+      userProfile.name || 'القارئ',
+      userProfile.id
+    );
+    setIsUploadingAvatar(false);
+
+    if (res.success && res.url) {
+      updateUserProfile({
+        avatarUrl: res.url,
+        telegramFileId: res.fileId,
+        telegramFileUniqueId: res.fileUniqueId,
+      });
+    } else if (res.error) {
+      setAvatarError(res.error);
+    }
+  };
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,12 +150,35 @@ export const SettingsView: React.FC = () => {
 
         <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4 text-center sm:text-right">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-emerald-600 to-teal-800 rounded-3xl flex items-center justify-center text-amber-300 text-2xl font-black shadow-lg border border-emerald-400/40 shrink-0">
-              {userProfile.avatarUrl ? (
-                <img src={userProfile.avatarUrl} alt={userProfile.name} className="w-full h-full rounded-3xl object-cover" />
-              ) : (
-                <User className="w-9 h-9" />
-              )}
+            {/* Avatar with Telegram Upload Overlay */}
+            <div className="relative group shrink-0">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-emerald-600 to-teal-800 rounded-3xl flex items-center justify-center text-amber-300 text-2xl font-black shadow-lg border border-emerald-400/40 overflow-hidden">
+                {isUploadingAvatar ? (
+                  <Loader2 className="w-7 h-7 animate-spin text-amber-300" />
+                ) : userProfile.avatarUrl ? (
+                  <img src={userProfile.avatarUrl} alt={userProfile.name} className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-9 h-9" />
+                )}
+              </div>
+
+              {/* Upload Overlay Button */}
+              <label
+                htmlFor="telegramAvatarUpload"
+                className="absolute inset-0 bg-black/60 rounded-3xl flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-[10px] font-bold gap-1"
+                title="رفع صورة جديدة إلى سحابة تليجرام"
+              >
+                <Camera className="w-4 h-4 text-amber-300" />
+                <span>تغيير</span>
+              </label>
+              <input
+                type="file"
+                id="telegramAvatarUpload"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                className="hidden"
+                disabled={isUploadingAvatar}
+              />
             </div>
 
             <div>
@@ -138,6 +193,7 @@ export const SettingsView: React.FC = () => {
               <p className="text-xs text-emerald-200/80 font-light mt-1">
                 {userProfile.email ? userProfile.email : 'حساب قارئ مخصص — منصة الرحيق المختوم'}
               </p>
+              {avatarError && <p className="text-xs text-rose-300 font-bold mt-1">{avatarError}</p>}
             </div>
           </div>
 
@@ -174,9 +230,20 @@ export const SettingsView: React.FC = () => {
             transition={{ delay: 0.05 }}
             className="bg-m3-surface dark:bg-m3-surface-dark border border-m3-outline-variant/30 rounded-3xl p-6 shadow-md space-y-4"
           >
-            <div className="flex items-center gap-2 text-m3-onSurface font-bold border-b border-m3-outline-variant/20 pb-3">
-              <User className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-              <span>بيانات حساب القارئ</span>
+            <div className="flex items-center justify-between border-b border-m3-outline-variant/20 pb-3">
+              <div className="flex items-center gap-2 text-m3-onSurface font-bold">
+                <User className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                <span>بيانات حساب القارئ</span>
+              </div>
+
+              {/* Direct Upload Avatar Button */}
+              <label
+                htmlFor="telegramAvatarUpload"
+                className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+              >
+                {isUploadingAvatar ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Camera className="w-3.5 h-3.5" />}
+                <span>رفع صورة بـ Telegram</span>
+              </label>
             </div>
 
             <form onSubmit={handleSaveProfile} className="space-y-4">
@@ -203,6 +270,19 @@ export const SettingsView: React.FC = () => {
                   onChange={(e) => setEmailInput(e.target.value)}
                   placeholder="name@example.com"
                   className="w-full px-4 py-2.5 bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-xl text-xs focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-m3-onSurface mb-1.5">
+                  اسم مستخدم تليجرام (لاستعادة كلمة المرور عبر البوت):
+                </label>
+                <input
+                  type="text"
+                  value={userProfile.telegramUsername || ''}
+                  onChange={(e) => updateUserProfile({ telegramUsername: e.target.value })}
+                  placeholder="مثال: @username"
+                  className="w-full px-4 py-2.5 bg-m3-surface-container dark:bg-m3-surface-darkContainer border border-m3-outline-variant/30 rounded-xl text-xs font-bold focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
                 />
               </div>
 
