@@ -39,7 +39,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" fetchpriority="high" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin fetchpriority="high" />
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin fetchpriority="high" />
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
+    <link rel="dns-prefetch" href="https://www.google-analytics.com" />
     <link rel="dns-prefetch" href="https://api.telegram.org" />
+
 
     <!-- PWA Manifest & Web App Settings -->
     <link rel="manifest" href="/manifest.json" />
@@ -59,17 +62,21 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" media="print" onload="this.media='all'" />
 
     <!-- Google Site Verification & Google Analytics 4 Tag -->
+    <!-- ✅ الترتيب الصحيح: الـ config أولاً، ثم السكريبت async -->
+    <!-- هذا هو النمط الرسمي الموصى به من Google تماماً -->
     <meta name="google-site-verification" content="ynKLS3oJEfogGyvBf6_Y-fTmecoMeUm0axP00XQ9z0U" />
-    <script id="ga-gtag-script" async src="https://www.googletagmanager.com/gtag/js?id=G-F9RSXHRTBC"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       window.gtag = gtag;
       gtag('js', new Date());
       gtag('config', 'G-F9RSXHRTBC', {
-        send_page_view: true
+        send_page_view: true,
+        cookie_flags: 'SameSite=None;Secure'
       });
     </script>
+    <script id="ga-gtag-script" async src="https://www.googletagmanager.com/gtag/js?id=G-F9RSXHRTBC"></script>
+
     
     <script type="application/ld+json">
     {
@@ -137,7 +144,7 @@
       ]
     }
     </script>
-    <script type="module" crossorigin src="/assets/index-COQUkT1C.js"></script>
+    <script type="module" crossorigin src="/assets/index-wlNGt0lB.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/vendor-core-DFgR0w3F.js">
     <link rel="modulepreload" crossorigin href="/assets/vendor-utils-CHZmsCjE.js">
     <link rel="modulepreload" crossorigin href="/assets/vendor-motion-l3YvZjnN.js">
