@@ -15,9 +15,19 @@ const GA_MEASUREMENT_ID = (import.meta.env.VITE_GA_MEASUREMENT_ID || 'G-F9RSXHRT
  * Initializes Google Analytics 4 dynamically (Deferred for peak performance / 95+ score)
  */
 export function initGoogleAnalytics() {
-  if (typeof window === 'undefined' || !GA_MEASUREMENT_ID) return;
+  if (typeof window === 'undefined') return;
 
-  // Avoid injecting script twice
+  // Always ensure dataLayer and gtag function exist on window
+  window.dataLayer = window.dataLayer || [];
+  if (!window.gtag) {
+    window.gtag = function (...args: any[]) {
+      window.dataLayer.push(args);
+    };
+  }
+
+  if (!GA_MEASUREMENT_ID) return;
+
+  // Avoid injecting script twice if already loaded (e.g. from index.html)
   if (document.getElementById('ga-gtag-script')) return;
 
   const loadScript = () => {
@@ -29,21 +39,15 @@ export function initGoogleAnalytics() {
     script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
     document.head.appendChild(script);
 
-    window.dataLayer = window.dataLayer || [];
-    function gtag(...args: any[]) {
-      window.dataLayer.push(args);
-    }
-    window.gtag = gtag;
-
-    gtag('js', new Date());
-    gtag('config', GA_MEASUREMENT_ID, {
+    window.gtag!('js', new Date());
+    window.gtag!('config', GA_MEASUREMENT_ID, {
       page_path: window.location.pathname,
       anonymize_ip: true,
       send_page_view: true,
     });
   };
 
-  // Defer injection until browser is idle or post-load to free initial critical render path
+  // Defer injection if not present in head
   if ('requestIdleCallback' in window) {
     window.requestIdleCallback(() => loadScript(), { timeout: 3500 });
   } else {
